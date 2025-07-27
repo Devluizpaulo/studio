@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Briefcase, CalendarClock, Users } from "lucide-react";
+import Link from "next/link";
 
 const stats = [
   { title: "Processos Ativos", value: "12", icon: <Briefcase className="h-8 w-8 text-accent" /> },
@@ -39,9 +40,11 @@ export function DashboardClient() {
                 Aqui está um resumo da sua atividade.
             </p>
         </div>
-        <Button size="lg" className="mt-4 sm:mt-0" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-          <PlusCircle className="mr-2 h-5 w-5" />
-          Novo Processo
+        <Button asChild size="lg" className="mt-4 sm:mt-0" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+          <Link href="/dashboard/processos/novo">
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Novo Processo
+          </Link>
         </Button>
       </div>
 
