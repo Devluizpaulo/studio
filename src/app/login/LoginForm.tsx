@@ -4,6 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +34,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -42,17 +46,23 @@ export function LoginForm() {
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
-    // TODO: Implement Firebase login logic
-    console.log(values);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    toast({
-      title: "Login (Simulação)",
-      description: "Funcionalidade de login a ser implementada.",
-    });
-    setIsLoading(false);
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Login bem-sucedido!",
+        description: "Redirecionando para a página principal.",
+      });
+      router.push("/");
+    } catch (error: any) {
+      console.error("Error during login:", error);
+      toast({
+        title: "Erro no Login",
+        description: error.message || "Credenciais inválidas. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

@@ -1,7 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Menu, LogOut, UserCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -10,6 +22,14 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push("/");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -43,12 +63,14 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="right">
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <SheetDescription className="sr-only">Navegação principal do site</SheetDescription>
+              <SheetDescription className="sr-only">
+                Navegação principal do site
+              </SheetDescription>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
-                   <span className="font-headline text-2xl font-bold text-primary">
-                      JurisAI
-                   </span>
+                  <span className="font-headline text-2xl font-bold text-primary">
+                    JurisAI
+                  </span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
                   <Link
@@ -63,16 +85,36 @@ export default function Header() {
             </SheetContent>
           </Sheet>
         </div>
-        
-        <div className="hidden md:flex items-center ml-6">
-           <Button asChild className="mr-2" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-            <Link href="/signup">Cadastre-se</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/login">Login</Link>
-          </Button>
-        </div>
 
+        <div className="hidden md:flex items-center ml-6">
+          {user ? (
+            <>
+              <span className="mr-4 text-sm font-medium">
+                Olá, {user.displayName || user.email}
+              </span>
+              <Button onClick={handleSignOut} variant="outline">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                asChild
+                className="mr-2"
+                style={{
+                  backgroundColor: "hsl(var(--accent))",
+                  color: "hsl(var(--accent-foreground))",
+                }}
+              >
+                <Link href="/signup">Cadastre-se</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/login">Login</Link>
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

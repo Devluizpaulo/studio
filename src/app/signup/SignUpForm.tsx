@@ -5,6 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function SignUpForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,17 +60,45 @@ export function SignUpForm() {
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
-    // TODO: Implement Firebase signup logic
-    console.log(values);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    toast({
-      title: "Cadastro (Simulação)",
-      description: "Funcionalidade de cadastro a ser implementada.",
-    });
-    setIsLoading(false);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      // Update user profile
+      await updateProfile(user, {
+        displayName: values.fullName
+      });
+
+      // Save additional lawyer data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullName: values.fullName,
+        email: values.email,
+        oab: values.oab,
+        legalSpecialty: values.legalSpecialty,
+        office: values.office,
+        userType: 'lawyer',
+        createdAt: new Date(),
+      });
+
+      toast({
+        title: "Cadastro Realizado com Sucesso!",
+        description: "Você será redirecionado para a página principal.",
+      });
+
+      router.push('/');
+
+    } catch (error: any) {
+      console.error("Error during sign up:", error);
+      toast({
+        title: "Erro no Cadastro",
+        description: error.message || "Ocorreu um erro. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
