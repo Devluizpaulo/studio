@@ -22,6 +22,9 @@ import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   fullName: z.string().min(3, "O nome completo deve ter pelo menos 3 caracteres."),
+  oab: z.string().min(2, "O número da OAB é obrigatório."),
+  legalSpecialty: z.string().min(3, "A especialidade é obrigatória."),
+  office: z.string().min(2, "O nome do escritório é obrigatório."),
   email: z.string().email("Por favor, insira um e-mail válido."),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres."),
   confirmPassword: z.string()
@@ -42,7 +45,10 @@ export function SignUpForm() {
       fullName: "",
       email: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      oab: "",
+      legalSpecialty: "",
+      office: "",
     },
   });
 
@@ -62,11 +68,11 @@ export function SignUpForm() {
   }
 
   return (
-      <Card className="mx-auto max-w-sm">
+      <Card className="mx-auto max-w-md">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Crie sua Conta de Advogado</CardTitle>
           <CardDescription>
-            Comece a usar a JurisAI hoje mesmo.
+            Preencha os campos abaixo para começar a usar a JurisAI.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,12 +85,53 @@ export function SignUpForm() {
                   <FormItem>
                     <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu nome" {...field} />
+                      <Input placeholder="Seu nome completo" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="oab"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nº da OAB</FormLabel>
+                      <FormControl>
+                        <Input placeholder="UF 123456" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="legalSpecialty"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Especialidade Jurídica</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Direito Civil" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <FormField
+                  control={form.control}
+                  name="office"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Escritório</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do seu escritório" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={form.control}
                 name="email"
