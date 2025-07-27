@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
 const navLinks = [
@@ -42,6 +42,8 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetDescription className="sr-only">Navegação principal do site</SheetDescription>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <span className="font-headline text-2xl font-bold text-primary">
