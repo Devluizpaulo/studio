@@ -7,10 +7,10 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Briefcase } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ProcessList, Process } from '../ProcessList' // Reusing the component from the dashboard
+import { ProcessList, Process } from '../ProcessList'
 
 export function ProcessosClient() {
   const { user, loading: authLoading } = useAuth()
@@ -52,8 +52,8 @@ export function ProcessosClient() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Skeleton className="h-9 w-48" />
-          <Skeleton className="h-10 w-40" />
+            <h2 className="text-2xl font-bold tracking-tight">Meus Processos</h2>
+            <p className="text-muted-foreground">Gerencie todos os seus casos em um só lugar.</p>
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
@@ -62,11 +62,7 @@ export function ProcessosClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl font-bold tracking-tight">Meus Processos</h2>
-            <p className="text-muted-foreground">Gerencie todos os seus casos em um só lugar.</p>
-        </div>
+       <div className="flex items-center justify-end">
         <Button asChild style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
             <Link href="/dashboard/processos/novo">
                 <PlusCircle className="mr-2 h-4 w-4" />

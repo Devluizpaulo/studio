@@ -10,6 +10,9 @@ const CreateProcessSchema = z.object({
   processNumber: z.string(),
   court: z.string(),
   actionType: z.string(),
+  plaintiff: z.string(),
+  defendant: z.string(),
+  representation: z.enum(["plaintiff", "defendant"]),
   status: z.enum(["active", "pending", "archived"]),
   lawyerId: z.string(),
 });

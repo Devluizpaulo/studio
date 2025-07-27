@@ -27,7 +27,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Briefcase } from "lucide-react";
+import { Loader2, Briefcase, Users } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const formSchema = z.object({
   clientName: z.string().min(3, "O nome do cliente é obrigatório."),
@@ -35,6 +36,9 @@ const formSchema = z.object({
   processNumber: z.string().min(5, "O número do processo é obrigatório."),
   court: z.string().min(3, "A vara e comarca são obrigatórias."),
   actionType: z.string().min(3, "O tipo de ação é obrigatório."),
+  plaintiff: z.string().min(3, "O nome do autor é obrigatório."),
+  defendant: z.string().min(3, "O nome do réu é obrigatório."),
+  representation: z.enum(["plaintiff", "defendant"], { required_error: "Selecione a sua representação."}),
   status: z.enum(["active", "pending", "archived"]),
 });
 
@@ -54,6 +58,8 @@ export function NewProcessForm() {
       processNumber: "",
       court: "",
       actionType: "",
+      plaintiff: "",
+      defendant: "",
       status: "active",
     },
   });
@@ -72,7 +78,7 @@ export function NewProcessForm() {
         title: "Processo Criado!",
         description: "O novo processo foi adicionado com sucesso.",
       });
-      router.push("/dashboard");
+      router.push("/dashboard/processos");
     } else {
       toast({
         title: "Erro ao Criar Processo",
@@ -101,7 +107,7 @@ export function NewProcessForm() {
                     name="clientName"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Nome do Cliente</FormLabel>
+                        <FormLabel>Nome do Cliente Principal</FormLabel>
                         <FormControl>
                         <Input placeholder="Nome completo do cliente" {...field} />
                         </FormControl>
@@ -136,6 +142,81 @@ export function NewProcessForm() {
                 </FormItem>
                 )}
             />
+
+            <Card className="bg-background/50">
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                        <Users className="mr-3 h-5 w-5 text-accent" />
+                        Partes Envolvidas
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="plaintiff"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Autor(es)</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Nome da parte autora" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="defendant"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Réu(s)</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Nome da parte ré" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                     <FormField
+                        control={form.control}
+                        name="representation"
+                        render={({ field }) => (
+                            <FormItem className="space-y-3">
+                            <FormLabel>Sua Representação</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex items-center gap-x-6"
+                                >
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="plaintiff" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                    Pelo Autor
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                    <FormControl>
+                                    <RadioGroupItem value="defendant" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                    Pelo Réu
+                                    </FormLabel>
+                                </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                </CardContent>
+            </Card>
+
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <FormField
                     control={form.control}
