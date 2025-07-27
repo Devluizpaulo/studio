@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 import { DocumentData } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export interface Process extends DocumentData {
     id: string;
@@ -39,6 +40,8 @@ const statusTextMap = {
 }
 
 export function ProcessList({ processes }: ProcessListProps) {
+  const router = useRouter();
+
   if (processes.length === 0) {
     return (
         <Card className="flex flex-col items-center justify-center p-12 text-center">
@@ -49,6 +52,11 @@ export function ProcessList({ processes }: ProcessListProps) {
     )
   }
 
+  const handleRowClick = (processId: string) => {
+    router.push(`/dashboard/processos/${processId}`);
+  };
+
+
   return (
     <Card>
       <Table>
@@ -58,11 +66,12 @@ export function ProcessList({ processes }: ProcessListProps) {
             <TableHead>Cliente</TableHead>
             <TableHead>Tipo de Ação</TableHead>
             <TableHead className="text-center">Status</TableHead>
+             <TableHead className="text-right"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {processes.map((process) => (
-            <TableRow key={process.id}>
+            <TableRow key={process.id} onClick={() => handleRowClick(process.id)} className="cursor-pointer">
               <TableCell className="font-medium">{process.processNumber}</TableCell>
               <TableCell>{process.clientName}</TableCell>
               <TableCell>{process.actionType}</TableCell>
@@ -70,6 +79,9 @@ export function ProcessList({ processes }: ProcessListProps) {
                  <Badge variant={statusVariantMap[process.status] || 'default'}>
                     {statusTextMap[process.status] || process.status}
                 </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                  <ChevronRight className="h-4 w-4" />
               </TableCell>
             </TableRow>
           ))}
