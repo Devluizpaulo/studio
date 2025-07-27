@@ -27,6 +27,7 @@ export function DashboardClient() {
     }
 
     if (user) {
+      setLoading(true);
       // Fetch Processes
       const processesQuery = query(collection(db, "processes"), where("lawyerId", "==", user.uid));
       const unsubscribeProcesses = onSnapshot(processesQuery, (querySnapshot) => {
@@ -35,10 +36,10 @@ export function DashboardClient() {
           processesData.push({ id: doc.id, ...doc.data() } as Process);
         });
         setProcesses(processesData);
-        if(!loading) setLoading(false);
+        // Defer setting loading to false until both queries have their initial data.
       }, (error) => {
         console.error("Error fetching processes: ", error);
-        if(!loading) setLoading(false);
+        setLoading(false);
       });
 
       // Fetch upcoming events for deadline count
@@ -54,7 +55,7 @@ export function DashboardClient() {
       );
       const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
         setUpcomingDeadlines(querySnapshot.size);
-        setLoading(false);
+        setLoading(false); // Set loading to false after the second query completes
       }, (error) => {
         console.error("Error fetching events: ", error);
         setLoading(false);
@@ -121,21 +122,30 @@ export function DashboardClient() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
-            const cardContent = (
-                 <CardContent>
-                    <div className="text-4xl font-bold text-primary">{stat.value}</div>
-                </CardContent>
+            const CardBody = (
+              <CardContent>
+                <div className="text-4xl font-bold text-primary">{stat.value}</div>
+              </CardContent>
             );
 
-            return (
-                 <Card key={stat.title}>
+            const CardWrapper = ({ children }: { children: React.ReactNode }) => (
+                <Card key={stat.title}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-medium text-foreground/90">{stat.title}</CardTitle>
-                    {stat.icon}
+                        <CardTitle className="text-lg font-medium text-foreground/90">{stat.title}</CardTitle>
+                        {stat.icon}
                     </CardHeader>
-                    {stat.href ? <Link href={stat.href}>{cardContent}</Link> : cardContent}
-              </Card>
-            )
+                    {children}
+                </Card>
+            );
+
+            if (stat.href) {
+                return (
+                    <Link href={stat.href} key={stat.title}>
+                        <CardWrapper>{CardBody}</CardWrapper>
+                    </Link>
+                );
+            }
+            return <CardWrapper>{CardBody}</CardWrapper>;
         })}
       </div>
 
