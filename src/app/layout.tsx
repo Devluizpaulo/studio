@@ -18,8 +18,8 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "RGMJ Law Firm",
-  description: "RGMJ - Professional Legal Services",
+  title: "JurisAI",
+  description: "A plataforma inteligente para gestão jurídica.",
 };
 
 export default function RootLayout({

@@ -5,9 +5,8 @@ import { Menu } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/summarize", label: "Legal Summary Tool" },
-  { href: "/#about", label: "About Us" },
-  { href: "/#practice-areas", label: "Practice Areas" },
+  { href: "/#features", label: "Funcionalidades" },
+  { href: "/summarize", label: "Resumo com IA" },
 ];
 
 export default function Header() {
@@ -17,7 +16,7 @@ export default function Header() {
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <span className="font-headline text-2xl font-bold text-primary">
-              RGMJ
+              JurisAI
             </span>
           </Link>
         </div>
@@ -46,7 +45,7 @@ export default function Header() {
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <span className="font-headline text-2xl font-bold text-primary">
-                      RGMJ
+                      JurisAI
                    </span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
@@ -64,8 +63,11 @@ export default function Header() {
         </div>
         
         <div className="hidden md:flex items-center ml-6">
+           <Button asChild className="mr-2" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Link href="/signup">Cadastre-se</Link>
+          </Button>
           <Button asChild variant="outline">
-            <Link href="/#contact">Contact Us</Link>
+            <Link href="/login">Login</Link>
           </Button>
         </div>
 
