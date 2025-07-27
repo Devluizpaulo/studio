@@ -64,7 +64,7 @@ export function SignUpForm() {
   return (
       <Card className="mx-auto max-w-sm">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Crie sua Conta</CardTitle>
+          <CardTitle className="font-headline text-2xl">Crie sua Conta de Advogado</CardTitle>
           <CardDescription>
             Comece a usar a JurisAI hoje mesmo.
           </CardDescription>

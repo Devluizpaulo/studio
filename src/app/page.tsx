@@ -1,27 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Bot, Briefcase, Users } from "lucide-react";
+import { ArrowRight, Bot, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 const features = [
   {
     icon: <Briefcase className="h-10 w-10 text-accent" />,
-    title: "Para Advogados",
+    title: "Gestão de Processos",
     description: "Otimize sua rotina, gerencie processos com eficiência e utilize nossa IA para obter insights.",
-    link: "/signup/lawyer",
-  },
-  {
-    icon: <Users className="h-10 w-10 text-accent" />,
-    title: "Para Clientes",
-    description: "Acompanhe seu processo de forma clara e transparente, com comunicação direta com seu advogado.",
-    link: "/signup/client",
+    link: "/signup",
   },
   {
     icon: <Bot className="h-10 w-10 text-accent" />,
     title: "Assistente IA",
     description: "Resumos de documentos, respostas para dúvidas e auxílio na criação de petições.",
-    link: "/#ia-features",
+    link: "/summarize",
   },
 ];
 
@@ -31,11 +25,11 @@ export default function Home() {
       <section className="bg-primary/5 py-24 sm:py-32">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-6xl">
-            JurisAI: A Revolução na Gestão Jurídica
+            JurisAI: A Revolução na Gestão Jurídica para Advogados
           </h1>
           <p className="mt-6 text-lg leading-8 text-foreground/80">
-            Inteligência Artificial a serviço de advogados e clientes.
-            Modernize sua advocacia e tenha controle total sobre seus processos.
+            Inteligência Artificial a serviço da sua advocacia.
+            Modernize sua prática e tenha controle total sobre seus processos.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Button asChild size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
@@ -54,12 +48,12 @@ export default function Home() {
       <section id="features" className="py-24 sm:py-32">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-headline text-3xl font-bold tracking-tight text-primary sm:text-4xl">Uma Plataforma Completa</h2>
+            <h2 className="font-headline text-3xl font-bold tracking-tight text-primary sm:text-4xl">Uma Plataforma Completa para o Advogado Moderno</h2>
             <p className="mt-6 text-lg leading-8 text-foreground/80">
-              Oferecemos ferramentas poderosas para cada necessidade do universo jurídico.
+              Oferecemos ferramentas poderosas para cada necessidade do seu dia a dia.
             </p>
           </div>
-          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2">
             {features.map((feature) => (
               <Card key={feature.title} className="transform transition-transform duration-300 hover:scale-105 hover:shadow-lg">
                 <CardHeader className="items-center">
