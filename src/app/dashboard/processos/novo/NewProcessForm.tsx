@@ -87,8 +87,8 @@ export function NewProcessForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center">
-            <Briefcase className="mr-3 h-6 w-6 text-accent" />
+        <CardTitle className="font-headline text-xl flex items-center">
+            <Briefcase className="mr-3 h-5 w-5 text-accent" />
             Detalhes do Processo
         </CardTitle>
       </CardHeader>
@@ -178,7 +178,7 @@ export function NewProcessForm() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="active">Em Andamento</SelectItem>
-                          <SelectItem value="pending">Aguardando Audiência</SelectItem>
+                          <SelectItem value="pending">Aguardando</SelectItem>
                           <SelectItem value="archived">Arquivado</SelectItem>
                         </SelectContent>
                       </Select>

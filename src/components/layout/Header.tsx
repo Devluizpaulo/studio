@@ -6,8 +6,8 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetClose,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 import { Menu, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,9 +63,6 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="right">
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <SheetDescription className="sr-only">
-                Navegação principal do site
-              </SheetDescription>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                   <span className="font-headline text-2xl font-bold text-primary">
@@ -73,22 +70,46 @@ export default function Header() {
                   </span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    className="flex w-full items-center py-2 text-lg font-semibold"
-                  >
-                    {label}
-                  </Link>
+                  <SheetClose asChild key={label}>
+                    <Link
+                      href={href}
+                      className="flex w-full items-center py-2 text-lg font-semibold"
+                    >
+                      {label}
+                    </Link>
+                   </SheetClose>
                 ))}
                  {user && (
-                  <Link
-                    href="/dashboard"
-                    className="flex w-full items-center py-2 text-lg font-semibold"
-                  >
-                    Dashboard
-                  </Link>
+                   <SheetClose asChild>
+                    <Link
+                      href="/dashboard"
+                      className="flex w-full items-center py-2 text-lg font-semibold"
+                    >
+                      Dashboard
+                    </Link>
+                  </SheetClose>
                 )}
+                 <div className="mt-4 border-t pt-4">
+                    {user ? (
+                      <Button onClick={handleSignOut} variant="outline" className="w-full">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sair
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                         <SheetClose asChild>
+                           <Button asChild className="w-full" style={{ backgroundColor: "hsl(var(--accent))", color: "hsl(var(--accent-foreground))" }}>
+                              <Link href="/signup">Cadastre-se</Link>
+                            </Button>
+                         </SheetClose>
+                         <SheetClose asChild>
+                            <Button asChild variant="outline" className="w-full">
+                              <Link href="/login">Login</Link>
+                            </Button>
+                          </SheetClose>
+                      </div>
+                    )}
+                 </div>
               </div>
             </SheetContent>
           </Sheet>
