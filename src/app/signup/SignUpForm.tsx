@@ -84,10 +84,10 @@ export function SignUpForm() {
 
       toast({
         title: "Cadastro Realizado com Sucesso!",
-        description: "Você será redirecionado para a página principal.",
+        description: "Você será redirecionado para o seu dashboard.",
       });
 
-      router.push('/');
+      router.push('/dashboard');
 
     } catch (error: any) {
       console.error("Error during sign up:", error);

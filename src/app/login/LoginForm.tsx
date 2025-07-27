@@ -50,9 +50,9 @@ export function LoginForm() {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Login bem-sucedido!",
-        description: "Redirecionando para a página principal.",
+        description: "Redirecionando para o seu dashboard.",
       });
-      router.push("/");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Error during login:", error);
       toast({

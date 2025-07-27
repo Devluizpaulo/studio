@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Menu, LogOut, UserCircle } from "lucide-react";
+import { Menu, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -81,6 +81,14 @@ export default function Header() {
                     {label}
                   </Link>
                 ))}
+                 {user && (
+                  <Link
+                    href="/dashboard"
+                    className="flex w-full items-center py-2 text-lg font-semibold"
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -89,9 +97,12 @@ export default function Header() {
         <div className="hidden md:flex items-center ml-6">
           {user ? (
             <>
-              <span className="mr-4 text-sm font-medium">
-                Olá, {user.displayName || user.email}
-              </span>
+              <Button asChild variant="ghost" className="mr-2">
+                <Link href="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
+              </Button>
               <Button onClick={handleSignOut} variant="outline">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
