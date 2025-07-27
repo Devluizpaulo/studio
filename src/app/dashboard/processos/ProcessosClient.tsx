@@ -1,0 +1,81 @@
+"use client"
+
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+
+import { Skeleton } from '@/components/ui/skeleton'
+import { PlusCircle, Briefcase } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { ProcessList, Process } from '../ProcessList' // Reusing the component from the dashboard
+
+export function ProcessosClient() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const [processes, setProcesses] = useState<Process[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+      return
+    }
+
+    if (user) {
+      const q = query(
+        collection(db, 'processes'),
+        where('lawyerId', '==', user.uid)
+      )
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const processesData: Process[] = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Process[]
+          setProcesses(processesData)
+          setLoading(false)
+        },
+        (error) => {
+          console.error('Error fetching processes:', error)
+          setLoading(false)
+        }
+      )
+      return () => unsubscribe()
+    }
+  }, [user, authLoading, router])
+
+  if (authLoading || loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-9 w-48" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+            <h2 className="text-2xl font-bold tracking-tight">Meus Processos</h2>
+            <p className="text-muted-foreground">Gerencie todos os seus casos em um só lugar.</p>
+        </div>
+        <Button asChild style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Link href="/dashboard/processos/novo">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Novo Processo
+            </Link>
+        </Button>
+      </div>
+      
+      <ProcessList processes={processes} />
+    </div>
+  )
+}

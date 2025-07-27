@@ -7,6 +7,10 @@ const sidebarNavItems = [
       href: "/dashboard",
     },
     {
+      title: "Processos",
+      href: "/dashboard/processos",
+    },
+    {
       title: "Agenda",
       href: "/dashboard/agenda",
     },
