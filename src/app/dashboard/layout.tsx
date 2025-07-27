@@ -12,6 +12,10 @@ const sidebarNavItems = [
     {
         title: "Processos",
         href: "/dashboard/processos",
+    },
+    {
+        title: "Clientes",
+        href: "/dashboard/clientes",
     }
   ]
 
