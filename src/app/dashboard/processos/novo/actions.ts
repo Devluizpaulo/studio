@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase-admin";
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 
 const CreateProcessSchema = z.object({
@@ -35,14 +35,14 @@ export async function createProcessAction(
     
     // Get user's officeId
     const userDocRef = doc(db, "users", lawyerId);
-    const userDoc = await getDoc(userDocRef);
-    if (!userDoc.exists()) {
+    const userDoc = await userDocRef.get();
+    if (!userDoc.exists) {
         return { success: false, error: "Usuário não encontrado."};
     }
-    const officeId = userDoc.data().officeId;
+    const officeId = userDoc.data()?.officeId;
 
 
-    const docRef = await addDoc(collection(db, "processes"), {
+    const docRef = await db.collection("processes").add({
       ...processData,
       officeId: officeId, // Associate process with the office
       lawyerId: lawyerId, // Owner of the process

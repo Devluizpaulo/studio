@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase"
-import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs } from "firebase/firestore"
+import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc } from "firebase/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
 
 const updateProcessStatusSchema = z.object({
@@ -47,7 +47,7 @@ export async function updateProcessStatusAction(
 // --- Find user by email ---
 const findUserSchema = z.string().email("E-mail inválido.");
 type FindUserResult = 
-    | { success: true; data: { uid: string, fullName: string, email: string } | null }
+    | { success: true; data: { uid: string, fullName: string, email: string, role: string } | null }
     | { success: false; error: string };
 
 export async function findUserByEmailAction(email: string): Promise<FindUserResult> {
@@ -68,7 +68,7 @@ export async function findUserByEmailAction(email: string): Promise<FindUserResu
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
         
-        return { success: true, data: { uid: userData.uid, fullName: userData.fullName, email: userData.email } };
+        return { success: true, data: { uid: userData.uid, fullName: userData.fullName, email: userData.email, role: userData.role } };
 
     } catch (error) {
         console.error("Erro ao buscar usuário:", error);
@@ -81,6 +81,7 @@ export async function findUserByEmailAction(email: string): Promise<FindUserResu
 const addCollaboratorSchema = z.object({
   processId: z.string(),
   collaboratorId: z.string(),
+  currentUserId: z.string(),
 });
 
 type AddCollaboratorResult = 
@@ -95,8 +96,23 @@ export async function addCollaboratorAction(
     return { success: false, error: "Input inválido." };
   }
   try {
-    const { processId, collaboratorId } = parsedInput.data;
+    const { processId, collaboratorId, currentUserId } = parsedInput.data;
     const processRef = doc(db, "processes", processId);
+    const processSnap = await getDoc(processRef);
+
+    if (!processSnap.exists()) {
+        return { success: false, error: "Processo não encontrado." };
+    }
+
+    const processData = processSnap.data();
+    const currentUserDoc = await getDoc(doc(db, "users", currentUserId));
+    const currentUserRole = currentUserDoc.data()?.role;
+
+
+    // Security check: Only owner or master can add collaborators
+    if (processData.lawyerId !== currentUserId && currentUserRole !== 'master') {
+        return { success: false, error: "Apenas o dono do processo ou o administrador podem adicionar colaboradores."}
+    }
 
     await updateDoc(processRef, {
         collaboratorIds: arrayUnion(collaboratorId)
@@ -108,5 +124,3 @@ export async function addCollaboratorAction(
     return { success: false, error: "Falha ao adicionar colaborador. Tente novamente." };
   }
 }
-
-    

@@ -17,6 +17,7 @@ export function ProcessosClient() {
   const router = useRouter()
   const [processes, setProcesses] = useState<Process[]>([])
   const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string|null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -26,21 +27,22 @@ export function ProcessosClient() {
 
     if (user) {
         const userDocRef = doc(db, 'users', user.uid);
-        getDoc(userDocRef).then(userDoc => {
+        const unsubscribeUser = onSnapshot(userDocRef, (userDoc) => {
              if(userDoc.exists()) {
                 const userData = userDoc.data();
+                setUserRole(userData.role);
                 const officeId = userData.officeId;
                 let q;
 
-                if (userData.role === 'master') {
-                    // Master user sees all processes in the office
+                if (userData.role === 'master' || userData.role === 'secretary') {
+                    // Master and Secretary see all processes in the office
                     q = query(collection(db, 'processes'), where('officeId', '==', officeId));
                 } else {
                     // Regular lawyer sees processes they are part of
                     q = query(collection(db, 'processes'), where('collaboratorIds', 'array-contains', user.uid));
                 }
 
-                const unsubscribe = onSnapshot(
+                const unsubscribeProcesses = onSnapshot(
                     q,
                     (snapshot) => {
                     const processesData: Process[] = snapshot.docs.map((doc) => ({
@@ -55,11 +57,12 @@ export function ProcessosClient() {
                     setLoading(false)
                     }
                 )
-                return () => unsubscribe()
+                return () => unsubscribeProcesses();
              } else {
                  setLoading(false);
              }
         })
+        return () => unsubscribeUser();
     }
   }, [user, authLoading, router])
 
@@ -77,13 +80,16 @@ export function ProcessosClient() {
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center justify-end">
-        <Button asChild style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-            <Link href="/dashboard/processos/novo">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Novo Processo
-            </Link>
-        </Button>
+       <div className="flex items-center justify-between">
+         <div/>
+         {userRole !== 'secretary' && (
+            <Button asChild style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                <Link href="/dashboard/processos/novo">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Novo Processo
+                </Link>
+            </Button>
+         )}
       </div>
       
       <ProcessList processes={processes} />

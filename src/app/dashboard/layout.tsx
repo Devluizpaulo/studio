@@ -31,6 +31,7 @@ const sidebarNavItems = [
     {
       title: "Perfil",
       href: "/dashboard/perfil",
+      role: ["master", "lawyer"],
     }
   ]
 

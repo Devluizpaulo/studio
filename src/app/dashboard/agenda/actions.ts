@@ -2,15 +2,15 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase"
-import { collection, addDoc, Timestamp } from "firebase/firestore"
+import { collection, addDoc, Timestamp, doc, getDoc } from "firebase/firestore"
 
 const createEventSchema = z.object({
   title: z.string(),
   date: z.date(),
   type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
   description: z.string().optional(),
-  lawyerId: z.string(),
-  processId: z.string().optional(), // Add optional processId
+  lawyerId: z.string(), // ID of the user creating the event
+  processId: z.string().optional(),
 })
 
 type Result =
@@ -29,9 +29,23 @@ export async function createEventAction(
   try {
     const { lawyerId, date, processId, ...eventData } = parsedInput.data
     
+    // Get user's officeId
+    const userDocRef = doc(db, "users", lawyerId);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+        return { success: false, error: "Usuário não encontrado." };
+    }
+    const officeId = userDoc.data()?.officeId;
+    if (!officeId) {
+        return { success: false, error: "Escritório do usuário não encontrado." };
+    }
+
+
     const docData: any = {
       ...eventData,
-      lawyerId: lawyerId,
+      createdBy: lawyerId, // Keep track of who created the event
+      lawyerId: lawyerId, // By default, event is for the creator
+      officeId: officeId, // Associate event with the office
       date: Timestamp.fromDate(date),
     }
 

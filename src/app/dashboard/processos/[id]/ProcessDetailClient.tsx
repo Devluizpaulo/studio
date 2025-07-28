@@ -39,6 +39,7 @@ interface Collaborator {
     uid: string;
     fullName: string;
     email: string;
+    role: string;
 }
 
 interface ProcessEvent extends DocumentData {
@@ -79,6 +80,8 @@ export function ProcessDetailClient() {
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
   const [searchError, setSearchError] = useState("");
+  const [userRole, setUserRole] = useState<string|null>(null);
+
 
   const eventForm = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -91,21 +94,23 @@ export function ProcessDetailClient() {
   })
 
 
-  const fetchProcessAndCollaborators = async (processId: string) => {
-    if (!user) return;
+  const fetchProcessAndCollaborators = async (processId: string, currentUserData: DocumentData) => {
     setLoading(true);
-
     try {
-        const docRef = doc(db, "processes", processId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            const userData = userDocSnap.data();
-
-            if ( (userData?.role === 'master' && userData?.officeId === data.officeId) || (data.collaboratorIds && data.collaboratorIds.includes(user.uid))) {
+        const processDocRef = doc(db, "processes", processId);
+        const unsubscribeProcess = onSnapshot(processDocRef, async (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // Permission Check
+                const canView = (currentUserData.role === 'master' || currentUserData.role === 'secretary' || (data.collaboratorIds && data.collaboratorIds.includes(currentUserData.uid)));
+                
+                if (!canView || currentUserData.officeId !== data.officeId) {
+                    toast({ title: "Erro", description: "Acesso negado.", variant: "destructive" });
+                    router.push("/dashboard/processos");
+                    return;
+                }
+                
                 setProcessData({ id: docSnap.id, ...data });
 
                 if (data.collaboratorIds && data.collaboratorIds.length > 0) {
@@ -114,48 +119,59 @@ export function ProcessDetailClient() {
                     const collaboratorsData = usersSnap.docs.map(doc => doc.data() as Collaborator);
                     setCollaborators(collaboratorsData);
                 }
-
+                 setLoading(false);
             } else {
-                toast({ title: "Erro", description: "Acesso negado.", variant: "destructive" });
+                toast({ title: "Erro", description: "Processo não encontrado.", variant: "destructive" });
                 router.push("/dashboard/processos");
+                setLoading(false);
             }
-        } else {
-            toast({ title: "Erro", description: "Processo não encontrado.", variant: "destructive" });
-            router.push("/dashboard/processos");
-        }
+        });
+
+        // Subscribe to process events
+        const eventsQuery = query(collection(db, "events"), where("processId", "==", processId));
+        const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
+            const eventsData: ProcessEvent[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessEvent);
+            setProcessEvents(eventsData.sort((a, b) => a.date.toMillis() - b.date.toMillis()));
+        });
+
+        return () => {
+            unsubscribeProcess();
+            unsubscribeEvents();
+        };
+
     } catch (error) {
         console.error("Error fetching data:", error);
         toast({ title: "Erro", description: "Falha ao carregar os dados do processo.", variant: "destructive" });
-    } finally {
         setLoading(false);
     }
   };
 
 
   useEffect(() => {
-    if (authLoading) return
+    if (authLoading) return;
     if (!user) {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
-
     if (typeof id !== 'string') {
         router.push("/dashboard/processos");
         return;
     }
 
-    fetchProcessAndCollaborators(id)
-
-    // Subscribe to process events
-    const eventsQuery = query(collection(db, "events"), where("processId", "==", id));
-    const unsubscribe = onSnapshot(eventsQuery, (snapshot) => {
-        const eventsData: ProcessEvent[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessEvent);
-        setProcessEvents(eventsData.sort((a, b) => a.date.toMillis() - b.date.toMillis()));
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setUserRole(userData.role);
+            fetchProcessAndCollaborators(id, userData);
+        } else {
+             router.push("/login");
+        }
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeUser();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user, authLoading, router])
+  }, [id, user, authLoading, router]);
 
   const handleUpdateStatus = () => {
     if (!processData || typeof id !== 'string') return;
@@ -174,7 +190,6 @@ export function ProcessDetailClient() {
                 title: "Andamento Atualizado!",
                 description: "Um novo andamento foi adicionado ao processo."
             })
-            // No need to refetch, onSnapshot will update movements
         } else {
             toast({
                 title: "Erro ao Atualizar",
@@ -198,6 +213,10 @@ export function ProcessDetailClient() {
             setSearchError("Este advogado já é um colaborador.");
             return;
         }
+        if (result.data.role === 'secretary') {
+             setSearchError("Não é possível adicionar secretárias como colaboradoras diretas do processo.");
+            return;
+        }
         setFoundUser(result.data);
     } else {
         setSearchError(result.error || "Nenhum advogado encontrado com este e-mail.");
@@ -205,16 +224,15 @@ export function ProcessDetailClient() {
   }
 
   const handleAddCollaborator = async () => {
-    if (!foundUser || typeof id !== 'string') return;
+    if (!foundUser || typeof id !== 'string' || !user) return;
 
     startAddCollaboratorTransition(async () => {
-        const result = await addCollaboratorAction({ processId: id, collaboratorId: foundUser.uid });
+        const result = await addCollaboratorAction({ processId: id, collaboratorId: foundUser.uid, currentUserId: user.uid });
         if (result.success) {
             toast({ title: "Colaborador Adicionado!", description: `${foundUser.fullName} agora faz parte da equipe deste processo.`});
             setAddCollaboratorDialogOpen(false);
             setCollaboratorEmail("");
             setFoundUser(null);
-            await fetchProcessAndCollaborators(id);
         } else {
             toast({ title: "Erro", description: result.error, variant: "destructive" });
         }
@@ -346,7 +364,7 @@ export function ProcessDetailClient() {
                      <Shield className="mr-3 h-5 w-5 text-accent" />
                     Equipe Jurídica
                  </CardTitle>
-                 {user?.uid === processData.lawyerId && (
+                 {(userRole === 'master' || user?.uid === processData.lawyerId) && (
                      <Dialog open={isAddCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -358,7 +376,7 @@ export function ProcessDetailClient() {
                             <DialogHeader>
                                 <DialogTitle>Adicionar Advogado ao Processo</DialogTitle>
                                 <DialogDescription>
-                                    Procure por um advogado cadastrado na plataforma pelo e-mail para adicioná-lo como colaborador.
+                                    Procure por um advogado do seu escritório pelo e-mail para adicioná-lo como colaborador.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex gap-2">
@@ -439,10 +457,12 @@ export function ProcessDetailClient() {
                 <CardTitle>Últimos Andamentos</CardTitle>
                 <CardDescription>Histórico de movimentações do processo.</CardDescription>
               </div>
-               <Button variant="outline" onClick={handleUpdateStatus} disabled={isUpdating}>
-                {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Atualizar Andamento
-              </Button>
+              {userRole !== 'secretary' && (
+                <Button variant="outline" onClick={handleUpdateStatus} disabled={isUpdating}>
+                    {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Atualizar Andamento
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
                 {movements.length > 0 ? (
@@ -464,7 +484,7 @@ export function ProcessDetailClient() {
                 ) : (
                     <div className="text-center text-muted-foreground py-12">
                         <p>Nenhum andamento registrado para este processo.</p>
-                        <p className="text-sm mt-2">Clique em "Atualizar Andamento" para buscar a primeira movimentação.</p>
+                         {userRole !== 'secretary' && <p className="text-sm mt-2">Clique em "Atualizar Andamento" para buscar a primeira movimentação.</p>}
                     </div>
                 )}
             </CardContent>
@@ -477,9 +497,7 @@ export function ProcessDetailClient() {
                 <CardTitle>Documentos do Processo</CardTitle>
                 <CardDescription>Faça upload e gerencie os arquivos do caso.</CardDescription>
               </div>
-              <Button variant="outline">
-                Adicionar Documento
-              </Button>
+              {userRole !== 'secretary' && <Button variant="outline">Adicionar Documento</Button>}
             </CardHeader>
             <CardContent className="text-center text-muted-foreground py-12">
                 <p>Funcionalidade de gestão de documentos em desenvolvimento.</p>

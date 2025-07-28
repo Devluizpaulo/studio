@@ -29,15 +29,15 @@ export function DashboardClient() {
 
     if (user) {
       const userDocRef = doc(db, 'users', user.uid);
-      getDoc(userDocRef).then(userDoc => {
+      const unsubscribeUser = onSnapshot(userDocRef, (userDoc) => {
         if(userDoc.exists()) {
           const userData = userDoc.data();
           setUserRole(userData.role);
           const officeId = userData.officeId;
 
           let processesQuery;
-          // Master user can see all processes from the office
-          if(userData.role === 'master') {
+          // Master and Secretary can see all processes from the office
+          if(userData.role === 'master' || userData.role === 'secretary') {
              processesQuery = query(collection(db, "processes"), where("officeId", "==", officeId));
           } else {
           // Normal lawyer can see only processes they are collaborating on
@@ -52,20 +52,20 @@ export function DashboardClient() {
             setProcesses(processesData);
           }, (error) => {
             console.error("Error fetching processes: ", error);
-            setLoading(false);
           });
           
-          // Fetch upcoming events for deadline count (for the specific lawyer)
+          // Fetch upcoming events for deadline count (for the whole office)
           const today = new Date();
           const nextWeek = new Date(today);
           nextWeek.setDate(today.getDate() + 7);
           
           const eventsQuery = query(
             collection(db, "events"), 
-            where("lawyerId", "==", user.uid),
+            where("officeId", "==", officeId),
             where("date", ">=", Timestamp.fromDate(today)),
             where("date", "<=", Timestamp.fromDate(nextWeek)),
           );
+
           const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
             setUpcomingDeadlines(querySnapshot.size);
             setLoading(false);
@@ -82,6 +82,8 @@ export function DashboardClient() {
             setLoading(false);
         }
       })
+
+      return () => unsubscribeUser();
     }
   }, [user, authLoading, router]);
 
@@ -93,7 +95,7 @@ export function DashboardClient() {
                 <Skeleton className="h-9 w-72" />
                 <Skeleton className="h-6 w-96" />
             </div>
-            <Skeleton className="h-12 w-48 mt-4 sm:mt-0" />
+            {userRole !== 'secretary' && <Skeleton className="h-12 w-48 mt-4 sm:mt-0" />}
         </div>
          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Skeleton className="h-32" />
@@ -111,6 +113,11 @@ export function DashboardClient() {
   const activeProcessesCount = processes.filter(p => p.status === 'active').length;
   const clientCount = new Set(processes.map(p => p.clientName)).size;
 
+  const roleTextMap: { [key: string]: string } = {
+    master: '[Admin do Escritório]',
+    secretary: '[Secretária(o)]'
+  }
+
   const stats = [
     { title: "Processos Ativos", value: activeProcessesCount.toString(), icon: <Briefcase className="h-8 w-8 text-accent" /> },
     { title: "Clientes", value: clientCount.toString(), icon: <Users className="h-8 w-8 text-accent" /> },
@@ -122,19 +129,21 @@ export function DashboardClient() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
             <h2 className="text-2xl font-bold tracking-tight">
-                Bem-vindo(a), {user.displayName || 'Advogado(a)'}!
+                Bem-vindo(a), {user.displayName || 'Usuário(a)'}!
             </h2>
             <p className="text-muted-foreground mt-1">
-                {userRole === 'master' && <span className="font-semibold text-accent">[Admin do Escritório] </span>}
-                Aqui está um resumo da sua atividade.
+                {userRole && roleTextMap[userRole] && <span className="font-semibold text-accent">{roleTextMap[userRole]} </span>}
+                Aqui está um resumo da atividade do escritório.
             </p>
         </div>
-        <Button asChild size="lg" className="mt-4 sm:mt-0" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-          <Link href="/dashboard/processos/novo">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Novo Processo
-          </Link>
-        </Button>
+        {userRole !== 'secretary' && (
+            <Button asChild size="lg" className="mt-4 sm:mt-0" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+              <Link href="/dashboard/processos/novo">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Novo Processo
+              </Link>
+            </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -167,7 +176,7 @@ export function DashboardClient() {
       </div>
 
        <div className="mt-4">
-        <h3 className="text-xl font-bold tracking-tight mb-4">Processos Recentes</h3>
+        <h3 className="text-xl font-bold tracking-tight mb-4">Processos Recentes do Escritório</h3>
         <ProcessList processes={processes.slice(0, 5)} />
        </div>
     </div>

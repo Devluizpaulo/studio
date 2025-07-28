@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User } from 'lucide-react'
+import { Loader2, User, BadgeHelp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { updateProfileAction } from './actions'
 
@@ -41,6 +41,7 @@ export function ProfileClient() {
 
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userRole, setUserRole] = useState<string|null>(null)
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -53,21 +54,21 @@ export function ProfileClient() {
     }
 
     if (user) {
-      const fetchUserData = async () => {
         const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            form.reset({
-                fullName: userData.fullName,
-                oab: userData.oab,
-                legalSpecialty: userData.legalSpecialty,
-                office: userData.office,
-            })
-        }
-        setLoading(false);
-      }
-      fetchUserData();
+        const unsubscribe = onSnapshot(userDocRef, (userDoc) => {
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                setUserRole(userData.role);
+                form.reset({
+                    fullName: userData.fullName,
+                    oab: userData.oab,
+                    legalSpecialty: userData.legalSpecialty,
+                    office: userData.office,
+                })
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
     }
   }, [user, authLoading, router, form])
 
@@ -94,6 +95,16 @@ export function ProfileClient() {
             <Skeleton className="h-80 w-full" />
         </div>
     )
+  }
+
+  if (userRole === 'secretary') {
+     return (
+        <Card className="flex flex-col items-center justify-center p-12 text-center">
+            <BadgeHelp className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold text-foreground">Página de Perfil</h3>
+            <p className="text-muted-foreground mt-2">As informações de perfil são gerenciadas pelo administrador.</p>
+        </Card>
+    );
   }
 
   return (

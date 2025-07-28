@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { collection, query, where, onSnapshot, DocumentData } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, DocumentData, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -62,6 +62,7 @@ export function ClientesClient() {
   const [loading, setLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userRole, setUserRole] = useState<string|null>(null);
 
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
@@ -81,30 +82,31 @@ export function ClientesClient() {
     }
 
     if (user) {
-      const q = query(
-        collection(db, 'clients'),
-        where('lawyerId', '==', user.uid)
-      )
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const clientsData: Client[] = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Client[]
-          setClients(clientsData)
-          setLoading(false)
-        },
-        (error) => {
-          console.error('Error fetching clients:', error)
-          toast({
-            title: 'Erro ao buscar clientes',
-            variant: 'destructive',
-          })
-          setLoading(false)
-        }
-      )
-      return () => unsubscribe()
+        const userDocRef = doc(db, 'users', user.uid);
+        const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                setUserRole(userData.role);
+                const officeId = userData.officeId;
+
+                const q = query(collection(db, 'clients'), where('officeId', '==', officeId));
+                const unsubscribeClients = onSnapshot(q, (snapshot) => {
+                    const clientsData: Client[] = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })) as Client[];
+                    setClients(clientsData);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error fetching clients:", error);
+                    setLoading(false);
+                });
+                return () => unsubscribeClients();
+            } else {
+                setLoading(false);
+            }
+        });
+        return () => unsubscribeUser();
     }
   }, [user, authLoading, router, toast])
 
@@ -142,99 +144,101 @@ export function ClientesClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-            <h2 className="text-2xl font-bold tracking-tight">Meus Clientes</h2>
-            <p className="text-muted-foreground">Gerencie sua carteira de clientes.</p>
+            <h2 className="text-2xl font-bold tracking-tight">Clientes do Escritório</h2>
+            <p className="text-muted-foreground">Gerencie a carteira de clientes.</p>
         </div>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Novo Cliente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome completo do cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {userRole !== 'secretary' && (
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+                <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Novo Cliente
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
                     <FormField
                     control={form.control}
-                    name="email"
+                    name="fullName"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>E-mail</FormLabel>
+                        <FormLabel>Nome Completo</FormLabel>
                         <FormControl>
-                            <Input placeholder="email@cliente.com" {...field} />
+                            <Input placeholder="Nome completo do cliente" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>E-mail</FormLabel>
+                            <FormControl>
+                                <Input placeholder="email@cliente.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="(XX) XXXXX-XXXX" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="document"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>CPF / CNPJ</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Número do documento" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                     <FormField
                     control={form.control}
-                    name="phone"
+                    name="address"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel>Endereço</FormLabel>
                         <FormControl>
-                            <Input placeholder="(XX) XXXXX-XXXX" {...field} />
+                            <Input placeholder="Endereço completo do cliente" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
-                </div>
-                <FormField
-                    control={form.control}
-                    name="document"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>CPF / CNPJ</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Número do documento" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Endereço</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Endereço completo do cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Salvar Cliente
-                    </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                    <DialogFooter>
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Cliente
+                        </Button>
+                    </DialogFooter>
+                </form>
+                </Form>
+            </DialogContent>
+            </Dialog>
+        )}
       </div>
 
        <Card>
@@ -244,7 +248,7 @@ export function ClientesClient() {
             Lista de Clientes
           </CardTitle>
            <CardDescription>
-            {clients.length > 0 ? `Você tem ${clients.length} cliente(s) cadastrado(s).` : 'Nenhum cliente cadastrado ainda.'}
+            {clients.length > 0 ? `Seu escritório tem ${clients.length} cliente(s) cadastrado(s).` : 'Nenhum cliente cadastrado ainda.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -273,7 +277,7 @@ export function ClientesClient() {
              <div className="flex flex-col items-center justify-center p-12 text-center">
                 <FileText className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold text-foreground">Nenhum cliente cadastrado</h3>
-                <p className="text-muted-foreground mt-2">Comece adicionando seu primeiro cliente no botão "Novo Cliente".</p>
+                <p className="text-muted-foreground mt-2">Peça para um advogado cadastrar o primeiro cliente.</p>
             </div>
            )}
         </CardContent>

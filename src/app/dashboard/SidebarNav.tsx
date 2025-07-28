@@ -13,7 +13,7 @@ import { buttonVariants } from "@/components/ui/button"
 interface NavItem {
   href: string
   title: string
-  role?: string
+  role?: string | string[]
 }
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -39,10 +39,13 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   }, [user])
 
   const filteredItems = items.filter(item => {
-    if (item.role) {
-      return userRole === item.role;
+    if (!item.role) {
+      return true; // Item visible to all roles
     }
-    return true;
+    if (Array.isArray(item.role)) {
+      return userRole && item.role.includes(userRole);
+    }
+    return userRole === item.role;
   })
 
   return (

@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore"
 
 const createClientSchema = z.object({
   fullName: z.string().min(3, "O nome é obrigatório."),
@@ -10,7 +10,7 @@ const createClientSchema = z.object({
   phone: z.string().min(10, "O telefone é obrigatório."),
   document: z.string().min(11, "O CPF/CNPJ é obrigatório."),
   address: z.string().min(5, "O endereço é obrigatório."),
-  lawyerId: z.string(),
+  lawyerId: z.string(), // ID of the lawyer creating the client
 })
 
 type Result =
@@ -29,9 +29,21 @@ export async function createClientAction(
   try {
     const { lawyerId, ...clientData } = parsedInput.data
     
+    // Get user's officeId
+    const userDocRef = doc(db, "users", lawyerId);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+        return { success: false, error: "Usuário não encontrado." };
+    }
+    const officeId = userDoc.data()?.officeId;
+    if (!officeId) {
+        return { success: false, error: "Escritório do usuário não encontrado." };
+    }
+
     const docRef = await addDoc(collection(db, "clients"), {
       ...clientData,
-      lawyerId: lawyerId,
+      createdBy: lawyerId,
+      officeId: officeId, // Associate client with the office
       createdAt: serverTimestamp(),
     })
 
