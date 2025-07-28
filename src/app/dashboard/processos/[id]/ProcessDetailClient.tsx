@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProcessStatusAction } from "./actions"
+import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction } from "./actions"
 import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,9 +14,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 
 
 interface Movement {
@@ -41,7 +43,14 @@ export function ProcessDetailClient() {
   const [processData, setProcessData] = useState<DocumentData | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true)
-  const [isUpdating, startTransition] = useTransition();
+  const [isUpdating, startUpdateTransition] = useTransition();
+  const [isAddingCollaborator, startAddCollaboratorTransition] = useTransition();
+
+  const [isAddCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
+  const [searchError, setSearchError] = useState("");
+
 
   const fetchProcessAndCollaborators = async (processId: string) => {
     if (!user) return;
@@ -53,10 +62,14 @@ export function ProcessDetailClient() {
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.collaboratorIds && data.collaboratorIds.includes(user.uid)) {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            const userData = userDocSnap.data();
+
+            // Access control: user is master in the same office OR is a collaborator
+            if ( (userData?.role === 'master' && userData?.officeId === data.officeId) || (data.collaboratorIds && data.collaboratorIds.includes(user.uid))) {
                 setProcessData({ id: docSnap.id, ...data });
 
-                // Fetch collaborators' details
                 if (data.collaboratorIds && data.collaboratorIds.length > 0) {
                     const usersQuery = query(collection(db, 'users'), where('uid', 'in', data.collaboratorIds));
                     const usersSnap = await getDocs(usersQuery);
@@ -100,7 +113,7 @@ export function ProcessDetailClient() {
   const handleUpdateStatus = () => {
     if (!processData || typeof id !== 'string') return;
 
-    startTransition(async () => {
+    startUpdateTransition(async () => {
         const result = await updateProcessStatusAction({
             processId: id,
             processNumber: processData.processNumber,
@@ -114,7 +127,6 @@ export function ProcessDetailClient() {
                 title: "Andamento Atualizado!",
                 description: "Um novo andamento foi adicionado ao processo."
             })
-            // Refetch data to show the new movement
             await fetchProcessAndCollaborators(id);
         } else {
             toast({
@@ -124,6 +136,42 @@ export function ProcessDetailClient() {
             })
         }
     })
+  }
+
+  const handleSearchUser = async () => {
+    setSearchError("");
+    setFoundUser(null);
+    if (!collaboratorEmail) {
+        setSearchError("Por favor, insira um e-mail.");
+        return;
+    }
+    const result = await findUserByEmailAction(collaboratorEmail);
+    if (result.success && result.data) {
+        if (collaborators.some(c => c.uid === result.data?.uid)) {
+            setSearchError("Este advogado já é um colaborador.");
+            return;
+        }
+        setFoundUser(result.data);
+    } else {
+        setSearchError(result.error || "Nenhum advogado encontrado com este e-mail.");
+    }
+  }
+
+  const handleAddCollaborator = async () => {
+    if (!foundUser || typeof id !== 'string') return;
+
+    startAddCollaboratorTransition(async () => {
+        const result = await addCollaboratorAction({ processId: id, collaboratorId: foundUser.uid });
+        if (result.success) {
+            toast({ title: "Colaborador Adicionado!", description: `${foundUser.fullName} agora faz parte da equipe deste processo.`});
+            setAddCollaboratorDialogOpen(false);
+            setCollaboratorEmail("");
+            setFoundUser(null);
+            await fetchProcessAndCollaborators(id); // refetch data
+        } else {
+            toast({ title: "Erro", description: result.error, variant: "destructive" });
+        }
+    });
   }
 
 
@@ -227,10 +275,53 @@ export function ProcessDetailClient() {
                     Equipe Jurídica
                  </CardTitle>
                  {user?.uid === processData.lawyerId && (
-                     <Button variant="outline" size="sm">
-                        <UserPlus className="mr-2 h-4 w-4"/>
-                        Adicionar
-                    </Button>
+                     <Dialog open={isAddCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <UserPlus className="mr-2 h-4 w-4"/>
+                                Adicionar
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Adicionar Advogado ao Processo</DialogTitle>
+                                <DialogDescription>
+                                    Procure por um advogado cadastrado na plataforma pelo e-mail para adicioná-lo como colaborador.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex gap-2">
+                                <Input 
+                                    value={collaboratorEmail}
+                                    onChange={(e) => setCollaboratorEmail(e.target.value)}
+                                    placeholder="email.do.advogado@exemplo.com"
+                                />
+                                <Button variant="secondary" onClick={handleSearchUser}><Search className="h-4 w-4"/></Button>
+                            </div>
+                            {searchError && <p className="text-sm text-destructive">{searchError}</p>}
+                            {foundUser && (
+                                <Card className="mt-4 p-4">
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarFallback>{foundUser.fullName.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold">{foundUser.fullName}</p>
+                                            <p className="text-sm text-muted-foreground">{foundUser.email}</p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
+                            <DialogFooter>
+                                <Button 
+                                    onClick={handleAddCollaborator} 
+                                    disabled={!foundUser || isAddingCollaborator}
+                                >
+                                     {isAddingCollaborator && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Adicionar à Equipe
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                     </Dialog>
                  )}
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
@@ -288,7 +379,7 @@ export function ProcessDetailClient() {
                             <div key={index} className="flex space-x-4">
                                <div className="flex flex-col items-center">
                                     <div className="w-4 h-4 rounded-full bg-accent mt-1"></div>
-                                    <div className="flex-grow w-px bg-border"></div>
+                                    {index < movements.length - 1 && <div className="flex-grow w-px bg-border"></div>}
                                 </div>
                                 <div>
                                     <p className="font-semibold">{mov.description}</p>
@@ -343,3 +434,5 @@ export function ProcessDetailClient() {
     </div>
   )
 }
+
+    
