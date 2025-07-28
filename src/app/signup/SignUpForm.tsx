@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, getDocs, collection, query, limit } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 
@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 const formSchema = z.object({
   fullName: z.string().min(3, "O nome completo deve ter pelo menos 3 caracteres."),
@@ -62,19 +64,26 @@ export function SignUpForm() {
     setIsLoading(true);
     
     try {
-      // Check if any user exists to determine the role
-      const usersQuery = query(collection(db, "users"), limit(1));
-      const existingUsersSnapshot = await getDocs(usersQuery);
-      const isFirstUser = existingUsersSnapshot.empty;
-      
-      const userRole = isFirstUser ? 'master' : 'lawyer';
-      const officeId = isFirstUser ? `office_${Date.now()}` : existingUsersSnapshot.docs[0].data().officeId;
+      // An office can only be created if there are no other users/offices yet.
+      const usersQuery = query(collection(db, "users"), where("role", "==", "master"));
+      const masterUsersSnapshot = await getDocs(usersQuery);
 
+      if(!masterUsersSnapshot.empty) {
+        toast({
+          title: "Cadastro não permitido",
+          description: "Um escritório já foi criado. Novos usuários devem ser convidados pelo administrador.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const userRole = 'master';
+      const officeId = `office_${Date.now()}`;
 
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // Update user profile
       await updateProfile(user, {
         displayName: values.fullName
       });
@@ -94,7 +103,7 @@ export function SignUpForm() {
 
       toast({
         title: "Cadastro Realizado com Sucesso!",
-        description: `Seu cargo é: ${userRole}. Você será redirecionado.`,
+        description: `Seu escritório foi criado e seu cargo é: ${userRole}. Você será redirecionado.`,
       });
 
       router.push('/dashboard');
@@ -114,9 +123,9 @@ export function SignUpForm() {
   return (
       <Card className="mx-auto max-w-md">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Crie sua Conta de Advogado</CardTitle>
+          <CardTitle className="font-headline text-2xl">Crie a Conta do seu Escritório</CardTitle>
           <CardDescription>
-            Preencha os campos abaixo para começar a usar a JurisAI.
+            Preencha os campos para criar a conta de Administrador (Master). Futuros usuários serão convidados por você.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,7 +136,7 @@ export function SignUpForm() {
                 name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
+                    <FormLabel>Seu Nome Completo (Administrador)</FormLabel>
                     <FormControl>
                       <Input placeholder="Seu nome completo" {...field} />
                     </FormControl>
@@ -135,13 +144,26 @@ export function SignUpForm() {
                   </FormItem>
                 )}
               />
+               <FormField
+                  control={form.control}
+                  name="office"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Escritório</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do seu escritório" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <FormField
                   control={form.control}
                   name="oab"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nº da OAB</FormLabel>
+                      <FormLabel>Sua OAB</FormLabel>
                       <FormControl>
                         <Input placeholder="UF 123456" {...field} />
                       </FormControl>
@@ -154,7 +176,7 @@ export function SignUpForm() {
                   name="legalSpecialty"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Especialidade Jurídica</FormLabel>
+                      <FormLabel>Sua Especialidade</FormLabel>
                       <FormControl>
                         <Input placeholder="Direito Civil" {...field} />
                       </FormControl>
@@ -163,25 +185,12 @@ export function SignUpForm() {
                   )}
                 />
               </div>
-               <FormField
-                  control={form.control}
-                  name="office"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Escritório</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do seu escritório" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel>Seu E-mail de Login</FormLabel>
                     <FormControl>
                       <Input placeholder="seu@email.com" {...field} />
                     </FormControl>
@@ -194,7 +203,7 @@ export function SignUpForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel>Sua Senha</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="********" {...field} />
                     </FormControl>
@@ -215,10 +224,18 @@ export function SignUpForm() {
                   </FormItem>
                 )}
               />
+              <Alert>
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Atenção!</AlertTitle>
+                <AlertDescription>
+                  Este formulário é apenas para criar o primeiro administrador do escritório. Outros advogados e secretárias deverão ser convidados através do painel de equipe após o login.
+                </AlertDescription>
+              </Alert>
+
 
               <Button type="submit" disabled={isLoading} className="w-full" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Criar Conta
+                Criar Conta do Escritório
               </Button>
             </form>
           </Form>

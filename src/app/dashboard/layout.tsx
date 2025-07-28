@@ -19,6 +19,11 @@ const sidebarNavItems = [
         href: "/dashboard/clientes",
     },
     {
+      title: "Equipe",
+      href: "/dashboard/equipe",
+      role: "master"
+    },
+    {
       title: "Perfil",
       href: "/dashboard/perfil",
     }
