@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -430,11 +430,11 @@ export function ProcessDetailClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight flex items-center">
-            <Briefcase className="mr-3 h-6 w-6 text-accent" />
+        <h1 className="text-3xl font-bold tracking-tight text-primary font-headline flex items-center">
+            <Briefcase className="mr-3 h-7 w-7 text-accent" />
             Processo: {processData.processNumber}
-        </h2>
-        <p className="text-muted-foreground mt-1">
+        </h1>
+        <p className="text-muted-foreground mt-1 text-lg">
           {processData.actionType}
         </p>
       </div>

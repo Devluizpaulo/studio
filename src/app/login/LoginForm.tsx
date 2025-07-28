@@ -66,16 +66,16 @@ export function LoginForm() {
   }
 
   return (
-      <Card className="mx-auto max-w-sm">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Login</CardTitle>
+      <Card className="mx-auto max-w-sm border-0 shadow-none sm:border sm:shadow-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="font-headline text-3xl">Bem-vindo(a) de volta!</CardTitle>
           <CardDescription>
             Acesse sua conta para gerenciar seus processos.
           </CardDescription>
         </CardHeader>
         <CardContent>
            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -103,15 +103,15 @@ export function LoginForm() {
                 )}
               />
 
-              <Button type="submit" disabled={isLoading} className="w-full" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+              <Button type="submit" disabled={isLoading} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Entrar
               </Button>
             </form>
           </Form>
-           <div className="mt-4 text-center text-sm">
+           <div className="mt-6 text-center text-sm">
             Não tem uma conta?{" "}
-            <Link href="/signup" className="underline">
+            <Link href="/signup" className="underline text-accent font-semibold">
               Cadastre-se
             </Link>
           </div>

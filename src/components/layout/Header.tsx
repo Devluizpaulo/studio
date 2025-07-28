@@ -9,7 +9,7 @@ import {
   SheetClose,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Menu, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, LogOut, LayoutDashboard, Scale } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -35,6 +35,7 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Scale className="h-7 w-7 text-primary" />
             <span className="font-headline text-2xl font-bold text-primary">
               JurisAI
             </span>
@@ -65,6 +66,7 @@ export default function Header() {
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
+                   <Scale className="h-7 w-7 text-primary" />
                   <span className="font-headline text-2xl font-bold text-primary">
                     JurisAI
                   </span>
@@ -124,25 +126,26 @@ export default function Header() {
                   Dashboard
                 </Link>
               </Button>
-              <Button onClick={handleSignOut} variant="outline">
+              <Button onClick={handleSignOut} variant="outline" size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </Button>
             </>
           ) : (
             <>
+              <Button asChild variant="ghost" size="sm">
+                 <Link href="/login">Login</Link>
+              </Button>
               <Button
                 asChild
-                className="mr-2"
+                size="sm"
+                className="ml-2"
                 style={{
                   backgroundColor: "hsl(var(--accent))",
                   color: "hsl(var(--accent-foreground))",
                 }}
               >
                 <Link href="/signup">Cadastre-se</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/login">Login</Link>
               </Button>
             </>
           )}

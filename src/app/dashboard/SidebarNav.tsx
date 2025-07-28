@@ -37,11 +37,19 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
     }
     fetchUserRole();
   }, [user])
-
+  
+  // Custom logic to handle the /perfil route
+  const isProfilePage = pathname.startsWith('/dashboard/perfil');
   const filteredItems = items.filter(item => {
+    // Hide 'Meu Perfil' from secretary
+    if (item.href === '/dashboard/perfil' && userRole === 'secretary') {
+      return false
+    }
+
     if (!item.role) {
       return true; // Item visible to all roles
     }
+
     if (Array.isArray(item.role)) {
       return userRole && item.role.includes(userRole);
     }
@@ -56,21 +64,26 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       )}
       {...props}
     >
-      {filteredItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            pathname === item.href
-              ? "bg-muted hover:bg-muted"
-              : "hover:bg-transparent hover:underline",
-            "justify-start"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
+      {filteredItems.map((item) => {
+        const isActive = (item.href === '/dashboard' && pathname === item.href) || 
+                         (item.href !== '/dashboard' && pathname.startsWith(item.href)) ||
+                         (item.href === '/dashboard/perfil' && isProfilePage);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              isActive
+                ? "bg-primary/10 text-primary hover:bg-primary/20"
+                : "hover:bg-transparent hover:underline",
+              "justify-start text-base"
+            )}
+          >
+            {item.title}
+          </Link>
+        )
+      })}
     </nav>
   )
 }

@@ -121,9 +121,9 @@ export function SignUpForm() {
   }
 
   return (
-      <Card className="mx-auto max-w-md">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Crie a Conta do seu Escritório</CardTitle>
+      <Card className="mx-auto max-w-lg border-0 shadow-none sm:border sm:shadow-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="font-headline text-3xl">Crie a Conta do seu Escritório</CardTitle>
           <CardDescription>
             Preencha os campos para criar a conta de Administrador (Master). Futuros usuários serão convidados por você.
           </CardDescription>
@@ -198,6 +198,7 @@ export function SignUpForm() {
                   </FormItem>
                 )}
               />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <FormField
                 control={form.control}
                 name="password"
@@ -224,6 +225,7 @@ export function SignUpForm() {
                   </FormItem>
                 )}
               />
+              </div>
               <Alert>
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Atenção!</AlertTitle>
@@ -233,15 +235,15 @@ export function SignUpForm() {
               </Alert>
 
 
-              <Button type="submit" disabled={isLoading} className="w-full" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+              <Button type="submit" disabled={isLoading} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar Conta do Escritório
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-6 text-center text-sm">
             Já tem uma conta?{" "}
-            <Link href="/login" className="underline">
+            <Link href="/login" className="underline text-accent font-semibold">
               Login
             </Link>
           </div>

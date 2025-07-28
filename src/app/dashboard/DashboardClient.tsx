@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, DocumentData, Timestamp, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, DocumentData, Timestamp, doc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,10 +128,10 @@ export function DashboardClient() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
-            <h2 className="text-2xl font-bold tracking-tight">
-                Bem-vindo(a), {user.displayName || 'Usuário(a)'}!
-            </h2>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+              Bem-vindo(a), {user.displayName || 'Usuário(a)'}!
+            </h1>
+            <p className="text-muted-foreground mt-2">
                 {userRole && roleTextMap[userRole] && <span className="font-semibold text-accent">{roleTextMap[userRole]} </span>}
                 Aqui está um resumo da atividade do escritório.
             </p>
@@ -149,34 +149,30 @@ export function DashboardClient() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
             const CardBody = (
-              <CardContent>
-                <div className="text-4xl font-bold text-primary">{stat.value}</div>
-              </CardContent>
-            );
-
-            const CardWrapper = ({ children }: { children: React.ReactNode }) => (
-                <Card key={stat.title}>
+               <Card className="transform transition-transform duration-300 hover:scale-105 hover:shadow-lg">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-lg font-medium text-foreground/90">{stat.title}</CardTitle>
                         {stat.icon}
                     </CardHeader>
-                    {children}
+                    <CardContent>
+                        <div className="text-4xl font-bold text-primary">{stat.value}</div>
+                    </CardContent>
                 </Card>
             );
 
             if (stat.href) {
                 return (
-                    <Link href={stat.href} key={stat.title}>
-                        <CardWrapper>{CardBody}</CardWrapper>
+                    <Link href={stat.href} key={stat.title} className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg">
+                       {CardBody}
                     </Link>
                 );
             }
-            return <CardWrapper>{CardBody}</CardWrapper>;
+            return <div key={stat.title}>{CardBody}</div>;
         })}
       </div>
 
        <div className="mt-4">
-        <h3 className="text-xl font-bold tracking-tight mb-4">Processos Recentes do Escritório</h3>
+        <h3 className="text-2xl font-bold tracking-tight mb-4 font-headline text-primary">Processos Recentes do Escritório</h3>
         <ProcessList processes={processes.slice(0, 5)} />
        </div>
     </div>

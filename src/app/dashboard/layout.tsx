@@ -23,6 +23,11 @@ const sidebarNavItems = [
       href: "/dashboard/financeiro",
       role: ["master", "secretary"],
     },
+     {
+      title: "Controle Interno",
+      href: "/dashboard/controle-interno",
+      role: ["master", "secretary"],
+    },
     {
       title: "Documentos",
       href: "/dashboard/documentos",
@@ -34,14 +39,8 @@ const sidebarNavItems = [
       role: "master"
     },
     {
-      title: "Controle Interno",
-      href: "/dashboard/controle-interno",
-      role: ["master", "secretary"],
-    },
-    {
-      title: "Perfil",
+      title: "Meu Perfil",
       href: "/dashboard/perfil",
-      role: ["master", "lawyer"],
     }
   ]
 
@@ -57,7 +56,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <aside className="-mx-4 lg:w-1/5">
                         <SidebarNav items={sidebarNavItems} />
                     </aside>
-                    <div className="flex-1">{children}</div>
+                    <div className="flex-1 min-w-0">{children}</div>
                 </div>
             </div>
         </AuthProvider>

@@ -6,8 +6,12 @@ export default function ProcessosPage() {
         <AuthProvider>
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Meus Processos</h2>
-                    <p className="text-muted-foreground">Gerencie todos os seus casos em um só lugar.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                        Meus Processos
+                    </h1>
+                    <p className="mt-2 text-muted-foreground">
+                        Gerencie todos os seus casos em um só lugar.
+                    </p>
                 </div>
                 <ProcessosClient />
             </div>
