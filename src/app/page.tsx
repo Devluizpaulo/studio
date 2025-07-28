@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Scale, Gavel, Map, MessageSquare } from "lucide-react";
+import { Check, Scale, Briefcase, Users, Landmark } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -9,34 +9,34 @@ import { Textarea } from "@/components/ui/textarea";
 const services = [
   {
     icon: <Scale className="h-10 w-10 text-accent" />,
-    title: "Advocacia Criminal",
-    description: "Defesa estratégica para casos complexos, com experiência e dedicação total ao seu caso.",
+    title: "Direito Cível & Família",
+    description: "Soluções jurídicas para contratos, obrigações, heranças e todas as questões do direito de família.",
   },
   {
-    icon: <Gavel className="h-10 w-10 text-accent" />,
-    title: "Tribunal do Júri",
-    description: "Sua defesa forte no Tribunal do Júri. A experiência que o seu caso merece e precisa.",
+    icon: <Briefcase className="h-10 w-10 text-accent" />,
+    title: "Direito Trabalhista",
+    description: "Defesa dos direitos de trabalhadores e empresas, buscando sempre a justiça e o equilíbrio nas relações de trabalho.",
   },
    {
-    icon: <Map className="h-10 w-10 text-accent" />,
-    title: "Todo Brasil",
-    description: "Conte com atendimento e defesa estratégica em qualquer região do país.",
+    icon: <Landmark className="h-10 w-10 text-accent" />,
+    title: "Direito Tributário",
+    description: "Consultoria e contencioso tributário para pessoas físicas e jurídicas, visando a otimização fiscal.",
   },
 ];
 
 const specialties = [
-  "Crimes de organização criminosa",
-  "Crimes de trânsito",
-  "Ações de improbidade administrativa",
-  "Crimes licitatórios",
-  "Crimes eleitorais",
-  "Investigação defensiva",
-  "Crimes militares",
-  "Crimes contra a administração pública",
-  "Atuação perante Tribunais Superiores",
-  "Crimes de lavagem de dinheiro",
-  "Crimes contra o meio ambiente",
-  "Pareceres e consultoria no âmbito penal",
+  "Ações de Indenização por Danos Morais e Materiais",
+  "Direito do Consumidor",
+  "Questões de Herança, Inventários e Testamentos",
+  "Divórcio, Guarda e Pensão Alimentícia",
+  "Reconhecimento e Dissolução de União Estável",
+  "Direitos do Trabalhador (rescisão, horas extras, etc.)",
+  "Defesa em Reclamações Trabalhistas para Empresas",
+  "Planejamento Tributário e Recuperação de Créditos",
+  "Defesa em Execuções Fiscais",
+  "Consultoria sobre Impostos (IR, ICMS, ISS)",
+  "Elaboração e Revisão de Contratos",
+  "Pareceres e consultoria jurídica especializada",
 ];
 
 
@@ -58,22 +58,22 @@ export default function Home() {
             data-ai-hint="lawyer office background"
         />
         <div className="relative z-20 container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="inline-block p-6 border-2 border-accent/80">
               <h1 className="font-headline text-5xl font-bold tracking-tight text-white sm:text-7xl uppercase">
-                Arthur Ortega
+                Reinaldo Gonçalves Miguel de Jesus
               </h1>
               <p className="text-2xl text-accent font-semibold mt-2">
-                Advocacia Criminal Especializada
+                Advocacia Especializada
               </p>
             </div>
             <p className="mt-8 text-lg leading-8 text-gray-200 max-w-2xl mx-auto">
-              Protejo seus direitos e ofereço uma defesa sólida em casos criminais.
+              Atuação dedicada e estratégica na defesa dos seus direitos nas áreas cível, trabalhista, família e tributário.
             </p>
             <div className="mt-10">
               <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
                 <Link href="#contact">
-                  Fale com o Advogado
+                  Entre em Contato
                 </Link>
               </Button>
             </div>
@@ -106,7 +106,7 @@ export default function Home() {
       <section id="specialties" className="py-24 sm:py-32 bg-card">
          <div className="container mx-auto px-4">
             <div className="mx-auto max-w-4xl text-center">
-              <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Algumas das nossas especialidades</h2>
+              <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Nossas Áreas de Atuação</h2>
             </div>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 max-w-4xl mx-auto">
               {specialties.map((item) => (
@@ -117,10 +117,10 @@ export default function Home() {
               ))}
             </div>
              <div className="text-center mt-16">
-               <p className="text-muted-foreground mb-6">Se você está enfrentando alguma acusação criminal, entre em contato conosco e agende sua consulta agora mesmo.</p>
+               <p className="text-muted-foreground mb-6">Se você precisa de assessoria jurídica, entre em contato e agende sua consulta.</p>
                 <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
                   <Link href="#contact">
-                    Fale com o Advogado
+                    Fale Conosco
                   </Link>
                 </Button>
                 <p className="text-accent font-semibold mt-3">Atendimento em todo Brasil.</p>
@@ -134,7 +134,7 @@ export default function Home() {
           <div className="h-[500px] w-full relative">
              <Image
                 src="https://placehold.co/600x800.png"
-                alt="Advogado Arthur Ortega"
+                alt="Advogado Reinaldo Gonçalves"
                 layout="fill"
                 objectFit="cover"
                 className="rounded-lg shadow-xl"
@@ -142,12 +142,12 @@ export default function Home() {
               />
           </div>
           <div>
-            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">O sucesso no enfrentamento de um processo criminal, demanda uma defesa especializada.</h2>
+            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-              Se você se está sendo acusado de cometer um crime, é fundamental contar com um advogado especializado nesse tema e que se empenhará incessantemente em seu favor, assegurando a preservação dos seus direitos. Meu objetivo central é preservar os direitos fundamentais garantidos pela Constituição, buscando sempre a estratégia mais eficaz na busca pela preservação da liberdade e pela justiça.
+             Compreendemos que cada caso é único e exige uma abordagem dedicada. Meu compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados.
             </p>
-             <p className="mt-6 text-xl font-semibold text-primary font-headline">Arthur Ortega</p>
-             <p className="text-sm text-accent">Advogado Criminalista - OAB/MS 18.732</p>
+             <p className="mt-6 text-xl font-semibold text-primary font-headline">Reinaldo Gonçalves Miguel de Jesus</p>
+             <p className="text-sm text-accent">Advogado - OAB/SP 123.456</p>
           </div>
         </div>
       </section>
@@ -156,9 +156,9 @@ export default function Home() {
       <section id="contact" className="py-24 sm:py-32 bg-card">
         <div className="container mx-auto px-4">
            <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Fale comigo</h2>
+            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Fale Conosco</h2>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-             Nos envie uma mensagem contando como podemos lhe ajudar ou fale conosco direto pelo WhatsApp. Garantimos que nossa equipe responderá o mais breve possível!
+             Envie uma mensagem contando como podemos lhe ajudar. Nossa equipe responderá o mais breve possível para agendar uma consulta!
             </p>
           </div>
           <div className="mt-16 mx-auto max-w-lg">
