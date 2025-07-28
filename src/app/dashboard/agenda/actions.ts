@@ -27,7 +27,7 @@ export async function createEventAction(
   }
 
   try {
-    const { lawyerId, date, processId, ...eventData } = parsedInput.data
+    const { lawyerId, date, processId, type, ...eventData } = parsedInput.data
     
     // Get user's officeId
     const userDocRef = doc(db, "users", lawyerId);
@@ -43,10 +43,12 @@ export async function createEventAction(
 
     const docData: any = {
       ...eventData,
+      type,
       createdBy: lawyerId, // Keep track of who created the event
       lawyerId: lawyerId, // By default, event is for the creator
       officeId: officeId, // Associate event with the office
       date: Timestamp.fromDate(date),
+      status: type === 'audiencia' ? 'pendente' : 'concluido' // Add status for confirmation
     }
 
     if (processId) {

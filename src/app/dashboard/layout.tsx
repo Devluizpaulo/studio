@@ -29,6 +29,11 @@ const sidebarNavItems = [
       role: "master"
     },
     {
+      title: "Controle Interno",
+      href: "/dashboard/controle-interno",
+      role: ["master", "secretary"],
+    },
+    {
       title: "Perfil",
       href: "/dashboard/perfil",
       role: ["master", "lawyer"],
