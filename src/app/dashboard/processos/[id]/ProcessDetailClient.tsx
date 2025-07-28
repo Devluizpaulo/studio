@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { doc, getDoc, DocumentData, Timestamp } from "firebase/firestore"
+import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/contexts/AuthContext"
 import { updateProcessStatusAction } from "./actions"
@@ -10,19 +10,27 @@ import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2 } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 
 interface Movement {
     date: Timestamp;
     description: string;
     details: string;
 }
+
+interface Collaborator {
+    uid: string;
+    fullName: string;
+    email: string;
+}
+
 export function ProcessDetailClient() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -31,30 +39,47 @@ export function ProcessDetailClient() {
   const { toast } = useToast();
   
   const [processData, setProcessData] = useState<DocumentData | null>(null)
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true)
   const [isUpdating, startTransition] = useTransition();
 
-  const fetchProcess = async (processId: string) => {
+  const fetchProcessAndCollaborators = async (processId: string) => {
     if (!user) return;
-    setLoading(true)
-    const docRef = doc(db, "processes", processId)
-    const docSnap = await getDoc(docRef)
+    setLoading(true);
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      // Security check: ensure the user is a collaborator
-      if (data.collaboratorIds && data.collaboratorIds.includes(user.uid)) {
-        setProcessData({ id: docSnap.id, ...data });
-      } else {
-        toast({ title: "Erro", description: "Acesso negado.", variant: "destructive" });
-        router.push("/dashboard/processos");
-      }
-    } else {
-      toast({ title: "Erro", description: "Processo não encontrado.", variant: "destructive" });
-      router.push("/dashboard/processos")
+    try {
+        const docRef = doc(db, "processes", processId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.collaboratorIds && data.collaboratorIds.includes(user.uid)) {
+                setProcessData({ id: docSnap.id, ...data });
+
+                // Fetch collaborators' details
+                if (data.collaboratorIds && data.collaboratorIds.length > 0) {
+                    const usersQuery = query(collection(db, 'users'), where('uid', 'in', data.collaboratorIds));
+                    const usersSnap = await getDocs(usersQuery);
+                    const collaboratorsData = usersSnap.docs.map(doc => doc.data() as Collaborator);
+                    setCollaborators(collaboratorsData);
+                }
+
+            } else {
+                toast({ title: "Erro", description: "Acesso negado.", variant: "destructive" });
+                router.push("/dashboard/processos");
+            }
+        } else {
+            toast({ title: "Erro", description: "Processo não encontrado.", variant: "destructive" });
+            router.push("/dashboard/processos");
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        toast({ title: "Erro", description: "Falha ao carregar os dados do processo.", variant: "destructive" });
+    } finally {
+        setLoading(false);
     }
-    setLoading(false)
-  }
+  };
+
 
   useEffect(() => {
     if (authLoading) return
@@ -68,7 +93,7 @@ export function ProcessDetailClient() {
         return;
     }
 
-    fetchProcess(id)
+    fetchProcessAndCollaborators(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, authLoading, router])
 
@@ -90,7 +115,7 @@ export function ProcessDetailClient() {
                 description: "Um novo andamento foi adicionado ao processo."
             })
             // Refetch data to show the new movement
-            await fetchProcess(id);
+            await fetchProcessAndCollaborators(id);
         } else {
             toast({
                 title: "Erro ao Atualizar",
@@ -108,7 +133,11 @@ export function ProcessDetailClient() {
         <Skeleton className="h-10 w-3/4" />
         <Skeleton className="h-6 w-1/2" />
         <div className="grid md:grid-cols-3 gap-6">
-            <Skeleton className="h-40" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+        </div>
+         <div className="grid md:grid-cols-2 gap-6">
             <Skeleton className="h-40" />
             <Skeleton className="h-40" />
         </div>
@@ -174,7 +203,7 @@ export function ProcessDetailClient() {
             </Card>
         </div>
 
-
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
             <CardHeader>
                  <CardTitle className="text-lg flex items-center">
@@ -190,6 +219,39 @@ export function ProcessDetailClient() {
                 </div>
             </CardContent>
         </Card>
+
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                 <CardTitle className="text-lg flex items-center">
+                     <Shield className="mr-3 h-5 w-5 text-accent" />
+                    Equipe Jurídica
+                 </CardTitle>
+                 {user?.uid === processData.lawyerId && (
+                     <Button variant="outline" size="sm">
+                        <UserPlus className="mr-2 h-4 w-4"/>
+                        Adicionar
+                    </Button>
+                 )}
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+                {collaborators.length > 0 ? (
+                    collaborators.map(collab => (
+                        <div key={collab.uid} className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                                <AvatarFallback>{collab.fullName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold">{collab.fullName} {collab.uid === processData.lawyerId && <span className="text-xs text-accent font-normal">(Dono)</span>}</p>
+                                <p className="text-xs text-muted-foreground">{collab.email}</p>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-muted-foreground">Nenhum colaborador neste processo.</p>
+                )}
+            </CardContent>
+        </Card>
+    </div>
 
 
       <Tabs defaultValue="updates" className="w-full">
