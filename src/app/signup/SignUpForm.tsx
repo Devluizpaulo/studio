@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, query, limit } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 
@@ -62,6 +62,15 @@ export function SignUpForm() {
     setIsLoading(true);
     
     try {
+      // Check if any user exists to determine the role
+      const usersQuery = query(collection(db, "users"), limit(1));
+      const existingUsersSnapshot = await getDocs(usersQuery);
+      const isFirstUser = existingUsersSnapshot.empty;
+      
+      const userRole = isFirstUser ? 'master' : 'lawyer';
+      const officeId = isFirstUser ? `office_${Date.now()}` : existingUsersSnapshot.docs[0].data().officeId;
+
+
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
@@ -78,13 +87,14 @@ export function SignUpForm() {
         oab: values.oab,
         legalSpecialty: values.legalSpecialty,
         office: values.office,
-        userType: 'lawyer',
+        role: userRole,
+        officeId: officeId,
         createdAt: new Date(),
       });
 
       toast({
         title: "Cadastro Realizado com Sucesso!",
-        description: "Você será redirecionado para o seu dashboard.",
+        description: `Seu cargo é: ${userRole}. Você será redirecionado.`,
       });
 
       router.push('/dashboard');

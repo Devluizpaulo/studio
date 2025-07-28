@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, getDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -25,26 +25,41 @@ export function ProcessosClient() {
     }
 
     if (user) {
-      const q = query(
-        collection(db, 'processes'),
-        where('collaboratorIds', 'array-contains', user.uid)
-      )
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const processesData: Process[] = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Process[]
-          setProcesses(processesData)
-          setLoading(false)
-        },
-        (error) => {
-          console.error('Error fetching processes:', error)
-          setLoading(false)
-        }
-      )
-      return () => unsubscribe()
+        const userDocRef = doc(db, 'users', user.uid);
+        getDoc(userDocRef).then(userDoc => {
+             if(userDoc.exists()) {
+                const userData = userDoc.data();
+                const officeId = userData.officeId;
+                let q;
+
+                if (userData.role === 'master') {
+                    // Master user sees all processes in the office
+                    q = query(collection(db, 'processes'), where('officeId', '==', officeId));
+                } else {
+                    // Regular lawyer sees processes they are part of
+                    q = query(collection(db, 'processes'), where('collaboratorIds', 'array-contains', user.uid));
+                }
+
+                const unsubscribe = onSnapshot(
+                    q,
+                    (snapshot) => {
+                    const processesData: Process[] = snapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    })) as Process[]
+                    setProcesses(processesData)
+                    setLoading(false)
+                    },
+                    (error) => {
+                    console.error('Error fetching processes:', error)
+                    setLoading(false)
+                    }
+                )
+                return () => unsubscribe()
+             } else {
+                 setLoading(false);
+             }
+        })
     }
   }, [user, authLoading, router])
 

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, DocumentData, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, DocumentData, Timestamp, doc, getDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export function DashboardClient() {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [upcomingDeadlines, setUpcomingDeadlines] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -27,45 +28,60 @@ export function DashboardClient() {
     }
 
     if (user) {
-      setLoading(true);
-      // Fetch Processes where the user is a collaborator
-      const processesQuery = query(collection(db, "processes"), where("collaboratorIds", "array-contains", user.uid));
-      const unsubscribeProcesses = onSnapshot(processesQuery, (querySnapshot) => {
-        const processesData: Process[] = [];
-        querySnapshot.forEach((doc) => {
-          processesData.push({ id: doc.id, ...doc.data() } as Process);
-        });
-        setProcesses(processesData);
-        // Defer setting loading to false until both queries have their initial data.
-      }, (error) => {
-        console.error("Error fetching processes: ", error);
-        setLoading(false);
-      });
+      const userDocRef = doc(db, 'users', user.uid);
+      getDoc(userDocRef).then(userDoc => {
+        if(userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserRole(userData.role);
+          const officeId = userData.officeId;
 
-      // Fetch upcoming events for deadline count
-      const today = new Date();
-      const nextWeek = new Date(today);
-      nextWeek.setDate(today.getDate() + 7);
-      
-      const eventsQuery = query(
-        collection(db, "events"), 
-        where("lawyerId", "==", user.uid),
-        where("date", ">=", Timestamp.fromDate(today)),
-        where("date", "<=", Timestamp.fromDate(nextWeek)),
-      );
-      const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
-        setUpcomingDeadlines(querySnapshot.size);
-        setLoading(false); // Set loading to false after the second query completes
-      }, (error) => {
-        console.error("Error fetching events: ", error);
-        setLoading(false);
-      });
+          let processesQuery;
+          // Master user can see all processes from the office
+          if(userData.role === 'master') {
+             processesQuery = query(collection(db, "processes"), where("officeId", "==", officeId));
+          } else {
+          // Normal lawyer can see only processes they are collaborating on
+             processesQuery = query(collection(db, "processes"), where("collaboratorIds", "array-contains", user.uid));
+          }
+          
+          const unsubscribeProcesses = onSnapshot(processesQuery, (querySnapshot) => {
+            const processesData: Process[] = [];
+            querySnapshot.forEach((doc) => {
+              processesData.push({ id: doc.id, ...doc.data() } as Process);
+            });
+            setProcesses(processesData);
+          }, (error) => {
+            console.error("Error fetching processes: ", error);
+            setLoading(false);
+          });
+          
+          // Fetch upcoming events for deadline count (for the specific lawyer)
+          const today = new Date();
+          const nextWeek = new Date(today);
+          nextWeek.setDate(today.getDate() + 7);
+          
+          const eventsQuery = query(
+            collection(db, "events"), 
+            where("lawyerId", "==", user.uid),
+            where("date", ">=", Timestamp.fromDate(today)),
+            where("date", "<=", Timestamp.fromDate(nextWeek)),
+          );
+          const unsubscribeEvents = onSnapshot(eventsQuery, (querySnapshot) => {
+            setUpcomingDeadlines(querySnapshot.size);
+            setLoading(false);
+          }, (error) => {
+            console.error("Error fetching events: ", error);
+            setLoading(false);
+          });
 
-      // Cleanup subscriptions on unmount
-      return () => {
-        unsubscribeProcesses();
-        unsubscribeEvents();
-      };
+          return () => {
+            unsubscribeProcesses();
+            unsubscribeEvents();
+          };
+        } else {
+            setLoading(false);
+        }
+      })
     }
   }, [user, authLoading, router]);
 
@@ -109,6 +125,7 @@ export function DashboardClient() {
                 Bem-vindo(a), {user.displayName || 'Advogado(a)'}!
             </h2>
             <p className="text-muted-foreground mt-1">
+                {userRole === 'master' && <span className="font-semibold text-accent">[Admin do Escritório] </span>}
                 Aqui está um resumo da sua atividade.
             </p>
         </div>
