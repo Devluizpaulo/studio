@@ -10,6 +10,7 @@ const createEventSchema = z.object({
   type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
   description: z.string().optional(),
   lawyerId: z.string(),
+  processId: z.string().optional(), // Add optional processId
 })
 
 type Result =
@@ -26,13 +27,19 @@ export async function createEventAction(
   }
 
   try {
-    const { lawyerId, date, ...eventData } = parsedInput.data
+    const { lawyerId, date, processId, ...eventData } = parsedInput.data
     
-    const docRef = await addDoc(collection(db, "events"), {
+    const docData: any = {
       ...eventData,
       lawyerId: lawyerId,
       date: Timestamp.fromDate(date),
-    })
+    }
+
+    if (processId) {
+      docData.processId = processId;
+    }
+
+    const docRef = await addDoc(collection(db, "events"), docData)
 
     return { success: true, data: { eventId: docRef.id } }
   } catch (error) {

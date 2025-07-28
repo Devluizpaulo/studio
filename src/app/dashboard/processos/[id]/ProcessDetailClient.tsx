@@ -2,23 +2,31 @@
 
 import { useEffect, useState, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp } from "firebase/firestore"
+import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/contexts/AuthContext"
 import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction } from "./actions"
 import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { createEventAction } from "../../agenda/actions"
+
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar as CalendarIcon } from 'lucide-react'
 
 
 interface Movement {
@@ -33,6 +41,24 @@ interface Collaborator {
     email: string;
 }
 
+interface ProcessEvent extends DocumentData {
+  id: string
+  title: string
+  date: Timestamp
+  type: 'audiencia' | 'prazo' | 'reuniao' | 'outro'
+  description?: string
+}
+
+const eventFormSchema = z.object({
+  title: z.string().min(3, 'O título é obrigatório.'),
+  date: z.date({ required_error: 'A data é obrigatória.' }),
+  type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
+  description: z.string().optional(),
+})
+
+type EventFormValues = z.infer<typeof eventFormSchema>
+
+
 export function ProcessDetailClient() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -42,14 +68,27 @@ export function ProcessDetailClient() {
   
   const [processData, setProcessData] = useState<DocumentData | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [processEvents, setProcessEvents] = useState<ProcessEvent[]>([]);
   const [loading, setLoading] = useState(true)
   const [isUpdating, startUpdateTransition] = useTransition();
   const [isAddingCollaborator, startAddCollaboratorTransition] = useTransition();
 
   const [isAddCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
+  const [isAddEventDialogOpen, setAddEventDialogOpen] = useState(false);
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
   const [searchError, setSearchError] = useState("");
+
+  const eventForm = useForm<EventFormValues>({
+    resolver: zodResolver(eventFormSchema),
+    defaultValues: {
+      title: '',
+      type: 'prazo',
+      description: '',
+      date: new Date(),
+    },
+  })
 
 
   const fetchProcessAndCollaborators = async (processId: string) => {
@@ -66,7 +105,6 @@ export function ProcessDetailClient() {
             const userDocSnap = await getDoc(userDocRef);
             const userData = userDocSnap.data();
 
-            // Access control: user is master in the same office OR is a collaborator
             if ( (userData?.role === 'master' && userData?.officeId === data.officeId) || (data.collaboratorIds && data.collaboratorIds.includes(user.uid))) {
                 setProcessData({ id: docSnap.id, ...data });
 
@@ -107,6 +145,15 @@ export function ProcessDetailClient() {
     }
 
     fetchProcessAndCollaborators(id)
+
+    // Subscribe to process events
+    const eventsQuery = query(collection(db, "events"), where("processId", "==", id));
+    const unsubscribe = onSnapshot(eventsQuery, (snapshot) => {
+        const eventsData: ProcessEvent[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessEvent);
+        setProcessEvents(eventsData.sort((a, b) => a.date.toMillis() - b.date.toMillis()));
+    });
+
+    return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, authLoading, router])
 
@@ -127,7 +174,7 @@ export function ProcessDetailClient() {
                 title: "Andamento Atualizado!",
                 description: "Um novo andamento foi adicionado ao processo."
             })
-            await fetchProcessAndCollaborators(id);
+            // No need to refetch, onSnapshot will update movements
         } else {
             toast({
                 title: "Erro ao Atualizar",
@@ -167,11 +214,29 @@ export function ProcessDetailClient() {
             setAddCollaboratorDialogOpen(false);
             setCollaboratorEmail("");
             setFoundUser(null);
-            await fetchProcessAndCollaborators(id); // refetch data
+            await fetchProcessAndCollaborators(id);
         } else {
             toast({ title: "Erro", description: result.error, variant: "destructive" });
         }
     });
+  }
+
+  const handleEventSubmit = async (values: EventFormValues) => {
+    if (!user || typeof id !== 'string') return;
+    setIsSubmittingEvent(true);
+    const result = await createEventAction({ ...values, lawyerId: user.uid, processId: id });
+    if (result.success) {
+        toast({ title: "Evento criado com sucesso!" });
+        setAddEventDialogOpen(false);
+        eventForm.reset();
+    } else {
+        toast({
+            title: 'Erro ao criar evento',
+            description: result.error,
+            variant: 'destructive',
+        });
+    }
+    setIsSubmittingEvent(false);
   }
 
 
@@ -203,6 +268,13 @@ export function ProcessDetailClient() {
   const representationTextMap: { [key: string]: string } = {
     plaintiff: "Pelo Autor",
     defendant: "Pelo Réu",
+  }
+
+  const eventTypeMap = {
+    audiencia: { label: 'Audiência', color: 'bg-red-500' },
+    prazo: { label: 'Prazo', color: 'bg-yellow-500' },
+    reuniao: { label: 'Reunião', color: 'bg-blue-500' },
+    outro: { label: 'Outro', color: 'bg-gray-500' },
   }
 
   const movements: Movement[] = processData.movements || [];
@@ -356,7 +428,7 @@ export function ProcessDetailClient() {
             Documentos
           </TabsTrigger>
           <TabsTrigger value="deadlines">
-            <Calendar className="mr-2 h-4 w-4"/>
+            <CalendarIcon className="mr-2 h-4 w-4"/>
             Prazos e Agenda
           </TabsTrigger>
         </TabsList>
@@ -421,12 +493,110 @@ export function ProcessDetailClient() {
                     <CardTitle>Prazos e Eventos</CardTitle>
                     <CardDescription>Agenda de compromissos e prazos vinculados a este processo.</CardDescription>
                 </div>
-                 <Button variant="outline">
-                    Adicionar Evento
-                </Button>
+                 <Dialog open={isAddEventDialogOpen} onOpenChange={setAddEventDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">
+                            <PlusCircle className="mr-2 h-4 w-4"/>
+                            Adicionar Evento
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Novo Evento para o Processo</DialogTitle>
+                        </DialogHeader>
+                        <Form {...eventForm}>
+                            <form onSubmit={eventForm.handleSubmit(handleEventSubmit)} className="space-y-4">
+                                <FormField
+                                    control={eventForm.control}
+                                    name="title"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Título</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ex: Prazo para contestação" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={eventForm.control}
+                                    name="date"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Data do Evento</FormLabel>
+                                            <FormControl>
+                                                 <Input type="date" {...field} onChange={e => field.onChange(e.target.valueAsDate)} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={eventForm.control}
+                                    name="type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Tipo</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione o tipo" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {Object.entries(eventTypeMap).map(([key, value]) => (
+                                                    <SelectItem key={key} value={key}>{value.label}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={eventForm.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Descrição (Opcional)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Detalhes do evento" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={isSubmittingEvent} className="w-full">
+                                    {isSubmittingEvent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Salvar Evento
+                                </Button>
+                            </form>
+                        </Form>
+                    </DialogContent>
+                 </Dialog>
             </CardHeader>
-            <CardContent className="text-center text-muted-foreground py-12">
-              <p>Funcionalidade de agenda do processo em desenvolvimento.</p>
+            <CardContent>
+              {processEvents.length > 0 ? (
+                <ul className="space-y-4 pt-4">
+                    {processEvents.map((event) => (
+                    <li key={event.id} className="flex items-start space-x-3">
+                        <div className={`mt-1.5 h-3 w-3 rounded-full ${eventTypeMap[event.type]?.color || 'bg-gray-500'}`} />
+                        <div>
+                            <p className="font-semibold">{event.title}</p>
+                             <p className="text-sm text-muted-foreground">
+                                {format(event.date.toDate(), "dd 'de' MMMM, yyyy", { locale: ptBR })} - {eventTypeMap[event.type].label}
+                            </p>
+                            {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
+                        </div>
+                    </li>
+                    ))}
+                </ul>
+                ) : (
+                <div className="text-center text-muted-foreground py-12">
+                    <p>Nenhum prazo ou evento agendado para este processo.</p>
+                </div>
+                )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -434,5 +604,3 @@ export function ProcessDetailClient() {
     </div>
   )
 }
-
-    
