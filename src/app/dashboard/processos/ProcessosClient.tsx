@@ -27,7 +27,7 @@ export function ProcessosClient() {
     if (user) {
       const q = query(
         collection(db, 'processes'),
-        where('lawyerId', '==', user.uid)
+        where('collaboratorIds', 'array-contains', user.uid)
       )
       const unsubscribe = onSnapshot(
         q,

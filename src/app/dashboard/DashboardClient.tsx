@@ -28,8 +28,8 @@ export function DashboardClient() {
 
     if (user) {
       setLoading(true);
-      // Fetch Processes
-      const processesQuery = query(collection(db, "processes"), where("lawyerId", "==", user.uid));
+      // Fetch Processes where the user is a collaborator
+      const processesQuery = query(collection(db, "processes"), where("collaboratorIds", "array-contains", user.uid));
       const unsubscribeProcesses = onSnapshot(processesQuery, (querySnapshot) => {
         const processesData: Process[] = [];
         querySnapshot.forEach((doc) => {

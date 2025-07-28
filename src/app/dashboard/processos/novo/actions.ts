@@ -35,7 +35,8 @@ export async function createProcessAction(
     
     const docRef = await addDoc(collection(db, "processes"), {
       ...processData,
-      lawyerId: lawyerId,
+      lawyerId: lawyerId, // Owner of the process
+      collaboratorIds: [lawyerId], // Start with the owner in the collaborators list
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       movements: [], // Initialize with empty movements history

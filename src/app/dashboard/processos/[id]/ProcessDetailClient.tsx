@@ -40,10 +40,17 @@ export function ProcessDetailClient() {
     const docRef = doc(db, "processes", processId)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists() && docSnap.data().lawyerId === user.uid) {
-      setProcessData({ id: docSnap.id, ...docSnap.data() })
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      // Security check: ensure the user is a collaborator
+      if (data.collaboratorIds && data.collaboratorIds.includes(user.uid)) {
+        setProcessData({ id: docSnap.id, ...data });
+      } else {
+        toast({ title: "Erro", description: "Acesso negado.", variant: "destructive" });
+        router.push("/dashboard/processos");
+      }
     } else {
-      toast({ title: "Erro", description: "Processo não encontrado ou acesso negado.", variant: "destructive" });
+      toast({ title: "Erro", description: "Processo não encontrado.", variant: "destructive" });
       router.push("/dashboard/processos")
     }
     setLoading(false)
@@ -274,5 +281,3 @@ export function ProcessDetailClient() {
     </div>
   )
 }
-
-    
