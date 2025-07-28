@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useState, useTransition, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot } from "firebase/firestore"
+import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot, orderBy } from "firebase/firestore"
 import { db, storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction, addDocumentAction } from "./actions"
+import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction, addDocumentAction, addChatMessageAction } from "./actions"
 import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -20,11 +20,12 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar as CalendarIcon } from 'lucide-react'
@@ -60,6 +61,14 @@ interface ProcessDocument extends DocumentData {
     createdAt: Timestamp;
 }
 
+interface ChatMessage extends DocumentData {
+    id: string;
+    text: string;
+    senderId: string;
+    senderName: string;
+    timestamp: Timestamp;
+}
+
 const eventFormSchema = z.object({
   title: z.string().min(3, 'O título é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
@@ -76,6 +85,11 @@ const documentFormSchema = z.object({
 
 type DocumentFormValues = z.infer<typeof documentFormSchema>;
 
+const chatFormSchema = z.object({
+    text: z.string().min(1, "A mensagem não pode estar vazia."),
+})
+type ChatFormValues = z.infer<typeof chatFormSchema>;
+
 
 export function ProcessDetailClient() {
   const { user, loading: authLoading } = useAuth()
@@ -83,11 +97,13 @@ export function ProcessDetailClient() {
   const params = useParams()
   const { id } = params
   const { toast } = useToast();
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   
   const [processData, setProcessData] = useState<DocumentData | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [processEvents, setProcessEvents] = useState<ProcessEvent[]>([]);
   const [documents, setDocuments] = useState<ProcessDocument[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true)
   const [isUpdating, startUpdateTransition] = useTransition();
   const [isAddingCollaborator, startAddCollaboratorTransition] = useTransition();
@@ -98,6 +114,7 @@ export function ProcessDetailClient() {
 
   const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
   const [isSubmittingDocument, setIsSubmittingDocument] = useState(false);
+  const [isSubmittingMessage, setIsSubmittingMessage] = useState(false);
 
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
@@ -118,6 +135,17 @@ export function ProcessDetailClient() {
   const documentForm = useForm<DocumentFormValues>({
       resolver: zodResolver(documentFormSchema),
   })
+
+  const chatForm = useForm<ChatFormValues>({
+      resolver: zodResolver(chatFormSchema),
+      defaultValues: { text: "" }
+  })
+
+  useEffect(() => {
+    if(chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages])
 
 
   const fetchProcessAndCollaborators = async (processId: string, currentUserData: DocumentData) => {
@@ -167,10 +195,18 @@ export function ProcessDetailClient() {
             setDocuments(docsData.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
         })
 
+         // Subscribe to chat messages
+        const chatQuery = query(collection(db, "processes", processId, "chatMessages"), orderBy("timestamp", "asc"));
+        const unsubscribeChat = onSnapshot(chatQuery, (snapshot) => {
+            const messagesData: ChatMessage[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ChatMessage);
+            setChatMessages(messagesData);
+        });
+
         return () => {
             unsubscribeProcess();
             unsubscribeEvents();
             unsubscribeDocuments();
+            unsubscribeChat();
         };
 
     } catch (error) {
@@ -323,6 +359,30 @@ export function ProcessDetailClient() {
         toast({ title: 'Erro no Upload', description: 'Não foi possível enviar o arquivo.', variant: 'destructive' });
     } finally {
         setIsSubmittingDocument(false);
+    }
+  }
+
+  async function handleMessageSubmit(values: ChatFormValues) {
+    if (!user || typeof id !== 'string' || !user.displayName) return;
+    setIsSubmittingMessage(true);
+
+    try {
+        const result = await addChatMessageAction({
+            processId: id,
+            text: values.text,
+            senderId: user.uid,
+            senderName: user.displayName,
+        });
+
+        if (result.success) {
+            chatForm.reset();
+        } else {
+             toast({ title: 'Erro ao enviar mensagem', description: result.error, variant: 'destructive' });
+        }
+    } catch (error) {
+        toast({ title: 'Erro', description: 'Não foi possível enviar a mensagem.', variant: 'destructive' });
+    } finally {
+        setIsSubmittingMessage(false);
     }
   }
 
@@ -505,7 +565,7 @@ export function ProcessDetailClient() {
 
 
       <Tabs defaultValue="updates" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="updates">
             <Calendar className="mr-2 h-4 w-4"/>
             Andamentos
@@ -517,6 +577,10 @@ export function ProcessDetailClient() {
           <TabsTrigger value="deadlines">
             <CalendarIcon className="mr-2 h-4 w-4"/>
             Prazos e Agenda
+          </TabsTrigger>
+          <TabsTrigger value="chat">
+            <MessageSquare className="mr-2 h-4 w-4"/>
+            Chat
           </TabsTrigger>
         </TabsList>
         <TabsContent value="updates">
@@ -770,6 +834,74 @@ export function ProcessDetailClient() {
                 )}
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="chat">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Chat da Equipe</CardTitle>
+                    <CardDescription>Converse com os colaboradores deste processo.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col h-[500px]">
+                    <div ref={chatContainerRef} className="flex-grow space-y-4 overflow-y-auto p-4 bg-muted/50 rounded-md mb-4">
+                        {chatMessages.length > 0 ? (
+                            chatMessages.map(msg => (
+                                <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
+                                    {msg.senderId !== user?.uid && (
+                                         <Avatar className="h-8 w-8">
+                                            <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                    <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-background'}`}>
+                                        <p className="text-sm font-semibold mb-1">{msg.senderName}</p>
+                                        <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                                        <p className="text-xs text-right mt-2 opacity-70">{format(msg.timestamp.toDate(), 'HH:mm')}</p>
+                                    </div>
+                                    {msg.senderId === user?.uid && (
+                                         <Avatar className="h-8 w-8">
+                                            <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center text-muted-foreground py-12">
+                                <p>Nenhuma mensagem ainda. Inicie a conversa!</p>
+                            </div>
+                        )}
+                    </div>
+                    {userRole !== 'secretary' && (
+                        <Form {...chatForm}>
+                            <form onSubmit={chatForm.handleSubmit(handleMessageSubmit)} className="flex items-center gap-2">
+                                <FormField 
+                                    control={chatForm.control}
+                                    name="text"
+                                    render={({ field}) => (
+                                        <FormItem className="flex-grow">
+                                            <FormControl>
+                                                <Textarea 
+                                                    placeholder="Digite sua mensagem..." 
+                                                    {...field}
+                                                    className="min-h-0"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            chatForm.handleSubmit(handleMessageSubmit)();
+                                                        }
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={isSubmittingMessage} size="icon">
+                                    {isSubmittingMessage ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4"/>}
+                                </Button>
+                            </form>
+                        </Form>
+                     )}
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>

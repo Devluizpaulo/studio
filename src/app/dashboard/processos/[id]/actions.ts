@@ -160,3 +160,38 @@ export async function addDocumentAction(
     return { success: false, error: "Falha ao adicionar documento. Tente novamente." };
   }
 }
+
+// --- Add Chat Message ---
+const addChatMessageSchema = z.object({
+  processId: z.string(),
+  text: z.string().min(1, "A mensagem não pode estar vazia."),
+  senderId: z.string(),
+  senderName: z.string(),
+});
+
+type AddChatMessageResult = 
+    | { success: true; data: { messageId: string } }
+    | { success: false; error: string };
+
+export async function addChatMessageAction(
+  input: z.infer<typeof addChatMessageSchema>
+): Promise<AddChatMessageResult> {
+  const parsedInput = addChatMessageSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { success: false, error: "Input inválido." };
+  }
+  try {
+    const { processId, ...messageData } = parsedInput.data;
+    const chatMessagesCollectionRef = collection(db, "processes", processId, "chatMessages");
+    
+    const docRef = await addDoc(chatMessagesCollectionRef, {
+      ...messageData,
+      timestamp: serverTimestamp(),
+    });
+
+    return { success: true, data: { messageId: docRef.id } };
+  } catch (error) {
+    console.error("Erro ao adicionar mensagem no chat:", error);
+    return { success: false, error: "Falha ao enviar mensagem. Tente novamente." };
+  }
+}
