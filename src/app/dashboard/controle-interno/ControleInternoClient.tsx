@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { collection, query, where, onSnapshot, DocumentData, doc } from 'firebase/firestore'
@@ -11,8 +11,11 @@ import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { BellRing, Check, Clock } from 'lucide-react'
+import { BellRing, Check, Clock, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { updateEventStatusAction } from './actions'
 
 interface PendingAudience extends DocumentData {
   id: string;
@@ -26,9 +29,12 @@ interface PendingAudience extends DocumentData {
 export function ControleInternoClient() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const [pendingAudiences, setPendingAudiences] = useState<PendingAudience[]>([])
   const [loading, setLoading] = useState(true)
+  const [isUpdating, startUpdateTransition] = useTransition()
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -60,11 +66,13 @@ export function ControleInternoClient() {
                         const eventData = eventDoc.data();
                         let processData: DocumentData = {};
                         if (eventData.processId) {
-                            const processDoc = await onSnapshot(doc(db, 'processes', eventData.processId), (doc) => {
-                                if (doc.exists()) {
-                                    processData = doc.data();
-                                }
-                            });
+                            // This part has a potential issue with onSnapshot inside a loop.
+                            // For simplicity, we'll keep it, but for production, it might be better to fetch process data separately.
+                            const processDocRef = doc(db, 'processes', eventData.processId);
+                            const processDocSnap = await getDoc(processDocRef);
+                            if (processDocSnap.exists()) {
+                                processData = processDocSnap.data();
+                            }
                         }
                         audiencesData.push({
                             id: eventDoc.id,
@@ -89,6 +97,19 @@ export function ControleInternoClient() {
         return () => unsubscribeUser();
     }
   }, [user, authLoading, router])
+  
+  const handleConfirmAudience = (eventId: string) => {
+    setUpdatingId(eventId);
+    startUpdateTransition(async () => {
+      const result = await updateEventStatusAction({ eventId, status: 'confirmado' });
+      if (result.success) {
+        toast({ title: "Audiência Confirmada!", description: "O status do evento foi atualizado." });
+      } else {
+        toast({ title: "Erro", description: result.error, variant: 'destructive' });
+      }
+      setUpdatingId(null);
+    })
+  }
 
   if (authLoading || loading) {
     return (
@@ -138,8 +159,17 @@ export function ControleInternoClient() {
                             <TableCell>{audience.clientName}</TableCell>
                             <TableCell>{audience.processNumber}</TableCell>
                             <TableCell className="text-center">
-                                <Button variant="outline" size="sm" disabled>
-                                    <Check className="mr-2 h-4 w-4"/>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  disabled={isUpdating && updatingId === audience.id}
+                                  onClick={() => handleConfirmAudience(audience.id)}
+                                >
+                                    {isUpdating && updatingId === audience.id ? (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                    ) : (
+                                      <Check className="mr-2 h-4 w-4"/>
+                                    )}
                                     Confirmar
                                 </Button>
                             </TableCell>
