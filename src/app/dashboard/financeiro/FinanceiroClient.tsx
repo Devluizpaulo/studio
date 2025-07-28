@@ -184,6 +184,8 @@ export function FinanceiroClient() {
       const result = await updateFinancialTaskStatusAction({ taskId, status: newStatus });
       if (!result.success) {
         toast({ title: "Erro", description: result.error, variant: 'destructive' });
+      } else {
+        toast({ title: "Status Atualizado!", description: "O status do lançamento foi alterado." });
       }
       setUpdatingId(null);
     });
