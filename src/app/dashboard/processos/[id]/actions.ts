@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase"
-import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc } from "firebase/firestore"
+import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
 
 const updateProcessStatusSchema = z.object({
@@ -122,5 +122,41 @@ export async function addCollaboratorAction(
   } catch (error) {
     console.error("Erro ao adicionar colaborador:", error);
     return { success: false, error: "Falha ao adicionar colaborador. Tente novamente." };
+  }
+}
+
+// --- Add Document ---
+const addDocumentSchema = z.object({
+  processId: z.string(),
+  title: z.string().min(3, "O título é obrigatório."),
+  url: z.string().url("A URL do documento é inválida."),
+  fileName: z.string(),
+  uploadedBy: z.string(),
+});
+
+type AddDocumentResult = 
+    | { success: true; data: { documentId: string } }
+    | { success: false; error: string };
+
+export async function addDocumentAction(
+  input: z.infer<typeof addDocumentSchema>
+): Promise<AddDocumentResult> {
+  const parsedInput = addDocumentSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { success: false, error: "Input inválido." };
+  }
+  try {
+    const { processId, ...documentData } = parsedInput.data;
+    const documentsCollectionRef = collection(db, "processes", processId, "documents");
+    
+    const docRef = await addDoc(documentsCollectionRef, {
+      ...documentData,
+      createdAt: serverTimestamp(),
+    });
+
+    return { success: true, data: { documentId: docRef.id } };
+  } catch (error) {
+    console.error("Erro ao adicionar documento:", error);
+    return { success: false, error: "Falha ao adicionar documento. Tente novamente." };
   }
 }

@@ -3,9 +3,10 @@
 import { useEffect, useState, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { db, storage } from "@/lib/firebase"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction } from "./actions"
+import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction, addDocumentAction } from "./actions"
 import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar as CalendarIcon } from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 
 interface Movement {
@@ -50,6 +52,14 @@ interface ProcessEvent extends DocumentData {
   description?: string
 }
 
+interface ProcessDocument extends DocumentData {
+    id: string;
+    title: string;
+    url: string;
+    fileName: string;
+    createdAt: Timestamp;
+}
+
 const eventFormSchema = z.object({
   title: z.string().min(3, 'O título é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
@@ -58,6 +68,13 @@ const eventFormSchema = z.object({
 })
 
 type EventFormValues = z.infer<typeof eventFormSchema>
+
+const documentFormSchema = z.object({
+    title: z.string().min(3, 'O título é obrigatório.'),
+    file: z.instanceof(File).refine(file => file.size > 0, 'O arquivo é obrigatório.'),
+})
+
+type DocumentFormValues = z.infer<typeof documentFormSchema>;
 
 
 export function ProcessDetailClient() {
@@ -70,13 +87,18 @@ export function ProcessDetailClient() {
   const [processData, setProcessData] = useState<DocumentData | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [processEvents, setProcessEvents] = useState<ProcessEvent[]>([]);
+  const [documents, setDocuments] = useState<ProcessDocument[]>([]);
   const [loading, setLoading] = useState(true)
   const [isUpdating, startUpdateTransition] = useTransition();
   const [isAddingCollaborator, startAddCollaboratorTransition] = useTransition();
 
   const [isAddCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
   const [isAddEventDialogOpen, setAddEventDialogOpen] = useState(false);
+  const [isAddDocumentDialogOpen, setAddDocumentDialogOpen] = useState(false);
+
   const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
+  const [isSubmittingDocument, setIsSubmittingDocument] = useState(false);
+
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
   const [searchError, setSearchError] = useState("");
@@ -91,6 +113,10 @@ export function ProcessDetailClient() {
       description: '',
       date: new Date(),
     },
+  })
+
+  const documentForm = useForm<DocumentFormValues>({
+      resolver: zodResolver(documentFormSchema),
   })
 
 
@@ -133,10 +159,18 @@ export function ProcessDetailClient() {
             const eventsData: ProcessEvent[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessEvent);
             setProcessEvents(eventsData.sort((a, b) => a.date.toMillis() - b.date.toMillis()));
         });
+        
+        // Subscribe to process documents
+        const documentsQuery = query(collection(db, "processes", processId, "documents"));
+        const unsubscribeDocuments = onSnapshot(documentsQuery, (snapshot) => {
+            const docsData: ProcessDocument[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessDocument);
+            setDocuments(docsData.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
+        })
 
         return () => {
             unsubscribeProcess();
             unsubscribeEvents();
+            unsubscribeDocuments();
         };
 
     } catch (error) {
@@ -255,6 +289,41 @@ export function ProcessDetailClient() {
         });
     }
     setIsSubmittingEvent(false);
+  }
+
+  async function handleDocumentSubmit(values: DocumentFormValues) {
+    if (!user || typeof id !== 'string' || !values.file) return;
+    setIsSubmittingDocument(true);
+
+    try {
+        const file = values.file;
+        const storageRef = ref(storage, `processes/${id}/documents/${Date.now()}_${file.name}`);
+        
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const result = await addDocumentAction({
+            processId: id,
+            title: values.title,
+            url: downloadURL,
+            fileName: file.name,
+            uploadedBy: user.uid,
+        });
+
+        if (result.success) {
+            toast({ title: 'Documento Anexado!', description: 'O arquivo foi salvo no processo.' });
+            setAddDocumentDialogOpen(false);
+            documentForm.reset();
+        } else {
+            toast({ title: 'Erro ao salvar informações', description: result.error, variant: 'destructive' });
+        }
+
+    } catch (error) {
+        console.error("Error uploading document:", error);
+        toast({ title: 'Erro no Upload', description: 'Não foi possível enviar o arquivo.', variant: 'destructive' });
+    } finally {
+        setIsSubmittingDocument(false);
+    }
   }
 
 
@@ -497,10 +566,94 @@ export function ProcessDetailClient() {
                 <CardTitle>Documentos do Processo</CardTitle>
                 <CardDescription>Faça upload e gerencie os arquivos do caso.</CardDescription>
               </div>
-              {userRole !== 'secretary' && <Button variant="outline">Adicionar Documento</Button>}
+              {userRole !== 'secretary' && (
+                <Dialog open={isAddDocumentDialogOpen} onOpenChange={setAddDocumentDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">
+                            <PlusCircle className="mr-2 h-4 w-4"/>
+                            Adicionar Documento
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                         <DialogHeader>
+                            <DialogTitle>Anexar Novo Documento</DialogTitle>
+                        </DialogHeader>
+                        <Form {...documentForm}>
+                             <form onSubmit={documentForm.handleSubmit(handleDocumentSubmit)} className="space-y-4">
+                                <FormField
+                                    control={documentForm.control}
+                                    name="title"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Título do Documento</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Ex: Petição Inicial, Comprovante..." {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={documentForm.control}
+                                    name="file"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Arquivo</FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="file" 
+                                                onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={isSubmittingDocument} className="w-full">
+                                    {isSubmittingDocument && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Anexar
+                                </Button>
+                             </form>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
+              )}
             </CardHeader>
-            <CardContent className="text-center text-muted-foreground py-12">
-                <p>Funcionalidade de gestão de documentos em desenvolvimento.</p>
+            <CardContent>
+                {documents.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Título</TableHead>
+                                <TableHead>Arquivo</TableHead>
+                                <TableHead>Data</TableHead>
+                                <TableHead className="text-right"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {documents.map(doc => (
+                                <TableRow key={doc.id}>
+                                    <TableCell className="font-medium">{doc.title}</TableCell>
+                                    <TableCell className="text-muted-foreground">{doc.fileName}</TableCell>
+                                    <TableCell>{format(doc.createdAt.toDate(), 'dd/MM/yyyy')}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="ghost" size="icon">
+                                            <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                                <Download className="h-4 w-4" />
+                                            </a>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="text-center text-muted-foreground py-12 flex flex-col items-center">
+                        <Paperclip className="h-12 w-12 mb-4" />
+                        <p>Nenhum documento foi anexado a este processo.</p>
+                         {userRole !== 'secretary' && <p className="text-sm mt-2">Clique em "Adicionar Documento" para começar.</p>}
+                    </div>
+                )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -544,7 +697,7 @@ export function ProcessDetailClient() {
                                         <FormItem>
                                             <FormLabel>Data do Evento</FormLabel>
                                             <FormControl>
-                                                 <Input type="date" {...field} onChange={e => field.onChange(e.target.valueAsDate)} />
+                                                 <Input type="datetime-local" {...field} onChange={e => field.onChange(e.target.valueAsDate)} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -603,7 +756,7 @@ export function ProcessDetailClient() {
                         <div>
                             <p className="font-semibold">{event.title}</p>
                              <p className="text-sm text-muted-foreground">
-                                {format(event.date.toDate(), "dd 'de' MMMM, yyyy", { locale: ptBR })} - {eventTypeMap[event.type].label}
+                                {format(event.date.toDate(), "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })} - {eventTypeMap[event.type].label}
                             </p>
                             {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
                         </div>
