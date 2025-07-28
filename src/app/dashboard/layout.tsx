@@ -17,6 +17,10 @@ const sidebarNavItems = [
     {
         title: "Clientes",
         href: "/dashboard/clientes",
+    },
+    {
+      title: "Perfil",
+      href: "/dashboard/perfil",
     }
   ]
 
