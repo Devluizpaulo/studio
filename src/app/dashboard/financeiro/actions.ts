@@ -1,0 +1,74 @@
+"use server"
+
+import { z } from "zod"
+import { db } from "@/lib/firebase"
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore"
+
+const createFinancialTaskSchema = z.object({
+  title: z.string().min(3, "O título é obrigatório."),
+  processId: z.string().optional(),
+  processNumber: z.string().optional(),
+  type: z.enum(['honorarios', 'custas', 'reembolso', 'guia', 'outro']),
+  dueDate: z.date(),
+  value: z.number(),
+  status: z.enum(['pendente', 'pago']),
+  officeId: z.string(),
+  createdBy: z.string(),
+})
+
+type Result =
+  | { success: true; data: { taskId: string } }
+  | { success: false; error: string }
+
+export async function createFinancialTaskAction(
+  input: z.infer<typeof createFinancialTaskSchema>
+): Promise<Result> {
+  const parsedInput = createFinancialTaskSchema.safeParse(input)
+
+  if (!parsedInput.success) {
+    return { success: false, error: "Input inválido." }
+  }
+
+  try {
+    const { ...taskData } = parsedInput.data
+    
+    const docRef = await addDoc(collection(db, "financial_tasks"), {
+      ...taskData,
+      createdAt: serverTimestamp(),
+    })
+
+    return { success: true, data: { taskId: docRef.id } }
+  } catch (error) {
+    console.error("Erro ao criar tarefa financeira:", error)
+    return { success: false, error: "Falha ao criar tarefa. Tente novamente." }
+  }
+}
+
+// --- Update Financial Task Status ---
+const updateStatusSchema = z.object({
+  taskId: z.string(),
+  status: z.enum(['pendente', 'pago']),
+})
+
+type UpdateResult = { success: true } | { success: false; error: string }
+
+export async function updateFinancialTaskStatusAction(
+  input: z.infer<typeof updateStatusSchema>
+): Promise<UpdateResult> {
+  const parsedInput = updateStatusSchema.safeParse(input);
+  if(!parsedInput.success) {
+    return { success: false, error: "Input inválido." };
+  }
+  try {
+    const { taskId, status } = parsedInput.data;
+    const taskRef = doc(db, 'financial_tasks', taskId);
+    await updateDoc(taskRef, {
+      status: status,
+      updatedAt: serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar status da tarefa:", error);
+    return { success: false, error: "Falha ao atualizar o status." };
+  }
+}
