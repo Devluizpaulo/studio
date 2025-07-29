@@ -15,6 +15,7 @@ const UpdateProcessStatusInputSchema = z.object({
   court: z.string().describe('A vara e comarca do processo.'),
   currentStatus: z.string().describe('O status atual do processo.'),
   lastUpdate: z.string().describe('A descrição do último andamento registrado.'),
+  userId: z.string().describe('O ID do usuário que está fazendo a solicitação.')
 });
 export type UpdateProcessStatusInput = z.infer<typeof UpdateProcessStatusInputSchema>;
 
@@ -55,9 +56,7 @@ const updateProcessStatusFlow = ai.defineFlow(
     outputSchema: UpdateProcessStatusOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, {user: input.userId});
     return output!;
   }
 );
-
-    

@@ -41,6 +41,11 @@ const sidebarNavItems = [
     {
       title: "Meu Perfil",
       href: "/dashboard/perfil",
+    },
+    {
+      title: "Configurações",
+      href: "/dashboard/configuracoes",
+      role: "master"
     }
   ]
 

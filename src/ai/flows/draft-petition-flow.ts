@@ -17,6 +17,7 @@ const DraftPetitionInputSchema = z.object({
   toneAndStyle: z.string().describe('Instruções sobre o tom (ex: "formal", "combativo", "conciliador") e o estilo da escrita, incluindo jurisprudências ou doutrinas a serem enfatizadas.'),
   clientInfo: z.string().describe('Informações do cliente (nome, qualificação).'),
   opponentInfo: z.string().describe('Informações da parte contrária (nome, qualificação).'),
+  userId: z.string().describe('O ID do usuário que está fazendo a solicitação.')
 });
 export type DraftPetitionInput = z.infer<typeof DraftPetitionInputSchema>;
 
@@ -60,7 +61,7 @@ const draftPetitionFlow = ai.defineFlow(
     outputSchema: DraftPetitionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, {user: input.userId});
     return output!;
   }
 );

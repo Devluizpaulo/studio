@@ -263,7 +263,7 @@ export function ProcessDetailClient() {
   }, [id, user, authLoading, router]);
 
   const handleUpdateStatus = () => {
-    if (!processData || typeof id !== 'string') return;
+    if (!processData || typeof id !== 'string' || !user) return;
 
     startUpdateTransition(async () => {
         const result = await updateProcessStatusAction({
@@ -271,7 +271,8 @@ export function ProcessDetailClient() {
             processNumber: processData.processNumber,
             court: processData.court,
             currentStatus: processData.status,
-            lastUpdate: processData.movements.at(-1)?.description || 'Processo iniciado.'
+            lastUpdate: processData.movements.at(-1)?.description || 'Processo iniciado.',
+            userId: user.uid
         });
 
         if (result.success) {
@@ -406,7 +407,7 @@ export function ProcessDetailClient() {
   }
     
   async function handlePetitionSubmit(values: PetitionFormValues) {
-    if (!processData) return;
+    if (!processData || !user) return;
     setIsDraftingPetition(true);
     setDraftContent("");
 
@@ -417,6 +418,7 @@ export function ProcessDetailClient() {
         caseFacts,
         clientInfo: `${processData.clientName}, CPF/CNPJ: ${processData.clientDocument}`,
         opponentInfo: processData.representation === 'plaintiff' ? processData.defendant : processData.plaintiff,
+        userId: user.uid
     });
     
     if (result.success && result.data) {

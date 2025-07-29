@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
+import { doc, setDoc, getDocs, collection, query, where, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 
@@ -87,9 +87,12 @@ export function SignUpForm() {
       await updateProfile(user, {
         displayName: values.fullName
       });
+      
+      const batch = writeBatch(db);
 
-      // Save additional lawyer data to Firestore
-      await setDoc(doc(db, "users", user.uid), {
+      // Create user document
+      const userDocRef = doc(db, "users", user.uid);
+      batch.set(userDocRef, {
         uid: user.uid,
         fullName: values.fullName,
         email: values.email,
@@ -100,6 +103,18 @@ export function SignUpForm() {
         officeId: officeId,
         createdAt: new Date(),
       });
+
+      // Create office document
+      const officeDocRef = doc(db, "offices", officeId);
+      batch.set(officeDocRef, {
+        name: values.office,
+        ownerId: user.uid,
+        createdAt: new Date(),
+        googleApiKey: "", // Initialize with an empty API key
+      });
+
+      await batch.commit();
+
 
       toast({
         title: "Cadastro Realizado com Sucesso!",

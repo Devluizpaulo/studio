@@ -12,6 +12,7 @@ const updateProcessStatusSchema = z.object({
   court: z.string(),
   currentStatus: z.string(),
   lastUpdate: z.string(),
+  userId: z.string(),
 })
 
 type UpdateResult =
@@ -198,7 +199,6 @@ export async function addChatMessageAction(
 }
 
 // --- Draft Petition Action ---
-
 const draftPetitionSchema = z.object({
     caseFacts: z.string(),
     petitionType: z.string(),
@@ -206,6 +206,7 @@ const draftPetitionSchema = z.object({
     toneAndStyle: z.string(),
     clientInfo: z.string(),
     opponentInfo: z.string(),
+    userId: z.string(),
 });
 
 type DraftPetitionResult =
