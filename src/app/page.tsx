@@ -118,8 +118,8 @@ export default function Home() {
              <Image
                 src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/c14a8499-d421-4b11-a870-8e2b83b34c26/reinaldo_goncalves.jpg"
                 alt="Advogado Reinaldo Gonçalves"
-                layout="fill"
-                objectFit="cover"
+                fill
+                style={{objectFit: 'cover'}}
                 className="shadow-2xl"
                 data-ai-hint="lawyer portrait"
               />
