@@ -4,6 +4,7 @@ import { z } from "zod"
 import { db } from "@/lib/firebase"
 import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
+import { draftPetition, DraftPetitionInput } from "@/ai/flows/draft-petition-flow"
 
 const updateProcessStatusSchema = z.object({
   processId: z.string(),
@@ -194,4 +195,37 @@ export async function addChatMessageAction(
     console.error("Erro ao adicionar mensagem no chat:", error);
     return { success: false, error: "Falha ao enviar mensagem. Tente novamente." };
   }
+}
+
+// --- Draft Petition Action ---
+
+const draftPetitionSchema = z.object({
+    caseFacts: z.string(),
+    petitionType: z.string(),
+    legalThesis: z.string(),
+    toneAndStyle: z.string(),
+    clientInfo: z.string(),
+    opponentInfo: z.string(),
+});
+
+type DraftPetitionResult =
+    | { success: true; data: { draftContent: string } }
+    | { success: false; error: string };
+
+export async function draftPetitionAction(
+    input: z.infer<typeof draftPetitionSchema>
+): Promise<DraftPetitionResult> {
+    const parsedInput = draftPetitionSchema.safeParse(input);
+
+    if (!parsedInput.success) {
+        return { success: false, error: "Input inválido para a IA." };
+    }
+
+    try {
+        const result = await draftPetition(parsedInput.data);
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("Erro ao gerar rascunho da petição:", error);
+        return { success: false, error: "A IA não conseguiu gerar o rascunho. Tente novamente." };
+    }
 }

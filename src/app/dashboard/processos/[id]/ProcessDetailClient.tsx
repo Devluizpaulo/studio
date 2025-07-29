@@ -6,7 +6,7 @@ import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp
 import { db, storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { useAuth } from "@/contexts/AuthContext"
-import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction, addDocumentAction, addChatMessageAction } from "./actions"
+import { updateProcessStatusAction, addCollaboratorAction, findUserByEmailAction, addDocumentAction, addChatMessageAction, draftPetitionAction } from "./actions"
 import { useToast } from "@/hooks/use-toast"
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
@@ -90,6 +90,14 @@ const chatFormSchema = z.object({
 })
 type ChatFormValues = z.infer<typeof chatFormSchema>;
 
+const petitionFormSchema = z.object({
+    petitionType: z.string().min(3, "O tipo de petição é obrigatório."),
+    legalThesis: z.string().min(20, "A tese jurídica deve ter pelo menos 20 caracteres."),
+    toneAndStyle: z.string().min(10, "Descreva o tom e estilo desejado."),
+})
+
+type PetitionFormValues = z.infer<typeof petitionFormSchema>;
+
 
 export function ProcessDetailClient() {
   const { user, loading: authLoading } = useAuth()
@@ -115,6 +123,8 @@ export function ProcessDetailClient() {
   const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
   const [isSubmittingDocument, setIsSubmittingDocument] = useState(false);
   const [isSubmittingMessage, setIsSubmittingMessage] = useState(false);
+  const [isDraftingPetition, setIsDraftingPetition] = useState(false);
+  const [draftContent, setDraftContent] = useState("");
 
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
@@ -139,6 +149,15 @@ export function ProcessDetailClient() {
   const chatForm = useForm<ChatFormValues>({
       resolver: zodResolver(chatFormSchema),
       defaultValues: { text: "" }
+  })
+    
+  const petitionForm = useForm<PetitionFormValues>({
+    resolver: zodResolver(petitionFormSchema),
+    defaultValues: {
+        petitionType: "Petição Inicial",
+        legalThesis: "",
+        toneAndStyle: "Tom formal e combativo. Citar jurisprudência relevante do TJSP.",
+    }
   })
 
   useEffect(() => {
@@ -385,6 +404,30 @@ export function ProcessDetailClient() {
         setIsSubmittingMessage(false);
     }
   }
+    
+  async function handlePetitionSubmit(values: PetitionFormValues) {
+    if (!processData) return;
+    setIsDraftingPetition(true);
+    setDraftContent("");
+
+    const caseFacts = `Processo No: ${processData.processNumber}. Ação de ${processData.actionType}. Vara: ${processData.court}. Autor: ${processData.plaintiff}. Réu: ${processData.defendant}. Cliente: ${processData.clientName}.`;
+    
+    const result = await draftPetitionAction({
+        ...values,
+        caseFacts,
+        clientInfo: `${processData.clientName}, CPF/CNPJ: ${processData.clientDocument}`,
+        opponentInfo: processData.representation === 'plaintiff' ? processData.defendant : processData.plaintiff,
+    });
+    
+    if (result.success && result.data) {
+        setDraftContent(result.data.draftContent);
+        toast({ title: "Rascunho gerado!", description: "A IA concluiu o rascunho da sua petição." });
+    } else {
+        toast({ title: "Erro da IA", description: result.error, variant: "destructive" });
+    }
+
+    setIsDraftingPetition(false);
+  }
 
 
   if (loading || authLoading || !processData) {
@@ -565,7 +608,7 @@ export function ProcessDetailClient() {
 
 
       <Tabs defaultValue="updates" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="updates">
             <Calendar className="mr-2 h-4 w-4"/>
             Andamentos
@@ -581,6 +624,10 @@ export function ProcessDetailClient() {
           <TabsTrigger value="chat">
             <MessageSquare className="mr-2 h-4 w-4"/>
             Chat
+          </TabsTrigger>
+          <TabsTrigger value="ai_assistant">
+            <Sparkles className="mr-2 h-4 w-4"/>
+            Assistente IA
           </TabsTrigger>
         </TabsList>
         <TabsContent value="updates">
@@ -900,6 +947,86 @@ export function ProcessDetailClient() {
                             </form>
                         </Form>
                      )}
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="ai_assistant">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Assistente de IA para Petições</CardTitle>
+                    <CardDescription>Gere rascunhos de petições com base na estratégia do caso.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 lg:grid-cols-2">
+                   <div className="space-y-6">
+                        <h3 className="text-lg font-semibold text-primary">Diretrizes para a IA</h3>
+                        <Form {...petitionForm}>
+                            <form onSubmit={petitionForm.handleSubmit(handlePetitionSubmit)} className="space-y-4">
+                               <FormField
+                                    control={petitionForm.control}
+                                    name="petitionType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tipo de Petição</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Ex: Contestação, Recurso de Apelação" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={petitionForm.control}
+                                    name="legalThesis"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tese Jurídica Central</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Qual é o principal argumento que a petição deve defender? Ex: 'A prescrição do débito impede a cobrança...'" {...field} className="min-h-[100px]" />
+                                            </FormControl>
+                                             <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={petitionForm.control}
+                                    name="toneAndStyle"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tom e Estilo da Escrita</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder="Ex: 'Tom formal e combativo. Citar jurisprudência do TJSP sobre o tema...'" {...field} />
+                                            </FormControl>
+                                             <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={isDraftingPetition} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                                    {isDraftingPetition && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Gerar Rascunho
+                                </Button>
+                            </form>
+                        </Form>
+                   </div>
+                   <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-primary">Rascunho Gerado</h3>
+                        <div className="w-full h-[500px] bg-muted/50 rounded-md p-4 overflow-y-auto">
+                           {isDraftingPetition && (
+                                <div className="flex flex-col items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                                    <p className="mt-4 text-muted-foreground">Aguarde, a IA está redigindo a petição...</p>
+                                </div>
+                           )}
+                           {draftContent ? (
+                             <Textarea 
+                                readOnly
+                                value={draftContent}
+                                className="w-full h-full text-base whitespace-pre-wrap"
+                             />
+                           ) : (
+                             !isDraftingPetition && <p className="text-center text-muted-foreground pt-20">O rascunho da sua petição aparecerá aqui.</p>
+                           )}
+                        </div>
+                   </div>
                 </CardContent>
             </Card>
         </TabsContent>
