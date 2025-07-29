@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Scale, Briefcase, Users, Landmark, Phone } from "lucide-react";
@@ -119,8 +120,7 @@ export default function Home() {
                 src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/c14a8499-d421-4b11-a870-8e2b83b34c26/reinaldo_goncalves.jpg"
                 alt="Advogado Reinaldo Gonçalves"
                 fill
-                style={{objectFit: 'cover'}}
-                className="shadow-2xl"
+                className="object-cover shadow-2xl"
                 data-ai-hint="lawyer portrait"
               />
           </div>
@@ -176,3 +176,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
