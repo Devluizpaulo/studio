@@ -68,9 +68,9 @@ export default function Home() {
              <Image
                 src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/4a86161a-0638-4e1a-85d1-e6a392815157/rgmj-logo.jpg"
                 alt="Logo RGMJ Advocacia e Consultoria Jurídica"
-                width={800}
-                height={400}
-                className="mx-auto"
+                width={600}
+                height={300}
+                className="mx-auto w-full max-w-lg h-auto"
                 priority
               />
             <p className="mt-8 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
