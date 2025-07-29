@@ -55,35 +55,26 @@ const WhatsappButton = () => (
 export default function Home() {
   return (
     <div className="flex flex-col bg-background text-foreground">
+      
       {/* Hero Section */}
       <section 
         id="home"
-        className="relative flex h-[80vh] min-h-[600px] items-center justify-center text-center text-white"
+        className="relative pt-32 pb-20 text-center"
       >
-        <div className="absolute inset-0 bg-black/60 z-10"/>
-        <Image
-            src="https://placehold.co/1920x1080.png"
-            alt="Escritório de advocacia"
-            layout="fill"
-            objectFit="cover"
-            className="z-0"
-            data-ai-hint="lawyer office background"
-        />
-        <div className="relative z-20 container mx-auto px-4">
+        <div className="glow-effect" />
+        <div className="container mx-auto px-4 z-10 relative">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-block p-6 border-2 border-accent/80">
-              <h1 className="font-headline text-5xl font-bold tracking-tight text-white sm:text-7xl uppercase">
-                Reinaldo Gonçalves Miguel de Jesus
-              </h1>
-              <p className="text-2xl text-accent font-semibold mt-2">
-                Advocacia Especializada
-              </p>
-            </div>
-            <p className="mt-8 text-lg leading-8 text-gray-200 max-w-2xl mx-auto">
+            <h1 className="font-headline text-5xl font-bold tracking-tight text-primary sm:text-7xl">
+              Reinaldo Gonçalves Miguel de Jesus
+            </h1>
+            <p className="text-2xl text-accent font-semibold mt-4">
+              Advocacia Especializada
+            </p>
+            <p className="mt-8 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
               Atuação dedicada e estratégica na defesa dos seus direitos nas áreas cível, trabalhista, família e tributário.
             </p>
             <div className="mt-10">
-              <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
+              <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                   Fale Conosco via WhatsApp
                 </a>
@@ -96,9 +87,13 @@ export default function Home() {
       {/* Services Section */}
       <section id="services" className="py-24 sm:py-32">
         <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-4xl text-center mb-16">
+            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Áreas de Atuação</h2>
+            <p className="mt-4 text-lg text-muted-foreground">Compromisso e excelência na defesa dos seus direitos.</p>
+          </div>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {services.map((service) => (
-              <Card key={service.title} className="bg-card border-accent/20 text-center transform transition-transform duration-300 hover:-translate-y-2">
+              <Card key={service.title} className="bg-card/80 border-border text-center transform transition-all duration-300 hover:-translate-y-2 hover:border-accent/80 hover:shadow-2xl hover:shadow-accent/10">
                 <CardHeader className="items-center">
                   <div className="p-4 rounded-full mb-4">
                     {service.icon}
@@ -114,42 +109,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Specialties Section */}
-      <section id="specialties" className="py-24 sm:py-32 bg-card">
-         <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-4xl text-center">
-              <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Nossas Áreas de Atuação</h2>
-            </div>
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 max-w-4xl mx-auto">
-              {specialties.map((item) => (
-                <div key={item} className="flex items-start">
-                  <Check className="h-6 w-6 text-accent mr-3 mt-1 flex-shrink-0"/>
-                  <span className="text-lg text-muted-foreground">{item}</span>
-                </div>
-              ))}
-            </div>
-             <div className="text-center mt-16">
-               <p className="text-muted-foreground mb-6">Se você precisa de assessoria jurídica, entre em contato e agende sua consulta.</p>
-                <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
-                  <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                    Fale Conosco
-                  </a>
-                </Button>
-                <p className="text-accent font-semibold mt-3">Atendimento em todo Brasil.</p>
-            </div>
-         </div>
-      </section>
-
       {/* Philosophy Section */}
        <section id="philosophy" className="py-24 sm:py-32">
         <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
-          <div className="h-[500px] w-full relative">
+          <div className="h-[500px] w-full relative rounded-lg overflow-hidden">
              <Image
                 src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/c14a8499-d421-4b11-a870-8e2b83b34c26/reinaldo_goncalves.jpg"
                 alt="Advogado Reinaldo Gonçalves"
                 layout="fill"
                 objectFit="cover"
-                className="rounded-lg shadow-xl"
+                className="shadow-2xl"
                 data-ai-hint="lawyer portrait"
               />
           </div>
@@ -163,14 +132,32 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      {/* Specialties Section */}
+      <section id="specialties" className="py-24 sm:py-32 bg-card/80">
+         <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-4xl text-center">
+              <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Nossas Especialidades</h2>
+              <p className="mt-4 text-lg text-muted-foreground">Oferecemos uma assessoria jurídica completa e detalhada.</p>
+            </div>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 max-w-6xl mx-auto">
+              {specialties.map((item) => (
+                <div key={item} className="flex items-start">
+                  <Check className="h-6 w-6 text-accent mr-3 mt-1 flex-shrink-0"/>
+                  <span className="text-lg text-muted-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
+         </div>
+      </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 sm:py-32 bg-card">
+      <section id="contact" className="py-24 sm:py-32">
         <div className="container mx-auto px-4">
            <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Fale Conosco</h2>
+            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Agende uma Consulta</h2>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-             Clique no botão abaixo para nos enviar uma mensagem diretamente no WhatsApp. Nossa equipe responderá o mais breve possível para agendar uma consulta!
+             Está pronto para dar o próximo passo? Clique no botão abaixo para nos enviar uma mensagem diretamente no WhatsApp. Nossa equipe está pronta para atendê-lo.
             </p>
           </div>
           <div className="mt-10 text-center">

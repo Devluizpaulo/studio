@@ -8,11 +8,11 @@ body {
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
+    --background: 222 83% 4%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
+    --popover: 222 83% 4%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222 47% 11%;
@@ -24,18 +24,18 @@ body {
     --accent-foreground: 222 47% 11%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
+    --border: 217 33% 25%;
     --input: 217 33% 17%;
     --ring: 215 28% 65%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 222 83% 4%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
+    --popover: 222 83% 4%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222 47% 11%;
@@ -47,7 +47,7 @@ body {
     --accent-foreground: 222 47% 11%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
+    --border: 217 33% 25%;
     --input: 217 33% 17%;
     --ring: 215 28% 65%;
   }
@@ -59,5 +59,17 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(ellipse 80% 80% at 50% -20%,rgba(120,119,198,0.3),hsla(0,0%,100%,0));
   }
+}
+
+.glow-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
 }
