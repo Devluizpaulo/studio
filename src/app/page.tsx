@@ -100,7 +100,7 @@ export default function Home() {
                   </div>
                   <CardTitle className="font-headline text-2xl text-primary">{service.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="text-left">
                   <p className="text-muted-foreground">{service.description}</p>
                 </CardContent>
               </Card>
@@ -124,7 +124,7 @@ export default function Home() {
           </div>
           <div>
             <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
-            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
              Compreendemos que cada caso é único e exige uma abordagem dedicada. Meu compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados.
             </p>
              <p className="mt-6 text-xl font-semibold text-primary font-headline">Reinaldo Gonçalves Miguel de Jesus</p>
