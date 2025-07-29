@@ -139,10 +139,18 @@ export function EquipeClient() {
     setIsSubmitting(true)
     const result = await inviteMemberAction({ ...values, officeId: currentUserData.officeId, invitingUserId: user.uid })
     
-    if (result.success) {
+    if (result.success && result.data?.tempPassword) {
       toast({
         title: 'Membro Convidado!',
-        description: `${values.fullName} foi adicionado(a) ao escritório.`,
+        description: (
+          <div>
+            <p className="mb-2">{`${values.fullName} foi adicionado(a).`}</p>
+            <p className="font-semibold">Senha Temporária:</p>
+            <p className="font-mono text-sm bg-muted p-2 rounded-md">{result.data.tempPassword}</p>
+            <p className="mt-2 text-xs">Por favor, copie e envie esta senha para o novo membro por um canal seguro.</p>
+          </div>
+        ),
+        duration: 20000, // Show for 20 seconds
       })
       setInviteDialogOpen(false)
       form.reset()
@@ -196,7 +204,7 @@ export function EquipeClient() {
              <DialogHeader>
               <DialogTitle>Convidar Novo Membro</DialogTitle>
               <DialogDescription>
-                O novo membro receberá acesso com uma senha temporária e deverá alterá-la.
+                Uma senha temporária será gerada para o primeiro acesso.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -253,7 +261,7 @@ export function EquipeClient() {
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Importante!</AlertTitle>
                     <AlertDescription>
-                        Após o convite, um e-mail com uma senha temporária será enviado. Por segurança, instrua o novo membro a usar a função "Esqueci minha senha" na tela de login para definir uma senha pessoal e segura.
+                        Após o convite, envie a senha temporária para o novo membro e instrua-o a usar a função "Esqueci minha senha" na tela de login caso deseje definir uma senha pessoal antes do primeiro acesso.
                     </AlertDescription>
                 </Alert>
 
