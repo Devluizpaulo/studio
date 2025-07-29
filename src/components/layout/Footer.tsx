@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link";
 import { Mail, Phone, MapPin, Scale } from "lucide-react";
 
@@ -9,10 +10,10 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2">
                 <Scale className="h-8 w-8 text-accent"/>
-                <h3 className="font-headline text-2xl font-semibold text-primary">JurisAI</h3>
+                <h3 className="font-headline text-2xl font-semibold text-primary">RGMJ</h3>
             </div>
             <p className="mt-4 text-muted-foreground">
-              A plataforma inteligente para gestão jurídica.
+             Advocacia Especializada.
             </p>
           </div>
           <div>
@@ -20,7 +21,7 @@ export default function Footer() {
             <ul className="mt-4 space-y-3 text-muted-foreground">
               <li className="flex items-center">
                 <Mail className="mr-3 h-5 w-5 text-accent" />
-                <span>contato@jurisai.com</span>
+                <span>contato@rgmj.com.br</span>
               </li>
               <li className="flex items-center">
                 <Phone className="mr-3 h-5 w-5 text-accent" />
@@ -42,7 +43,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-border/50 pt-8 text-center text-muted-foreground/60">
-          <p>&copy; {new Date().getFullYear()} JurisAI. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} RGMJ Advocacia. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

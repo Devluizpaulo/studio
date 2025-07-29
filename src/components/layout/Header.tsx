@@ -42,7 +42,7 @@ export default function Header() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Scale className="h-8 w-8 text-accent" />
             <span className="font-headline text-2xl font-bold text-primary">
-              JurisAI
+              RGMJ
             </span>
           </Link>
         </div>
@@ -70,14 +70,14 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <SheetHeader className="sr-only">
-                  <SheetTitle>Menu</SheetTitle>
+              <SheetHeader>
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
               </SheetHeader>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <Scale className="h-7 w-7 text-accent" />
                   <span className="font-headline text-2xl font-bold text-primary">
-                    JurisAI
+                    RGMJ
                   </span>
                 </Link>
                 {isLandingPage && navLinks.map(({ href, label }) => (

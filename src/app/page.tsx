@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Scale, Briefcase, Users, Landmark } from "lucide-react";
+import { Check, Scale, Briefcase, Users, Landmark, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 const services = [
   {
@@ -39,6 +37,20 @@ const specialties = [
   "Pareceres e consultoria jurídica especializada",
 ];
 
+const WHATSAPP_LINK = "https://wa.me/5511999999999?text=Olá, encontrei o site do escritório RGMJ e gostaria de uma consulta.";
+
+const WhatsappButton = () => (
+    <a 
+        href={WHATSAPP_LINK}
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-transform transform hover:scale-110 flex items-center justify-center"
+        aria-label="Contato via WhatsApp"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+    </a>
+)
+
 
 export default function Home() {
   return (
@@ -72,9 +84,9 @@ export default function Home() {
             </p>
             <div className="mt-10">
               <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
-                <Link href="#contact">
-                  Entre em Contato
-                </Link>
+                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                  Fale Conosco via WhatsApp
+                </a>
               </Button>
             </div>
           </div>
@@ -119,9 +131,9 @@ export default function Home() {
              <div className="text-center mt-16">
                <p className="text-muted-foreground mb-6">Se você precisa de assessoria jurídica, entre em contato e agende sua consulta.</p>
                 <Button asChild size="lg" variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7 px-10">
-                  <Link href="#contact">
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                     Fale Conosco
-                  </Link>
+                  </a>
                 </Button>
                 <p className="text-accent font-semibold mt-3">Atendimento em todo Brasil.</p>
             </div>
@@ -158,21 +170,20 @@ export default function Home() {
            <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Fale Conosco</h2>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-             Envie uma mensagem contando como podemos lhe ajudar. Nossa equipe responderá o mais breve possível para agendar uma consulta!
+             Clique no botão abaixo para nos enviar uma mensagem diretamente no WhatsApp. Nossa equipe responderá o mais breve possível para agendar uma consulta!
             </p>
           </div>
-          <div className="mt-16 mx-auto max-w-lg">
-            <form action="#" className="space-y-6">
-               <Input placeholder="Nome" name="name" className="bg-background h-12"/>
-               <Input placeholder="Email" name="email" type="email" className="bg-background h-12"/>
-               <Textarea placeholder="Mensagem" name="message" rows={5} className="bg-background"/>
-               <Button type="submit" size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7">
-                  Enviar Mensagem
+          <div className="mt-10 text-center">
+              <Button asChild size="lg" className="w-full max-w-sm bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-7">
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+                    <Phone className="mr-3 h-6 w-6"/>
+                    Iniciar Conversa no WhatsApp
+                  </a>
                </Button>
-            </form>
           </div>
         </div>
       </section>
+      <WhatsappButton />
     </div>
   );
 }
