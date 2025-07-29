@@ -64,12 +64,14 @@ export default function Home() {
         <div className="glow-effect" />
         <div className="container mx-auto px-4 z-10 relative">
           <div className="max-w-4xl mx-auto">
-            <h1 className="font-headline text-5xl font-bold tracking-tight text-primary sm:text-7xl">
-              Reinaldo Gonçalves Miguel de Jesus
-            </h1>
-            <p className="text-2xl text-accent font-semibold mt-4">
-              Advocacia Especializada
-            </p>
+             <Image
+                src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/4a86161a-0638-4e1a-85d1-e6a392815157/rgmj-logo.jpg"
+                alt="Logo RGMJ Advocacia e Consultoria Jurídica"
+                width={800}
+                height={400}
+                className="mx-auto"
+                priority
+              />
             <p className="mt-8 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
               Atuação dedicada e estratégica na defesa dos seus direitos nas áreas cível, trabalhista, família e tributário.
             </p>

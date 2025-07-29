@@ -13,7 +13,7 @@ export default function Footer() {
                 <h3 className="font-headline text-2xl font-semibold text-primary">RGMJ</h3>
             </div>
             <p className="mt-4 text-muted-foreground">
-             Advocacia Especializada.
+             Advocacia e Consultoria Jurídica.
             </p>
           </div>
           <div>
