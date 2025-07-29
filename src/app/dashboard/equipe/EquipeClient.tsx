@@ -42,7 +42,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { UserPlus, Users, BadgeHelp, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { inviteMemberAction } from './actions'
-
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Terminal } from 'lucide-react'
 
 interface TeamMember extends DocumentData {
   id: string;
@@ -195,7 +196,7 @@ export function EquipeClient() {
              <DialogHeader>
               <DialogTitle>Convidar Novo Membro</DialogTitle>
               <DialogDescription>
-                O novo membro receberá um acesso para a plataforma com uma senha temporária.
+                O novo membro receberá acesso com uma senha temporária e deverá alterá-la.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -247,6 +248,15 @@ export function EquipeClient() {
                     </FormItem>
                   )}
                 />
+
+                <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Importante!</AlertTitle>
+                    <AlertDescription>
+                        Após o convite, um e-mail com uma senha temporária será enviado. Por segurança, instrua o novo membro a usar a função "Esqueci minha senha" na tela de login para definir uma senha pessoal e segura.
+                    </AlertDescription>
+                </Alert>
+
                 <DialogFooter>
                     <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
