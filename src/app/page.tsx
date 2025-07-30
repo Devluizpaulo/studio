@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Scale, Briefcase, Users, Landmark, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { TeamSection } from "./TeamSection";
 
 const services = [
   {
@@ -112,28 +113,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Philosophy Section */}
-       <section id="philosophy" className="py-24 sm:py-32">
-        <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
-          <div className="h-[500px] w-full relative rounded-lg overflow-hidden">
-             <Image
-                src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/c14a8499-d421-4b11-a870-8e2b83b34c26/reinaldo_goncalves.jpg"
-                alt="Advogado Reinaldo Gonçalves"
-                fill
-                className="object-cover shadow-2xl"
-                data-ai-hint="lawyer portrait"
-              />
-          </div>
-          <div>
-            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
-            <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
-             Compreendemos que cada caso é único e exige uma abordagem dedicada. Meu compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados.
-            </p>
-             <p className="mt-6 text-xl font-semibold text-primary font-headline">Reinaldo Gonçalves Miguel de Jesus</p>
-             <p className="text-sm text-accent">Advogado - OAB/SP 123.456</p>
-          </div>
-        </div>
-      </section>
+      <TeamSection />
       
       {/* Specialties Section */}
       <section id="specialties" className="py-24 sm:py-32 bg-card/80">
