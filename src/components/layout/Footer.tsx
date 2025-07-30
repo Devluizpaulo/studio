@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link";
-import { Mail, Phone, MapPin, Scale } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -9,8 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
           <div>
             <div className="flex items-center space-x-2">
-                <Scale className="h-8 w-8 text-accent"/>
-                <h3 className="font-headline text-2xl font-semibold text-primary">RGMJ</h3>
+                <Image src="/logo.png" alt="RGMJ Logo" width={150} height={75} className="h-auto" />
             </div>
             <p className="mt-4 text-muted-foreground">
              Advocacia e Consultoria Jurídica.

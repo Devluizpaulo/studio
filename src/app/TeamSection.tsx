@@ -53,7 +53,7 @@ export async function TeamSection() {
                     <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
                         <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
                              <Image
-                                src={mainLawyer.photoUrl || "https://placehold.co/600x800.png"}
+                                src="/reinaldo.png"
                                 alt={`Advogado(a) ${mainLawyer.fullName}`}
                                 fill
                                 className="object-cover"

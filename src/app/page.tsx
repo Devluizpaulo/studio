@@ -69,8 +69,8 @@ export default function Home() {
              <Image
                 src="/logo.png"
                 alt="Logo RGMJ Advocacia e Consultoria Jurídica"
-                width={600}
-                height={300}
+                width={800}
+                height={400}
                 className="mx-auto w-full max-w-lg h-auto"
                 priority
               />
@@ -156,5 +156,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
