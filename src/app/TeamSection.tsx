@@ -5,6 +5,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { User } from "lucide-react";
 
 async function getTeamMembers() {
+  if (!db) {
+      console.warn("Firebase Admin is not initialized. Skipping getTeamMembers.");
+      return [];
+  }
   try {
     const usersCollection = db.collection('users');
     const snapshot = await usersCollection.where('role', 'in', ['master', 'lawyer']).get();
@@ -33,6 +37,10 @@ async function getTeamMembers() {
 
 export async function TeamSection() {
     const team = await getTeamMembers();
+
+    if (team.length === 0) {
+        return null;
+    }
 
     // The first user (master) is the main lawyer. We show it separately.
     const mainLawyer = team.find(member => member.id === '1lupN5aW6MhOMsD6SjTILIiB2Nt1');

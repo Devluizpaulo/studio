@@ -67,7 +67,7 @@ export default function Home() {
         <div className="container mx-auto px-4 z-10 relative">
           <div className="max-w-4xl mx-auto">
              <Image
-                src="https://storage.googleapis.com/aif-stg-prompt-gallery/prod/4a86161a-0638-4e1a-85d1-e6a392815157/rgmj-logo.jpg"
+                src="/logo.png"
                 alt="Logo RGMJ Advocacia e Consultoria Jurídica"
                 width={600}
                 height={300}
