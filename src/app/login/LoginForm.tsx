@@ -68,7 +68,7 @@ export function LoginForm() {
   return (
       <Card className="mx-auto max-w-sm border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-3xl">Bem-vindo(a) de volta!</CardTitle>
+          <CardTitle className="font-headline text-3xl">Área do Advogado</CardTitle>
           <CardDescription>
             Acesse sua conta para gerenciar seus processos.
           </CardDescription>
@@ -109,10 +109,10 @@ export function LoginForm() {
               </Button>
             </form>
           </Form>
-           <div className="mt-6 text-center text-sm">
-            Não tem uma conta?{" "}
-            <Link href="/signup" className="underline text-accent font-semibold">
-              Cadastre-se
+           <div className="mt-6 text-center text-sm text-muted-foreground">
+             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc. Para novos contatos,{" "}
+            <Link href="/#contact" className="underline text-accent font-semibold">
+              clique aqui.
             </Link>
           </div>
         </CardContent>
