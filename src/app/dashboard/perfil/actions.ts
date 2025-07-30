@@ -3,14 +3,14 @@
 import { z } from "zod"
 import { db } from "@/lib/firebase"
 import { doc, updateDoc } from "firebase/firestore"
-import { getAuth, updateProfile } from "firebase/auth"
 
 const updateProfileSchema = z.object({
   uid: z.string(),
   fullName: z.string().min(3, "O nome completo é obrigatório."),
-  oab: z.string().min(2, "O número da OAB é obrigatório."),
-  legalSpecialty: z.string().min(3, "A especialidade é obrigatória."),
-  office: z.string().min(2, "O nome do escritório é obrigatório."),
+  oab: z.string().min(2, "O número da OAB é obrigatório.").optional(),
+  legalSpecialty: z.string().min(3, "A especialidade é obrigatória.").optional(),
+  office: z.string().min(2, "O nome do escritório é obrigatório.").optional(),
+  bio: z.string().optional(),
 })
 
 type Result =
@@ -30,14 +30,37 @@ export async function updateProfileAction(
     const { uid, ...profileData } = parsedInput.data
     
     const userDocRef = doc(db, "users", uid);
-    await updateDoc(userDocRef, profileData);
-
-    // Note: Updating auth display name requires being on the client or having the user's context.
-    // This server action assumes the client will refresh the user state if needed.
+    await updateDoc(userDocRef, {
+        ...profileData
+    });
 
     return { success: true }
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error)
     return { success: false, error: "Falha ao atualizar o perfil. Tente novamente." }
   }
+}
+
+// --- Action to update just the photo URL ---
+const updateProfilePhotoSchema = z.object({
+    uid: z.string(),
+    photoUrl: z.string().url("A URL da foto é inválida."),
+});
+
+export async function updateProfilePhotoAction(
+    input: z.infer<typeof updateProfilePhotoSchema>
+): Promise<Result> {
+    const parsedInput = updateProfilePhotoSchema.safeParse(input);
+    if (!parsedInput.success) {
+        return { success: false, error: "Input de foto inválido." };
+    }
+    try {
+        const { uid, photoUrl } = parsedInput.data;
+        const userDocRef = doc(db, "users", uid);
+        await updateDoc(userDocRef, { photoUrl: photoUrl });
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao atualizar a foto do perfil:", error);
+        return { success: false, error: "Falha ao atualizar a foto." };
+    }
 }
