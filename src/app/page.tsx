@@ -71,7 +71,7 @@ export default function Home() {
                 alt="Logo RGMJ Advocacia e Consultoria Jurídica"
                 width={800}
                 height={400}
-                className="mx-auto w-full max-w-lg h-auto"
+                className="mx-auto max-w-lg"
                 priority
               />
             <p className="mt-8 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
