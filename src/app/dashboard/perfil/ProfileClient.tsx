@@ -25,14 +25,15 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X, KeyRound } from 'lucide-react'
+import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X, KeyRound, Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { updateProfileAction, updateProfilePhotoAction, changePasswordAction } from './actions'
+import { updateProfileAction, updateProfilePhotoAction, changePasswordAction, changeEmailAction } from './actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
 const legalSpecialties = [
   { value: "Direito Civil", label: "Direito Civil" },
@@ -71,6 +72,13 @@ const passwordFormSchema = z.object({
 
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
+const emailFormSchema = z.object({
+  newEmail: z.string().email("Por favor, insira um e-mail válido."),
+  currentPassword: z.string().min(1, "Sua senha atual é obrigatória para esta alteração."),
+});
+
+type EmailFormValues = z.infer<typeof emailFormSchema>;
+
 
 export function ProfileClient() {
   const { user, loading: authLoading } = useAuth()
@@ -80,6 +88,7 @@ export function ProfileClient() {
   const [loading, setLoading] = useState(true)
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false)
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
   const [userRole, setUserRole] = useState<string|null>(null)
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -98,6 +107,14 @@ export function ProfileClient() {
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
+      }
+  })
+
+   const emailForm = useForm<EmailFormValues>({
+      resolver: zodResolver(emailFormSchema),
+      defaultValues: {
+        newEmail: user?.email || '',
+        currentPassword: ''
       }
   })
 
@@ -121,12 +138,16 @@ export function ProfileClient() {
                     office: userData.office,
                     bio: userData.bio,
                 })
+                 emailForm.reset({
+                    newEmail: userData.email,
+                    currentPassword: ''
+                })
             }
             setLoading(false);
         });
         return () => unsubscribe();
     }
-  }, [user, authLoading, router, profileForm])
+  }, [user, authLoading, router, profileForm, emailForm])
 
   async function onProfileSubmit(values: ProfileFormValues) {
     if (!user) return
@@ -193,6 +214,29 @@ export function ProfileClient() {
 
     setIsSubmittingPassword(false);
   }
+
+  async function onEmailSubmit(values: EmailFormValues) {
+    if (!user) return;
+    setIsSubmittingEmail(true);
+
+    const result = await changeEmailAction(values);
+
+    if (result.success) {
+        toast({ title: "E-mail alterado com sucesso!", description: "O novo e-mail será usado no seu próximo login."});
+        emailForm.reset({
+            newEmail: values.newEmail,
+            currentPassword: ''
+        });
+    } else {
+        toast({
+            title: "Erro ao alterar e-mail",
+            description: result.error,
+            variant: "destructive"
+        });
+    }
+    setIsSubmittingEmail(false);
+  }
+
 
   if (authLoading || loading) {
     return (
@@ -421,15 +465,53 @@ export function ProfileClient() {
              <CardHeader>
                 <CardTitle className="flex items-center">
                     <KeyRound className="mr-3 h-5 w-5 text-accent" />
-                    Segurança e Alteração de Senha
+                    Segurança da Conta
                 </CardTitle>
                 <CardDescription>
-                    Mantenha sua conta segura alterando sua senha regularmente.
+                    Gerencie seu e-mail de login e sua senha de acesso.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-8">
+                 <Form {...emailForm}>
+                    <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-6 max-w-md">
+                        <FormField
+                            control={emailForm.control}
+                            name="newEmail"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>E-mail de Login</FormLabel>
+                                    <FormControl>
+                                        <Input type="email" placeholder="seu@email.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={emailForm.control}
+                            name="currentPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Senha Atual para Confirmar</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="Sua senha atual" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <Button type="submit" disabled={isSubmittingEmail} variant="outline">
+                            {isSubmittingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Alterar E-mail
+                        </Button>
+                    </form>
+                 </Form>
+
+                <Separator />
+                
                  <Form {...passwordForm}>
                     <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
+                         <h3 className="text-base font-semibold">Alterar Senha</h3>
                         <FormField
                             control={passwordForm.control}
                             name="currentPassword"

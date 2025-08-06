@@ -3,7 +3,7 @@
 import { z } from "zod"
 import { db, auth } from "@/lib/firebase"
 import { doc, updateDoc } from "firebase/firestore"
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateEmail } from "firebase/auth";
 
 
 const updateProfileSchema = z.object({
@@ -104,5 +104,51 @@ export async function changePasswordAction(
         return { success: false, error: "A senha atual está incorreta." };
     }
     return { success: false, error: "Falha ao alterar a senha. Tente novamente." };
+  }
+}
+
+// --- Action to change email ---
+const changeEmailSchema = z.object({
+  newEmail: z.string().email(),
+  currentPassword: z.string(),
+});
+
+export async function changeEmailAction(
+  input: z.infer<typeof changeEmailSchema>
+): Promise<Result> {
+  const parsedInput = changeEmailSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { success: false, error: "Input de e-mail inválido." };
+  }
+
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    return { success: false, error: "Usuário não autenticado." };
+  }
+
+  try {
+    const { newEmail, currentPassword } = parsedInput.data;
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+    // Re-authenticate user
+    await reauthenticateWithCredential(user, credential);
+
+    // Update email in Auth
+    await updateEmail(user, newEmail);
+
+    // Update email in Firestore
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, { email: newEmail });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Erro ao alterar e-mail:", error);
+    if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      return { success: false, error: "A senha atual está incorreta." };
+    }
+    if (error.code === 'auth/email-already-in-use') {
+      return { success: false, error: "Este e-mail já está em uso por outra conta." };
+    }
+    return { success: false, error: "Falha ao alterar o e-mail. Tente novamente." };
   }
 }
