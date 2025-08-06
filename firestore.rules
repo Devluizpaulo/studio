@@ -1,0 +1,40 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper function to check if a user belongs to the correct office
+    function isUserInOffice(officeId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
+    }
+    
+    // Helper function to check if a user is a master or secretary of an office
+    function isOfficeAdmin(officeId) {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return isUserInOffice(officeId) && (userRole == 'master' || userRole == 'secretary');
+    }
+
+    // Public access for team members on the landing page
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId; // Users can only update their own profile
+    }
+
+    // Office configuration (API Keys) can only be read/written by the master user of that office
+    match /offices/{officeId} {
+        allow read, write: if isUserInOffice(officeId) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
+    }
+
+    // All other collections are restricted by officeId
+    match /{collection}/{docId} {
+      allow read, write, delete: if collection != 'users' && collection != 'offices' && isUserInOffice(resource.data.officeId);
+    }
+
+    // Subcollections
+    match /processes/{processId}/{subcollection}/{docId} {
+       allow read, write, delete: if isUserInOffice(get(/databases/$(database)/documents/processes/$(processId)).data.officeId);
+    }
+  }
+}
