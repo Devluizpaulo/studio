@@ -7,8 +7,6 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
-  SheetTitle,
-  SheetHeader,
 } from "@/components/ui/sheet";
 import { Menu, LogOut, LayoutDashboard, Scale } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,14 +24,18 @@ export default function Header() {
     router.push("/");
   };
   
-  const isLandingPage = pathname === '/';
+  const isDashboard = pathname.startsWith('/dashboard');
 
-  const navLinks = isLandingPage ? [
+  if (isDashboard) {
+    return null; // The dashboard has its own header
+  }
+
+  const navLinks = [
       { href: "#home", label: "Início" },
       { href: "#services", label: "Atuação" },
       { href: "#specialties", label: "Especialidades" },
       { href: "#contact", label: "Contato" },
-  ] : [];
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,7 +49,6 @@ export default function Header() {
           </Link>
         </div>
 
-        {isLandingPage && (
           <nav className="hidden items-center space-x-8 text-sm font-medium md:flex">
             {navLinks.map(({ href, label }) => (
               <Link
@@ -59,7 +60,6 @@ export default function Header() {
               </Link>
             ))}
           </nav>
-        )}
 
         <div className="flex items-center md:hidden">
           <Sheet>
@@ -70,9 +70,6 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <SheetHeader>
-                  <SheetTitle className="sr-only">Menu</SheetTitle>
-              </SheetHeader>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <Scale className="h-7 w-7 text-accent" />
@@ -80,7 +77,7 @@ export default function Header() {
                     RGMJ
                   </span>
                 </Link>
-                {isLandingPage && navLinks.map(({ href, label }) => (
+                {navLinks.map(({ href, label }) => (
                   <SheetClose asChild key={label}>
                     <Link
                       href={href}
