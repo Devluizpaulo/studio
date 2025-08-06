@@ -57,7 +57,7 @@ export function LoginForm() {
       console.error("Error during login:", error);
       toast({
         title: "Erro no Login",
-        description: error.message || "Credenciais inválidas. Por favor, tente novamente.",
+        description: "Credenciais inválidas ou acesso bloqueado. Verifique as configurações do Firebase.",
         variant: "destructive",
       });
     } finally {
@@ -110,10 +110,11 @@ export function LoginForm() {
             </form>
           </Form>
            <div className="mt-6 text-justify text-sm text-muted-foreground">
-             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc.<br/>{" "}
+             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc.<br/>Para outros assuntos,{" "}
             <Link href="/#contact" className="underline  text-center text-accent font-semibold">
               clique aqui
             </Link>
+             .
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,4 @@
 import { SidebarNav } from "./SidebarNav";
-import { AuthProvider } from "@/contexts/AuthContext";
 
 const sidebarNavItems = [
     {
@@ -55,15 +54,13 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
-        <AuthProvider>
-            <div className="container mx-auto px-4 py-12">
-                <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-                    <aside className="-mx-4 lg:w-1/5">
-                        <SidebarNav items={sidebarNavItems} />
-                    </aside>
-                    <div className="flex-1 min-w-0">{children}</div>
-                </div>
+        <div className="container mx-auto px-4 py-12">
+            <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
+                <aside className="-mx-4 lg:w-1/5">
+                    <SidebarNav items={sidebarNavItems} />
+                </aside>
+                <div className="flex-1 min-w-0">{children}</div>
             </div>
-        </AuthProvider>
+        </div>
     )
 }
