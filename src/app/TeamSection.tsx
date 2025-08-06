@@ -43,8 +43,8 @@ export async function TeamSection() {
     }
 
     // The first user (master) is the main lawyer. We show it separately.
-    const mainLawyer = team.find(member => member.id === '1lupN5aW6MhOMsD6SjTILIiB2Nt1');
-    const otherLawyers = team.filter(member => member.id !== '1lupN5aW6MhOMsD6SjTILIiB2Nt1');
+    const mainLawyer = team.find(member => member.id === 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
+    const otherLawyers = team.filter(member => member.id !== 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
 
     return (
         <>
