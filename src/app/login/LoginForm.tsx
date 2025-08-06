@@ -54,10 +54,26 @@ export function LoginForm() {
       });
       router.push("/dashboard");
     } catch (error: any) {
-      console.error("Error during login:", error);
+      console.error("Error during login:", error.code);
+      let description = "Ocorreu um erro inesperado. Tente novamente.";
+      switch (error.code) {
+        case 'auth/invalid-credential':
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          description = "E-mail ou senha incorretos. Por favor, tente novamente.";
+          break;
+        case 'auth/requests-to-this-api-identitytoolkit-method-google.cloud.identitytoolkit.v1.authenticationservice.signinwithpassword-are-blocked':
+          description = "A API de login está bloqueada. Verifique as configurações no console do Google Cloud.";
+          break;
+        case 'auth/too-many-requests':
+          description = "Acesso bloqueado temporariamente devido a muitas tentativas. Tente novamente mais tarde.";
+          break;
+        default:
+           description = "Credenciais inválidas ou acesso bloqueado. Verifique as configurações do Firebase."
+      }
       toast({
         title: "Erro no Login",
-        description: "Credenciais inválidas ou acesso bloqueado. Verifique as configurações do Firebase.",
+        description: description,
         variant: "destructive",
       });
     } finally {
