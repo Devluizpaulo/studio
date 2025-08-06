@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -120,9 +121,15 @@ export function SignUpForm() {
 
     } catch (error: any) {
       console.error("Error during sign up:", error);
+      let description = "Ocorreu um erro. Por favor, tente novamente.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Este e-mail já está em uso. Por favor, tente outro e-mail ou faça login."
+      } else if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/requests-to-this-api-identitytoolkit-method-google.cloud.identitytoolkit.v1.authenticationservice.signup-are-blocked') {
+        description = "O cadastro de novos usuários está bloqueado. Por favor, habilite a criação de contas por e-mail/senha na aba 'Sign-in method' do seu console Firebase."
+      }
       toast({
         title: "Erro no Cadastro",
-        description: error.message || "Ocorreu um erro. Por favor, tente novamente.",
+        description: description,
         variant: "destructive",
       });
     } finally {
