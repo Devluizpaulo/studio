@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, getDocs, collection, query, where, writeBatch } from "firebase/firestore";
+import { doc, setDoc, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 
@@ -59,23 +59,9 @@ export function SignUpForm() {
     setIsLoading(true);
     
     try {
-      // An office can only be created if there are no other users/offices yet.
-      const usersQuery = query(collection(db, "users"), where("role", "==", "master"));
-      const masterUsersSnapshot = await getDocs(usersQuery);
-
-      if(!masterUsersSnapshot.empty) {
-        toast({
-          title: "Cadastro não permitido",
-          description: "Um escritório já foi criado. Novos usuários devem ser convidados pelo administrador.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-      
       const userRole = 'master';
       const officeId = `office_${Date.now()}`;
-      const officeName = `${values.fullName.split(' ')[0]}'s Office`; // Create a default office name
+      const officeName = `${values.fullName.split(' ')[0]}'s Office`;
 
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
@@ -125,7 +111,7 @@ export function SignUpForm() {
       if (error.code === 'auth/email-already-in-use') {
         description = "Este e-mail já está em uso. Por favor, tente outro e-mail ou faça login."
       } else if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/requests-to-this-api-identitytoolkit-method-google.cloud.identitytoolkit.v1.authenticationservice.signup-are-blocked') {
-        description = "O cadastro de novos usuários está bloqueado. Por favor, habilite a criação de contas por e-mail/senha na aba 'Sign-in method' do seu console Firebase."
+        description = "O cadastro de novos usuários está bloqueado. Verifique se o método de login 'E-mail/senha' está ativo no seu console Firebase e se a API Identity Toolkit está habilitada no Google Cloud."
       }
       toast({
         title: "Erro no Cadastro",
