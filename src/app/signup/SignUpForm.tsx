@@ -81,6 +81,11 @@ export function SignUpForm() {
         role: userRole,
         officeId: officeId,
         createdAt: new Date(),
+        oab: '',
+        legalSpecialty: '',
+        office: officeName,
+        bio: '',
+        photoUrl: '',
       });
 
       // Create office document
@@ -108,12 +113,16 @@ export function SignUpForm() {
       if (error.code === 'auth/email-already-in-use') {
         description = "Este e-mail já está em uso. Por favor, tente outro e-mail ou faça login."
       } else if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/requests-to-this-api-identitytoolkit-method-google.cloud.identitytoolkit.v1.authenticationservice.signup-are-blocked') {
-        description = "O cadastro de novos usuários está bloqueado. Verifique se o método de login 'E-mail/senha' está ativo no seu console Firebase e se a API Identity Toolkit está habilitada no Google Cloud."
+        description = `O cadastro de novos usuários está bloqueado (Erro 403). Isso geralmente ocorre por dois motivos:
+1. A API 'Identity Platform' não está habilitada no seu projeto Google Cloud.
+2. A chave de API do seu projeto tem restrições que impedem o acesso a este serviço.
+Por favor, verifique essas configurações no console do Google Cloud.`
       }
       toast({
         title: "Erro no Cadastro",
         description: description,
         variant: "destructive",
+        duration: 15000,
       });
     } finally {
       setIsLoading(false);
