@@ -78,9 +78,6 @@ export function SignUpForm() {
         uid: user.uid,
         fullName: values.fullName,
         email: values.email,
-        oab: "", // To be filled later
-        legalSpecialty: "", // To be filled later
-        office: officeName,
         role: userRole,
         officeId: officeId,
         createdAt: new Date(),
@@ -128,7 +125,7 @@ export function SignUpForm() {
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl">Crie a Conta do seu Escritório</CardTitle>
           <CardDescription>
-            Preencha os campos para criar a conta de Administrador (Master). Os outros detalhes poderão ser editados no seu perfil.
+            Preencha os campos para criar a conta de Administrador (Master).
           </CardDescription>
         </CardHeader>
         <CardContent>
