@@ -109,10 +109,10 @@ export function LoginForm() {
               </Button>
             </form>
           </Form>
-           <div className="mt-6 text-center text-sm text-muted-foreground">
-             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc. Para novos contatos,{" "}
-            <Link href="/#contact" className="underline text-accent font-semibold">
-              clique aqui.
+           <div className="mt-6 text-justify text-sm text-muted-foreground">
+             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc.<br/>{" "}
+            <Link href="/#contact" className="underline  text-center text-accent font-semibold">
+              clique aqui
             </Link>
           </div>
         </CardContent>

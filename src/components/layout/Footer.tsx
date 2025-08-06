@@ -1,49 +1,78 @@
 "use client"
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
-import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-card text-primary-foreground border-t border-accent/20">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-          <div>
-            <div className="flex items-center space-x-2">
-                <Image src="/logo.png" alt="RGMJ Logo" width={150} height={75} className="h-auto" />
+    <footer className="py-8 bg-background border-t border-border">
+      <div className="container mx-auto px-4">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* Left Column - Logo and Tagline */}
+          <div className="text-center md:text-left">
+            <div className="mb-3">
+              <div className="text-2xl font-bold tracking-wider bg-gradient-to-r from-accent to-yellow-400 bg-clip-text text-transparent">
+                RGMJ
+              </div>
+              <p className="text-xs text-accent mt-1">ADVOCACIA E CONSULTORIA JURÍDICA</p>
             </div>
-            <p className="mt-4 text-muted-foreground">
-             Advocacia e Consultoria Jurídica.
+            <p className="text-muted-foreground text-xs">
+              Advocacia e Consultoria Jurídica.
             </p>
           </div>
-          <div>
-            <h3 className="font-headline text-xl font-semibold text-primary">Contato</h3>
-            <ul className="mt-4 space-y-3 text-muted-foreground">
-              <li className="flex items-center">
-                <Mail className="mr-3 h-5 w-5 text-accent" />
-                <span>contato@rgmj.com.br</span>
-              </li>
-              <li className="flex items-center">
-                <Phone className="mr-3 h-5 w-5 text-accent" />
-                <span>(11) 99999-9999</span>
-              </li>
-              <li className="flex items-center">
-                <MapPin className="mr-3 h-5 w-5 text-accent" />
-                <span>Atendimento em todo o Brasil</span>
-              </li>
-            </ul>
+          
+          {/* Center Column - Contact */}
+          <div className="text-center">
+            <h3 className="text-white font-semibold mb-3 text-sm">Contato</h3>
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <Mail className="h-3 w-3 text-accent" />
+                <span className="text-muted-foreground text-xs">contato@rgmj.com.br</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Phone className="h-3 w-3 text-accent" />
+                <span className="text-muted-foreground text-xs">(11) 96828-5695</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <MapPin className="h-3 w-3 text-accent" />
+                <span className="text-muted-foreground text-xs">São Paulo, SP</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="font-headline text-xl font-semibold text-primary">Navegação</h3>
-            <ul className="mt-4 space-y-2">
-              <li><Link href="/#services" className="text-muted-foreground hover:text-accent transition-colors">Atuação</Link></li>
-              <li><Link href="/#specialties" className="text-muted-foreground hover:text-accent transition-colors">Especialidades</Link></li>
-              <li><Link href="/login" className="text-muted-foreground hover:text-accent transition-colors">Login</Link></li>
-            </ul>
+          
+          {/* Right Column - Navigation */}
+          <div className="text-center md:text-right">
+            <h3 className="text-white font-semibold mb-3 text-sm">Navegação</h3>
+            <div className="space-y-1">
+              <div>
+                <a href="#services" className="text-muted-foreground text-xs hover:text-accent transition-colors">
+                  Atuação
+                </a>
+              </div>
+              <div>
+                <a href="#specialties" className="text-muted-foreground text-xs hover:text-accent transition-colors">
+                  Especialidades
+                </a>
+              </div>
+              <div>
+                <a href="/dashboard" className="text-muted-foreground text-xs hover:text-accent transition-colors">
+                  Login
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="mt-12 border-t border-border/50 pt-8 text-center text-muted-foreground/60">
-          <p>&copy; {new Date().getFullYear()} RGMJ Advocacia. Todos os direitos reservados.</p>
+        
+        {/* Bottom Section - Copyright and Domain */}
+        <div className="text-center pt-4 border-t border-border">
+          <p className="text-muted-foreground text-xs mb-1">
+            © 2024 RGMJ Advocacia. Todos os direitos reservados.
+          </p>
+          <p className="text-muted-foreground text-xs">
+            <a href="https://rgmj.adv.br" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
+              RGMJ.ADV.BR
+            </a>
+          </p>
         </div>
       </div>
     </footer>
