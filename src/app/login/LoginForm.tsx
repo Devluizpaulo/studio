@@ -125,12 +125,11 @@ export function LoginForm() {
               </Button>
             </form>
           </Form>
-           <div className="mt-6 text-justify text-sm text-muted-foreground">
-             Esta área é destinada a advogados associados para andamentos, consultas, dúvidas, etc.<br/>Para outros assuntos,{" "}
-            <Link href="/#contact" className="underline  text-center text-accent font-semibold">
-              clique aqui
+           <div className="mt-6 text-center text-sm">
+             É o primeiro acesso?{" "}
+            <Link href="/signup" className="underline text-accent font-semibold">
+              Crie a conta do seu escritório
             </Link>
-             .
           </div>
         </CardContent>
       </Card>
