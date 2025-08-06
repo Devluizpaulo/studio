@@ -3,6 +3,7 @@ import { db } from "@/lib/firebase-admin";
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 async function getTeamMembers() {
   if (!db) {
@@ -46,6 +47,19 @@ export async function TeamSection() {
     const mainLawyer = team.find(member => member.id === 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
     const otherLawyers = team.filter(member => member.id !== 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
 
+    const displaySpecialties = (specialties: string[] | string | undefined) => {
+        if (!specialties) return null;
+        if (Array.isArray(specialties)) {
+            return (
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    {specialties.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                </div>
+            )
+        }
+        return <p className="text-sm text-accent">{specialties}</p>
+    }
+
+
     return (
         <>
             {mainLawyer && (
@@ -66,7 +80,9 @@ export async function TeamSection() {
                                {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
                             </p>
                             <p className="mt-6 text-xl font-semibold text-primary font-headline">{mainLawyer.fullName}</p>
-                            <p className="text-sm text-accent">{mainLawyer.legalSpecialty}</p>
+                            <div className="mt-2">
+                                {displaySpecialties(mainLawyer.legalSpecialty)}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -93,7 +109,9 @@ export async function TeamSection() {
                                     />
                                 </div>
                                 <CardTitle className="font-headline text-2xl text-primary">{member.fullName}</CardTitle>
-                                <p className="text-base text-accent">{member.legalSpecialty}</p>
+                                <div className="mt-2 h-12">
+                                    {displaySpecialties(member.legalSpecialty)}
+                                </div>
                             </CardHeader>
                             <CardContent className="flex-grow">
                                 <p className="text-muted-foreground text-sm text-justify">{member.bio || "Advogado(a) especialista com vasta experiência e dedicação à justiça."}</p>

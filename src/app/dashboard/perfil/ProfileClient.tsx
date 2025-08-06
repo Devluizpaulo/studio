@@ -25,16 +25,34 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User, BadgeHelp, Upload, Camera } from 'lucide-react'
+import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { updateProfileAction, updateProfilePhotoAction } from './actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+
+const legalSpecialties = [
+  { value: "Direito Civil", label: "Direito Civil" },
+  { value: "Direito Penal", label: "Direito Penal" },
+  { value: "Direito Trabalhista", label: "Direito Trabalhista" },
+  { value: "Direito Tributário", label: "Direito Tributário" },
+  { value: "Direito Empresarial", label: "Direito Empresarial" },
+  { value: "Direito do Consumidor", label: "Direito do Consumidor" },
+  { value: "Direito de Família", label: "Direito de Família" },
+  { value: "Direito Previdenciário", label: "Direito Previdenciário" },
+  { value: "Direito Ambiental", label: "Direito Ambiental" },
+  { value: "Direito Digital", label: "Direito Digital" },
+  { value: "Direito Imobiliário", label: "Direito Imobiliário" },
+] as const;
 
 
 const profileFormSchema = z.object({
     fullName: z.string().min(3, "O nome completo é obrigatório."),
     oab: z.string().min(2, "O número da OAB é obrigatório.").optional(),
-    legalSpecialty: z.string().min(3, "A especialidade é obrigatória.").optional(),
+    legalSpecialty: z.array(z.string()).optional(),
     office: z.string().min(2, "O nome do escritório é obrigatório.").optional(),
     bio: z.string().optional(),
     photoFile: z.instanceof(File).optional(),
@@ -56,6 +74,9 @@ export function ProfileClient() {
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+        legalSpecialty: []
+    }
   })
 
   useEffect(() => {
@@ -74,7 +95,7 @@ export function ProfileClient() {
                 form.reset({
                     fullName: userData.fullName,
                     oab: userData.oab,
-                    legalSpecialty: userData.legalSpecialty,
+                    legalSpecialty: userData.legalSpecialty || [],
                     office: userData.office,
                     bio: userData.bio,
                 })
@@ -244,12 +265,69 @@ export function ProfileClient() {
                                 control={form.control}
                                 name="legalSpecialty"
                                 render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Especialidade Jurídica</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Direito Civil" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Especialidades Jurídicas</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className={cn(
+                                                            "justify-between h-auto",
+                                                            !field.value?.length && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            {field.value?.length > 0 ? (
+                                                                field.value.map(spec => (
+                                                                    <Badge key={spec} variant="secondary" className="mr-1">
+                                                                        {spec}
+                                                                    </Badge>
+                                                                ))
+                                                            ) : (
+                                                                "Selecione as especialidades"
+                                                            )}
+                                                        </div>
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Buscar especialidade..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>Nenhuma especialidade encontrada.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {legalSpecialties.map(option => {
+                                                                const isSelected = field.value?.includes(option.value);
+                                                                return (
+                                                                    <CommandItem
+                                                                        key={option.value}
+                                                                        onSelect={() => {
+                                                                            if (isSelected) {
+                                                                                field.onChange(field.value?.filter(v => v !== option.value));
+                                                                            } else {
+                                                                                field.onChange([...(field.value || []), option.value]);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                isSelected ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        {option.label}
+                                                                    </CommandItem>
+                                                                )
+                                                            })}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                                 />

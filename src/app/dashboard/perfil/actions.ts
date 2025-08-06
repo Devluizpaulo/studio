@@ -8,7 +8,7 @@ const updateProfileSchema = z.object({
   uid: z.string(),
   fullName: z.string().min(3, "O nome completo é obrigatório."),
   oab: z.string().min(2, "O número da OAB é obrigatório.").optional(),
-  legalSpecialty: z.string().min(3, "A especialidade é obrigatória.").optional(),
+  legalSpecialty: z.array(z.string()).optional(),
   office: z.string().min(2, "O nome do escritório é obrigatório.").optional(),
   bio: z.string().optional(),
 })
