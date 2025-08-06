@@ -1,8 +1,10 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db, auth } from "@/lib/firebase"
 import { doc, updateDoc } from "firebase/firestore"
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+
 
 const updateProfileSchema = z.object({
   uid: z.string(),
@@ -63,4 +65,44 @@ export async function updateProfilePhotoAction(
         console.error("Erro ao atualizar a foto do perfil:", error);
         return { success: false, error: "Falha ao atualizar a foto." };
     }
+}
+
+
+// --- Action to change password ---
+const changePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string(),
+});
+
+export async function changePasswordAction(
+  input: z.infer<typeof changePasswordSchema>
+): Promise<Result> {
+  const parsedInput = changePasswordSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { success: false, error: "Input de senha inválido." };
+  }
+
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    return { success: false, error: "Usuário não autenticado." };
+  }
+
+  try {
+    const { currentPassword, newPassword } = parsedInput.data;
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    
+    // Re-authenticate the user
+    await reauthenticateWithCredential(user, credential);
+    
+    // Update the password
+    await updatePassword(user, newPassword);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Erro ao alterar senha:", error);
+    if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        return { success: false, error: "A senha atual está incorreta." };
+    }
+    return { success: false, error: "Falha ao alterar a senha. Tente novamente." };
+  }
 }

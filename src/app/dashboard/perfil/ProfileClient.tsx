@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { db, storage } from '@/lib/firebase'
+import { db, storage, auth } from '@/lib/firebase'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,9 +25,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X } from 'lucide-react'
+import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X, KeyRound } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { updateProfileAction, updateProfilePhotoAction } from './actions'
+import { updateProfileAction, updateProfilePhotoAction, changePasswordAction } from './actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
@@ -60,23 +60,45 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, "A senha atual é obrigatória."),
+  newPassword: z.string().min(8, "A nova senha deve ter pelo menos 8 caracteres."),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "As novas senhas não coincidem.",
+  path: ["confirmPassword"],
+});
+
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
+
 export function ProfileClient() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false)
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [userRole, setUserRole] = useState<string|null>(null)
   const [photoUrl, setPhotoUrl] = useState<string>("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
 
-  const form = useForm<ProfileFormValues>({
+  const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
         legalSpecialty: []
     }
+  })
+
+  const passwordForm = useForm<PasswordFormValues>({
+      resolver: zodResolver(passwordFormSchema),
+      defaultValues: {
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+      }
   })
 
   useEffect(() => {
@@ -92,7 +114,7 @@ export function ProfileClient() {
                 const userData = userDoc.data();
                 setUserRole(userData.role);
                 setPhotoUrl(userData.photoUrl || "");
-                form.reset({
+                profileForm.reset({
                     fullName: userData.fullName,
                     oab: userData.oab,
                     legalSpecialty: userData.legalSpecialty || [],
@@ -104,11 +126,11 @@ export function ProfileClient() {
         });
         return () => unsubscribe();
     }
-  }, [user, authLoading, router, form])
+  }, [user, authLoading, router, profileForm])
 
-  async function onSubmit(values: ProfileFormValues) {
+  async function onProfileSubmit(values: ProfileFormValues) {
     if (!user) return
-    setIsSubmitting(true)
+    setIsSubmittingProfile(true)
 
     try {
         // First, handle file upload if a new photo is provided
@@ -148,8 +170,28 @@ export function ProfileClient() {
             variant: 'destructive',
           })
     } finally {
-        setIsSubmitting(false)
+        setIsSubmittingProfile(false)
     }
+  }
+
+  async function onPasswordSubmit(values: PasswordFormValues) {
+    if (!user) return;
+    setIsSubmittingPassword(true);
+
+    const result = await changePasswordAction(values);
+
+    if (result.success) {
+        toast({ title: "Senha alterada com sucesso!"});
+        passwordForm.reset();
+    } else {
+        toast({
+            title: "Erro ao alterar senha",
+            description: result.error,
+            variant: "destructive"
+        });
+    }
+
+    setIsSubmittingPassword(false);
   }
 
   if (authLoading || loading) {
@@ -188,12 +230,12 @@ export function ProfileClient() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Form {...profileForm}>
+                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
                     <div className="flex flex-col md:flex-row items-start gap-8">
                          <div className="flex-shrink-0 w-full md:w-48 text-center">
                             <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="photoFile"
                                 render={({ field: { onChange, value, ...rest } }) => (
                                 <FormItem>
@@ -235,7 +277,7 @@ export function ProfileClient() {
                         </div>
                         <div className="flex-grow space-y-6">
                             <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="fullName"
                                 render={({ field }) => (
                                     <FormItem>
@@ -249,7 +291,7 @@ export function ProfileClient() {
                                 />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="oab"
                                 render={({ field }) => (
                                     <FormItem>
@@ -262,7 +304,7 @@ export function ProfileClient() {
                                 )}
                                 />
                                 <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="legalSpecialty"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
@@ -333,7 +375,7 @@ export function ProfileClient() {
                                 />
                             </div>
                             <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="office"
                                 render={({ field }) => (
                                     <FormItem>
@@ -349,7 +391,7 @@ export function ProfileClient() {
                     </div>
                     
                     <FormField
-                        control={form.control}
+                        control={profileForm.control}
                         name="bio"
                         render={({ field }) => (
                             <FormItem>
@@ -366,12 +408,73 @@ export function ProfileClient() {
                         )}
                     />
 
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" disabled={isSubmittingProfile}>
+                        {isSubmittingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Salvar Alterações
                     </Button>
                 </form>
                 </Form>
+            </CardContent>
+        </Card>
+        
+        <Card>
+             <CardHeader>
+                <CardTitle className="flex items-center">
+                    <KeyRound className="mr-3 h-5 w-5 text-accent" />
+                    Segurança e Alteração de Senha
+                </CardTitle>
+                <CardDescription>
+                    Mantenha sua conta segura alterando sua senha regularmente.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
+                        <FormField
+                            control={passwordForm.control}
+                            name="currentPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Senha Atual</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="Sua senha atual" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={passwordForm.control}
+                            name="newPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nova Senha</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="Mínimo 8 caracteres" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={passwordForm.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Confirmar Nova Senha</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="Repita a nova senha" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <Button type="submit" disabled={isSubmittingPassword}>
+                            {isSubmittingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Alterar Senha
+                        </Button>
+                    </form>
+                 </Form>
             </CardContent>
         </Card>
     </div>
