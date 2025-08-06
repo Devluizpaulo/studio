@@ -1,40 +1,50 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Helper function to check if a user belongs to the correct office
-    function isUserInOffice(officeId) {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
+    
+    // --- User Creation and Profile Management ---
+    match /users/{userId} {
+      // Allow anyone to read user profiles (for the team section on the landing page).
+      allow read: if true;
+
+      // Allow a user to create their own user document during sign-up.
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow an authenticated user to update their own profile.
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // Prevent users from deleting their accounts directly through the client.
+      allow delete: if false;
+    }
+
+    // --- Office Management ---
+    match /offices/{officeId} {
+      // Allow anyone to create an office document (only during sign-up).
+      allow create: if true; 
+
+      // Allow authenticated users to read data from their own office.
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
+      
+      // Only the 'master' user can update office settings (like the API key).
+      allow update: if request.auth != null 
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master' 
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
+    }
+
+    // --- General Rules for Collections (Processes, Clients, etc.) ---
+    // This rule applies to top-level collections like 'processes', 'clients', 'events', etc.
+    match /{collection}/{docId} {
+      // A user must be authenticated and the document's officeId must match the user's officeId.
+      allow read, write: if request.auth != null 
+                        && resource.data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
     }
     
-    // Helper function to check if a user is a master or secretary of an office
-    function isOfficeAdmin(officeId) {
-      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return isUserInOffice(officeId) && (userRole == 'master' || userRole == 'secretary');
-    }
-
-    // Public access for team members on the landing page
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth.uid == userId; // Users can only update their own profile
-    }
-
-    // Office configuration (API Keys) can only be read/written by the master user of that office
-    match /offices/{officeId} {
-        allow read, write: if isUserInOffice(officeId) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master';
-    }
-
-    // All other collections are restricted by officeId
-    match /{collection}/{docId} {
-      allow read, write, delete: if collection != 'users' && collection != 'offices' && isUserInOffice(resource.data.officeId);
-    }
-
-    // Subcollections
+    // --- Rules for Subcollections (e.g., chat messages, documents within a process) ---
     match /processes/{processId}/{subcollection}/{docId} {
-       allow read, write, delete: if isUserInOffice(get(/databases/$(database)/documents/processes/$(processId)).data.officeId);
+       // A user must be authenticated and their officeId must match the officeId of the parent process.
+       allow read, write: if request.auth != null 
+                         && get(/databases/$(database)/documents/processes/$(processId)).data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
     }
   }
 }
