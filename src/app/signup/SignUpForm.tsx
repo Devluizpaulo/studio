@@ -29,9 +29,6 @@ import { Terminal } from "lucide-react";
 
 const formSchema = z.object({
   fullName: z.string().min(3, "O nome completo deve ter pelo menos 3 caracteres."),
-  oab: z.string().min(2, "O número da OAB é obrigatório."),
-  legalSpecialty: z.string().min(3, "A especialidade é obrigatória."),
-  office: z.string().min(2, "O nome do escritório é obrigatório."),
   email: z.string().email("Por favor, insira um e-mail válido."),
   password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres."),
   confirmPassword: z.string()
@@ -54,9 +51,6 @@ export function SignUpForm() {
       email: "",
       password: "",
       confirmPassword: "",
-      oab: "",
-      legalSpecialty: "",
-      office: "",
     },
   });
 
@@ -80,6 +74,7 @@ export function SignUpForm() {
       
       const userRole = 'master';
       const officeId = `office_${Date.now()}`;
+      const officeName = `${values.fullName.split(' ')[0]}'s Office`; // Create a default office name
 
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
@@ -96,9 +91,9 @@ export function SignUpForm() {
         uid: user.uid,
         fullName: values.fullName,
         email: values.email,
-        oab: values.oab,
-        legalSpecialty: values.legalSpecialty,
-        office: values.office,
+        oab: "", // To be filled later
+        legalSpecialty: "", // To be filled later
+        office: officeName,
         role: userRole,
         officeId: officeId,
         createdAt: new Date(),
@@ -107,7 +102,7 @@ export function SignUpForm() {
       // Create office document
       const officeDocRef = doc(db, "offices", officeId);
       batch.set(officeDocRef, {
-        name: values.office,
+        name: officeName,
         ownerId: user.uid,
         createdAt: new Date(),
         googleApiKey: "", // Initialize with an empty API key
@@ -140,7 +135,7 @@ export function SignUpForm() {
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl">Crie a Conta do seu Escritório</CardTitle>
           <CardDescription>
-            Preencha os campos para criar a conta de Administrador (Master). Futuros usuários serão convidados por você.
+            Preencha os campos para criar a conta de Administrador (Master). Os outros detalhes poderão ser editados no seu perfil.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,47 +154,6 @@ export function SignUpForm() {
                   </FormItem>
                 )}
               />
-               <FormField
-                  control={form.control}
-                  name="office"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Escritório</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do seu escritório" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <FormField
-                  control={form.control}
-                  name="oab"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sua OAB</FormLabel>
-                      <FormControl>
-                        <Input placeholder="UF 123456" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="legalSpecialty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sua Especialidade</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Direito Civil" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
                 name="email"
