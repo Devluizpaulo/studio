@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { collection, query, where, onSnapshot, DocumentData, doc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, DocumentData, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
