@@ -1,13 +1,16 @@
-import {genkit, type Plugin, type GenerateInput, type Next} from '@genkit-ai/core';
+'use server';
+
+import {genkit, configureGenkit} from 'genkit';
+import type {Plugin, GenerateRequest, NextFn} from '@genkit-ai/core';
 import {googleAI} from '@genkit-ai/googleai';
-import {firebaseAuth} from '@genkit-ai/firebase/plugin';
+import {firebaseAuth} from '@genkit-ai/firebase/auth';
 import {db} from '@/lib/firebase-admin';
 
 // Keep a cache of initialized GoogleAI plugins per API key
-const googleAICache = new Map<string, Plugin>();
+const googleAICache = new Map<string, Plugin<any>>();
 
 // Function to get or create a GoogleAI plugin instance for a given API key
-function getGoogleAI(apiKey: string): Plugin {
+function getGoogleAI(apiKey: string): Plugin<any> {
   if (!googleAICache.has(apiKey)) {
     googleAICache.set(apiKey, googleAI({apiKey}));
   }
@@ -53,17 +56,22 @@ export const ai = genkit({
     firebaseAuth(),
     {
       name: 'dynamic-google-ai',
-      async onGenerate(input: GenerateInput, next: Next<GenerateInput>) {
-        const uid = input.options?.user;
+      async onGenerate(req: GenerateRequest, next: NextFn) {
+        const uid = req.options?.user;
         if (!uid) {
           throw new Error('User ID is required to get API key');
         }
         const officeId = await getOfficeId(uid);
         const apiKey = await getApiKey(officeId);
         const googleAIPlugin = getGoogleAI(apiKey);
-        return await googleAIPlugin.onGenerate!(input, next);
+        
+        const onGenerate = googleAIPlugin.onGenerate;
+        if (onGenerate) {
+            return await onGenerate(req, next);
+        }
+        return next(req);
       },
     },
   ],
-  model: 'googleai/gemini-pro', // Default model reference
+  defaultModel: 'googleai/gemini-pro',
 });
