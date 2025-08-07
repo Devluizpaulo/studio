@@ -1,24 +1,18 @@
 import * as admin from 'firebase-admin';
 
-let app;
-
+// This simplified initialization is more robust for environments like
+// Firebase App Hosting, which automatically provides credentials.
+// It removes the dependency on a manually set environment variable.
 if (!admin.apps.length) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : null;
-
-  if (serviceAccount) {
-    app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: "rgmj-6a4f2",
-    });
+  try {
+    admin.initializeApp();
+  } catch (error) {
+    console.error("Firebase Admin SDK initialization failed:", error);
+    // In a production environment, you might want to handle this more gracefully.
   }
-} else {
-    app = admin.app();
 }
 
-
-const db = admin.apps.length ? admin.firestore() : null;
-const auth = admin.apps.length ? admin.auth() : null;
+const db = admin.firestore();
+const auth = admin.auth();
 
 export { db, auth };

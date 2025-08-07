@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db, auth } from "@/lib/firebase-admin" // Using Admin SDK for user creation
-import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore"
+import { collection, setDoc, doc } from "firebase/firestore"
 
 const inviteMemberSchema = z.object({
   fullName: z.string().min(3, "O nome completo é obrigatório."),
@@ -68,7 +68,7 @@ export async function inviteMemberAction(
       createdAt: new Date(),
     };
     
-    await db.collection('users').doc(userRecord.uid).set(newUserDoc);
+    await setDoc(doc(db, "users", userRecord.uid), newUserDoc);
 
     return { success: true, data: { userId: userRecord.uid, tempPassword } }
   } catch (error) {

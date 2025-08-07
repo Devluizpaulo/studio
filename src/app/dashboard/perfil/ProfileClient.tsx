@@ -365,7 +365,7 @@ export function ProfileClient() {
                                                         )}
                                                     >
                                                         <div className="flex gap-1 flex-wrap">
-                                                            {field.value?.length > 0 ? (
+                                                            {(field.value && field.value.length > 0) ? (
                                                                 field.value.map(spec => (
                                                                     <Badge key={spec} variant="secondary" className="mr-1">
                                                                         {spec}

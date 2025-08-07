@@ -154,7 +154,7 @@ export function EquipeClient() {
       })
       setInviteDialogOpen(false)
       form.reset()
-    } else {
+    } else if (!result.success) {
       toast({
         title: 'Erro ao Convidar',
         description: result.error,

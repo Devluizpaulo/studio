@@ -78,7 +78,7 @@ export function SummarizeForm() {
         description: "Your legal brief has been successfully summarized.",
         variant: "default",
       })
-    } else {
+    } else if (!result.success) {
       toast({
         title: "Error",
         description: result.error || "An unknown error occurred.",

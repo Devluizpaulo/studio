@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { auth, db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin";
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 
 const CreateProcessSchema = z.object({
@@ -45,7 +45,7 @@ export async function createProcessAction(
     }
 
 
-    const docRef = await db.collection("processes").add({
+    const docRef = await addDoc(collection(db, "processes"), {
       ...processData,
       officeId: officeId, // Associate process with the office
       lawyerId: lawyerId, // Owner of the process

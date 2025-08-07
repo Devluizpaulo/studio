@@ -4,7 +4,7 @@ import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
 import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
-import { draftPetition, DraftPetitionInput } from "@/ai/flows/draft-petition-flow"
+import { draftPetition } from "@/ai/flows/draft-petition-flow"
 
 const updateProcessStatusSchema = z.object({
   processId: z.string(),

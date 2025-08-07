@@ -312,7 +312,7 @@ export function ProcessDetailClient() {
             return;
         }
         setFoundUser(result.data);
-    } else {
+    } else if (!result.success) {
         setSearchError(result.error || "Nenhum advogado encontrado com este e-mail.");
     }
   }
@@ -429,7 +429,7 @@ export function ProcessDetailClient() {
     if (result.success && result.data) {
         setDraftContent(result.data.draftContent);
         toast({ title: "Rascunho gerado!", description: "A IA concluiu o rascunho da sua petição." });
-    } else {
+    } else if (!result.success) {
         toast({ title: "Erro da IA", description: result.error, variant: "destructive" });
     }
 
