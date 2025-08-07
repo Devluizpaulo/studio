@@ -36,7 +36,7 @@ async function getOfficeSettings(): Promise<OfficeSettings | null> {
   if (!db) {
     console.warn("Firebase Admin (db) is not initialized. Skipping getOfficeSettings. This is expected if credentials are not set.");
     return null;
-  };
+  }
   try {
     // This is a simplified approach. In a multi-tenant app,
     // you'd determine the office based on the domain or another identifier.
