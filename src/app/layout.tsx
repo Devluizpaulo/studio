@@ -34,7 +34,7 @@ interface OfficeSettings {
 async function getOfficeSettings(): Promise<OfficeSettings | null> {
   // If db is not initialized (e.g., missing credentials), return null to avoid crashing.
   if (!db) {
-    console.warn("Firebase Admin (db) is not initialized. Skipping getOfficeSettings. This is expected if credentials are not set.");
+    console.warn("Firebase Admin (db) is not initialized. Skipping getOfficeSettings. This is expected if server-side credentials are not set.");
     return null;
   }
   try {
@@ -51,7 +51,7 @@ async function getOfficeSettings(): Promise<OfficeSettings | null> {
       gtmId: officeData.gtmId,
     };
   } catch (error) {
-    console.error("Error fetching office settings for layout. This can happen during build if server credentials are not set. Using default settings.", error);
+    console.error("Error fetching office settings for layout. This can happen if server credentials are not set correctly. Using default settings.", error);
     return null;
   }
 }
