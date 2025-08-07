@@ -32,7 +32,10 @@ interface OfficeSettings {
 
 // Function to get the first office settings from the database
 async function getOfficeSettings(): Promise<OfficeSettings | null> {
-  if (!db) return null;
+  if (!db) {
+    console.warn("Firebase Admin (db) is not initialized. Skipping getOfficeSettings.");
+    return null;
+  };
   try {
     // This is a simplified approach. In a multi-tenant app,
     // you'd determine the office based on the domain or another identifier.
@@ -47,7 +50,7 @@ async function getOfficeSettings(): Promise<OfficeSettings | null> {
       gtmId: officeData.gtmId,
     };
   } catch (error) {
-    console.error("Error fetching office settings for layout:", error);
+    console.error("Error fetching office settings for layout. This can happen during build if server credentials are not set. Using default settings.", error);
     return null;
   }
 }
