@@ -1,7 +1,7 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-admin"
 import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from "firebase/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
 import { draftPetition, DraftPetitionInput } from "@/ai/flows/draft-petition-flow"
@@ -49,7 +49,7 @@ export async function updateProcessStatusAction(
 // --- Find user by email ---
 const findUserSchema = z.string().email("E-mail inválido.");
 type FindUserResult = 
-    | { success: true; data: { uid: string, fullName: string, email: string, role: string } | null }
+    | { success: true; data: { uid: string, fullName: string, email: string, role: string, photoUrl?: string } | null }
     | { success: false; error: string };
 
 export async function findUserByEmailAction(email: string): Promise<FindUserResult> {
@@ -70,7 +70,7 @@ export async function findUserByEmailAction(email: string): Promise<FindUserResu
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
         
-        return { success: true, data: { uid: userData.uid, fullName: userData.fullName, email: userData.email, role: userData.role } };
+        return { success: true, data: { uid: userData.uid, fullName: userData.fullName, email: userData.email, role: userData.role, photoUrl: userData.photoUrl } };
 
     } catch (error) {
         console.error("Erro ao buscar usuário:", error);
@@ -166,9 +166,10 @@ export async function addDocumentAction(
 // --- Add Chat Message ---
 const addChatMessageSchema = z.object({
   processId: z.string(),
-  text: z.string().min(1, "A mensagem não pode estar vazia."),
+  text: z.string().min(1, "A mensagem não pode estar em branco."),
   senderId: z.string(),
   senderName: z.string(),
+  senderPhotoUrl: z.string().optional(),
 });
 
 type AddChatMessageResult = 

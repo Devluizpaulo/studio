@@ -20,9 +20,9 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles, Video, Landmark, Handshake, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -43,13 +43,14 @@ interface Collaborator {
     fullName: string;
     email: string;
     role: string;
+    photoUrl?: string;
 }
 
 interface ProcessEvent extends DocumentData {
   id: string
   title: string
   date: Timestamp
-  type: 'audiencia' | 'prazo' | 'reuniao' | 'outro'
+  type: 'audiencia-presencial' | 'audiencia-virtual' | 'prazo' | 'reuniao' | 'atendimento-presencial' | 'outro'
   description?: string
 }
 
@@ -66,13 +67,14 @@ interface ChatMessage extends DocumentData {
     text: string;
     senderId: string;
     senderName: string;
+    senderPhotoUrl?: string;
     timestamp: Timestamp;
 }
 
 const eventFormSchema = z.object({
   title: z.string().min(3, 'O título é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
-  type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
+  type: z.enum(['audiencia-presencial', 'audiencia-virtual', 'prazo', 'reuniao', 'atendimento-presencial', 'outro']),
   description: z.string().optional(),
 })
 
@@ -86,7 +88,7 @@ const documentFormSchema = z.object({
 type DocumentFormValues = z.infer<typeof documentFormSchema>;
 
 const chatFormSchema = z.object({
-    text: z.string().min(1, "A mensagem não pode estar vazia."),
+    text: z.string().min(1, "A mensagem não pode estar em branco."),
 })
 type ChatFormValues = z.infer<typeof chatFormSchema>;
 
@@ -130,6 +132,7 @@ export function ProcessDetailClient() {
   const [foundUser, setFoundUser] = useState<Collaborator | null>(null);
   const [searchError, setSearchError] = useState("");
   const [userRole, setUserRole] = useState<string|null>(null);
+  const [userPhotoUrl, setUserPhotoUrl] = useState<string>('');
 
 
   const eventForm = useForm<EventFormValues>({
@@ -252,6 +255,7 @@ export function ProcessDetailClient() {
         if (docSnap.exists()) {
             const userData = docSnap.data();
             setUserRole(userData.role);
+            setUserPhotoUrl(userData.photoUrl || '');
             fetchProcessAndCollaborators(id, userData);
         } else {
              router.push("/login");
@@ -392,6 +396,7 @@ export function ProcessDetailClient() {
             text: values.text,
             senderId: user.uid,
             senderName: user.displayName,
+            senderPhotoUrl: userPhotoUrl,
         });
 
         if (result.success) {
@@ -462,12 +467,14 @@ export function ProcessDetailClient() {
     defendant: "Pelo Réu",
   }
 
-  const eventTypeMap = {
-    audiencia: { label: 'Audiência', color: 'bg-red-500' },
-    prazo: { label: 'Prazo', color: 'bg-yellow-500' },
-    reuniao: { label: 'Reunião', color: 'bg-blue-500' },
-    outro: { label: 'Outro', color: 'bg-gray-500' },
-  }
+    const eventTypeMap = {
+        'audiencia-presencial': { label: 'Audiência Presencial', icon: Landmark, color: 'bg-red-500' },
+        'audiencia-virtual': { label: 'Audiência Virtual', icon: Video, color: 'bg-red-700' },
+        'prazo': { label: 'Prazo', icon: CalendarIcon, color: 'bg-yellow-500' },
+        'reuniao': { label: 'Reunião', icon: Users, color: 'bg-blue-500' },
+        'atendimento-presencial': { label: 'Atendimento', icon: Handshake, color: 'bg-green-500' },
+        'outro': { label: 'Outro', icon: Info, color: 'bg-gray-500' },
+    }
 
   const movements: Movement[] = processData.movements || [];
 
@@ -566,6 +573,7 @@ export function ProcessDetailClient() {
                                 <Card className="mt-4 p-4">
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-10 w-10">
+                                            <AvatarImage src={foundUser.photoUrl} />
                                             <AvatarFallback>{foundUser.fullName.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
@@ -593,6 +601,7 @@ export function ProcessDetailClient() {
                     collaborators.map(collab => (
                         <div key={collab.uid} className="flex items-center gap-3">
                             <Avatar className="h-9 w-9">
+                                <AvatarImage src={collab.photoUrl} />
                                 <AvatarFallback>{collab.fullName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -610,7 +619,7 @@ export function ProcessDetailClient() {
 
 
       <Tabs defaultValue="updates" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="updates">
             <Calendar className="mr-2 h-4 w-4"/>
             Andamentos
@@ -810,7 +819,7 @@ export function ProcessDetailClient() {
                                         <FormItem>
                                             <FormLabel>Data do Evento</FormLabel>
                                             <FormControl>
-                                                 <Input type="datetime-local" {...field} onChange={e => field.onChange(e.target.valueAsDate)} />
+                                                 <Input type="datetime-local" value={field.value ? format(field.value, "yyyy-MM-dd'T'HH:mm") : ''} onChange={e => field.onChange(e.target.valueAsDate)} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -830,7 +839,12 @@ export function ProcessDetailClient() {
                                             </FormControl>
                                             <SelectContent>
                                                 {Object.entries(eventTypeMap).map(([key, value]) => (
-                                                    <SelectItem key={key} value={key}>{value.label}</SelectItem>
+                                                    <SelectItem key={key} value={key}>
+                                                        <div className="flex items-center gap-2">
+                                                            <value.icon className="h-4 w-4" />
+                                                            {value.label}
+                                                        </div>
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -863,18 +877,21 @@ export function ProcessDetailClient() {
             <CardContent>
               {processEvents.length > 0 ? (
                 <ul className="space-y-4 pt-4">
-                    {processEvents.map((event) => (
-                    <li key={event.id} className="flex items-start space-x-3">
-                        <div className={`mt-1.5 h-3 w-3 rounded-full ${eventTypeMap[event.type]?.color || 'bg-gray-500'}`} />
-                        <div>
-                            <p className="font-semibold">{event.title}</p>
-                             <p className="text-sm text-muted-foreground">
-                                {format(event.date.toDate(), "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })} - {eventTypeMap[event.type].label}
-                            </p>
-                            {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
-                        </div>
-                    </li>
-                    ))}
+                    {processEvents.map((event) => {
+                        const config = eventTypeMap[event.type as keyof typeof eventTypeMap] || eventTypeMap.outro;
+                        return (
+                            <li key={event.id} className="flex items-start space-x-3">
+                                <div className={`mt-1.5 h-3 w-3 rounded-full flex-shrink-0 ${config.color}`} />
+                                <div>
+                                    <p className="font-semibold">{event.title}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {format(event.date.toDate(), "dd 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR })} - {config.label}
+                                    </p>
+                                    {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
+                                </div>
+                            </li>
+                        )
+                    })}
                 </ul>
                 ) : (
                 <div className="text-center text-muted-foreground py-12">
@@ -897,6 +914,7 @@ export function ProcessDetailClient() {
                                 <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                     {msg.senderId !== user?.uid && (
                                          <Avatar className="h-8 w-8">
+                                            <AvatarImage src={collaborators.find(c => c.uid === msg.senderId)?.photoUrl} />
                                             <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                     )}
@@ -907,6 +925,7 @@ export function ProcessDetailClient() {
                                     </div>
                                     {msg.senderId === user?.uid && (
                                          <Avatar className="h-8 w-8">
+                                            <AvatarImage src={userPhotoUrl} />
                                             <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                     )}
@@ -1022,7 +1041,7 @@ export function ProcessDetailClient() {
                              <Textarea 
                                 readOnly
                                 value={draftContent}
-                                className="w-full h-full text-base whitespace-pre-wrap"
+                                className="w-full h-full text-base whitespace-pre-wrap bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                              />
                            ) : (
                              !isDraftingPetition && <p className="text-center text-muted-foreground pt-20">O rascunho da sua petição aparecerá aqui.</p>

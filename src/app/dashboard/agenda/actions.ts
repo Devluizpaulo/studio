@@ -48,7 +48,8 @@ export async function createEventAction(
       lawyerId: lawyerId, // By default, event is for the creator
       officeId: officeId, // Associate event with the office
       date: Timestamp.fromDate(date),
-      status: type.startsWith('audiencia') ? 'pendente' : 'concluido' // Add status for confirmation
+      // Set status to pendente for any type of 'audiencia'
+      status: type.startsWith('audiencia') ? 'pendente' : 'concluido' 
     }
 
     if (processId) {
