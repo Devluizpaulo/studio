@@ -1,26 +1,32 @@
-import { initializeApp, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import { getAuth, Auth } from 'firebase-admin/auth';
 
-let db: FirebaseFirestore.Firestore | null = null;
-let auth: import('firebase-admin/auth').Auth | null = null;
+let app: App | undefined;
+let db: Firestore | null = null;
+let auth: Auth | null = null;
 
-if (!getApps().length) {
-    try {
-        initializeApp();
-    } catch(e) {
-        console.error("Could not initialize Firebase Admin SDK. This is expected during local development without credentials. Server-side features depending on Firebase Admin will be disabled.");
-    }
+if (getApps().length === 0) {
+  try {
+    // This initializes the app with default credentials from the environment.
+    // It's the recommended way for App Hosting and other Google Cloud environments.
+    app = initializeApp();
+  } catch (e) {
+    console.error("Firebase Admin SDK initialization failed:", e);
+    // Keep app undefined if initialization fails
+  }
+} else {
+  app = getApps()[0];
 }
 
 // Only try to get Firestore/Auth if the app was successfully initialized
-if (getApps().length > 0) {
-    try {
-        db = getFirestore();
-        auth = getAuth();
-    } catch (e) {
-        console.error("Failed to get Firestore or Auth instance from Firebase Admin.", e);
-    }
+if (app) {
+  try {
+    db = getFirestore(app);
+    auth = getAuth(app);
+  } catch (e) {
+    console.error("Failed to get Firestore or Auth instance from Firebase Admin.", e);
+  }
 }
 
 export { db, auth };
