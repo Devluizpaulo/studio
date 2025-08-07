@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { serverTimestamp } from "firebase/firestore"
+import { serverTimestamp } from "firebase-admin/firestore"
 
 const createClientSchema = z.object({
   fullName: z.string().min(3, "O nome é obrigatório."),

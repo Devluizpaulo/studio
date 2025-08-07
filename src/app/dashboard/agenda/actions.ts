@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { collection, addDoc, Timestamp, doc, getDoc } from "firebase/firestore"
+import { Timestamp } from "firebase-admin/firestore"
 
 const createEventSchema = z.object({
   title: z.string(),
