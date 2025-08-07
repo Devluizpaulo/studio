@@ -27,14 +27,14 @@ export default function Header() {
   const isDashboard = pathname.startsWith('/dashboard');
 
   if (isDashboard) {
-    return null; // The dashboard has its own header
+    return null; // The dashboard has its own layout and header
   }
 
   const navLinks = [
-      { href: "#home", label: "Início" },
-      { href: "#services", label: "Atuação" },
-      { href: "#specialties", label: "Especialidades" },
-      { href: "#contact", label: "Contato" },
+      { href: "/#home", label: "Início" },
+      { href: "/#services", label: "Atuação" },
+      { href: "/#specialties", label: "Especialidades" },
+      { href: "/#contact", label: "Contato" },
   ];
 
   return (

@@ -41,7 +41,9 @@ export default function RootLayout({
         <AuthProvider>
           <SidebarProvider>
             <div className="relative flex min-h-screen flex-col">
-              {children}
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
             </div>
             <Toaster />
           </SidebarProvider>
