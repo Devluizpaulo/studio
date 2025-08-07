@@ -1,4 +1,3 @@
-// Summarize legal brief flow.
 'use server';
 /**
  * @fileOverview A legal summary AI agent.
@@ -48,7 +47,7 @@ const summarizeLegalBriefFlow = ai.defineFlow(
     inputSchema: SummarizeLegalBriefInputSchema,
     outputSchema: SummarizeLegalBriefOutputSchema,
   },
-  async input => {
+  async (input: SummarizeLegalBriefInput) => {
     const {output} = await prompt(input);
     return output!;
   }

@@ -1,6 +1,6 @@
-import {genkit, type Plugin, type GenerateInput, type Next} from 'genkit/core';
+import {genkit, type Plugin, type GenerateInput, type Next} from '@genkit-ai/core';
 import {googleAI} from '@genkit-ai/googleai';
-import {firebaseAuth} from '@genkit-ai/firebase/auth';
+import {firebaseAuth} from '@genkit-ai/firebase/plugin';
 import {db} from '@/lib/firebase-admin';
 
 // Keep a cache of initialized GoogleAI plugins per API key
