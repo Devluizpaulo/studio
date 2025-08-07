@@ -1,6 +1,6 @@
 'use server';
 
-import {genkit, configureGenkit} from 'genkit';
+import {genkit} from 'genkit';
 import type {Plugin, GenerateRequest, NextFn} from '@genkit-ai/core';
 import {googleAI} from '@genkit-ai/googleai';
 import {firebaseAuth} from '@genkit-ai/firebase/auth';
@@ -73,5 +73,4 @@ export const ai = genkit({
       },
     },
   ],
-  defaultModel: 'googleai/gemini-pro',
 });

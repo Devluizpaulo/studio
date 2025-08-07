@@ -27,7 +27,8 @@ const DraftPetitionOutputSchema = z.object({
 export type DraftPetitionOutput = z.infer<typeof DraftPetitionOutputSchema>;
 
 export async function draftPetition(input: DraftPetitionInput): Promise<DraftPetitionOutput> {
-  return draftPetitionFlow(input, {user: input.userId});
+  // The user ID is passed within the input object itself for the flow to use.
+  return draftPetitionFlow(input);
 }
 
 const prompt = ai.definePrompt({
@@ -61,7 +62,7 @@ const draftPetitionFlow = ai.defineFlow(
     outputSchema: DraftPetitionOutputSchema,
   },
   async (input: DraftPetitionInput) => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, { options: { user: input.userId } });
     return output!;
   }
 );
