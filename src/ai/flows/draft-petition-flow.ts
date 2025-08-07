@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Um agente de IA para gerar rascunhos de petições com base em uma tese jurídica.
@@ -61,7 +62,7 @@ const draftPetitionFlow = ai.defineFlow(
     outputSchema: DraftPetitionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input, {user: input.userId});
+    const {output} = await prompt(input, {options: {user: input.userId}});
     return output!;
   }
 );
