@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useTransition } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
+import { format, isPast, isWithinInterval, startOfDay, endOfDay, endOfWeek, startOfWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   collection,
@@ -17,10 +17,10 @@ import {
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import *s z from 'zod'
 
 import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Calendar as CalendarIcon, Loader2, Video, Landmark, Users, Handshake, Info } from 'lucide-react'
+import { PlusCircle, Calendar as CalendarIcon, Loader2, Video, Landmark, Users, Handshake, Info, AlertTriangle, ListTodo, FileClock } from 'lucide-react'
 import { createEventAction } from './actions'
 import { Badge } from '@/components/ui/badge'
 
@@ -57,6 +57,7 @@ interface Event extends DocumentData {
   date: Timestamp
   type: 'audiencia-presencial' | 'audiencia-virtual' | 'prazo' | 'reuniao' | 'atendimento-presencial' | 'outro'
   description?: string
+  status?: string
 }
 
 const eventFormSchema = z.object({
@@ -69,12 +70,12 @@ const eventFormSchema = z.object({
 type EventFormValues = z.infer<typeof eventFormSchema>
 
 const eventTypeMap = {
-    'audiencia-presencial': { label: 'Audiência Presencial', icon: Landmark, color: 'bg-red-500', borderColor: 'border-red-500', varColor: 'hsl(var(--destructive))' },
-    'audiencia-virtual': { label: 'Audiência Virtual', icon: Video, color: 'bg-red-700', borderColor: 'border-red-700', varColor: 'hsl(0 72% 30%)' },
-    'prazo': { label: 'Prazo', icon: CalendarIcon, color: 'bg-yellow-500', borderColor: 'border-yellow-500', varColor: 'hsl(var(--accent))' },
-    'reuniao': { label: 'Reunião', icon: Users, color: 'bg-blue-500', borderColor: 'border-blue-500', varColor: 'hsl(217 91% 60%)' },
-    'atendimento-presencial': { label: 'Atendimento Presencial', icon: Handshake, color: 'bg-green-500', borderColor: 'border-green-500', varColor: 'hsl(142 76% 36%)' },
-    'outro': { label: 'Outro', icon: Info, color: 'bg-gray-500', borderColor: 'border-gray-500', varColor: 'hsl(var(--muted-foreground))' },
+    'audiencia-presencial': { label: 'Audiência Presencial', icon: Landmark, color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/50' },
+    'audiencia-virtual': { label: 'Audiência Virtual', icon: Video, color: 'text-red-700', bgColor: 'bg-red-700/10', borderColor: 'border-red-700/50' },
+    'prazo': { label: 'Prazo', icon: FileClock, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/50' },
+    'reuniao': { label: 'Reunião', icon: Users, color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/50' },
+    'atendimento-presencial': { label: 'Atendimento', icon: Handshake, color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/50' },
+    'outro': { label: 'Outro', icon: Info, color: 'text-gray-500', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/50' },
 }
 
 export function AgendaClient() {
@@ -82,7 +83,6 @@ export function AgendaClient() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const [date, setDate] = useState<Date | undefined>(new Date())
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -96,15 +96,7 @@ export function AgendaClient() {
       description: '',
     },
   })
-
-  useEffect(() => {
-    if (date) {
-        const newDate = new Date(date);
-        newDate.setHours(9,0,0,0);
-        form.setValue('date', newDate);
-    }
-  }, [date, form])
-
+   
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login')
@@ -132,15 +124,12 @@ export function AgendaClient() {
                 id: doc.id,
                 ...doc.data(),
               })) as Event[]
-              setEvents(eventsData)
+              setEvents(eventsData.sort((a,b) => a.date.toMillis() - b.date.toMillis()));
               setLoading(false)
             },
             (error) => {
               console.error('Error fetching events:', error)
-              toast({
-                title: 'Erro ao buscar eventos',
-                variant: 'destructive',
-              })
+              toast({ title: 'Erro ao buscar eventos', variant: 'destructive' })
               setLoading(false)
             }
           );
@@ -153,21 +142,22 @@ export function AgendaClient() {
     }
   }, [user, authLoading, router, toast])
 
-  const selectedDayEvents = useMemo(() => {
-    if (!date) return []
-    const startOfDay = new Date(date)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(date)
-    endOfDay.setHours(23, 59, 59, 999)
+  const { pastDueDeadlines, thisWeekDeadlines, thisWeekHearings, upcomingEvents } = useMemo(() => {
+    const now = new Date();
+    const startOfThisWeek = startOfWeek(now, { locale: ptBR });
+    const endOfThisWeek = endOfWeek(now, { locale: ptBR });
 
-    return events
-    .filter((event) => {
-      const eventDate = event.date.toDate()
-      return eventDate >= startOfDay && eventDate <= endOfDay
-    })
-    .sort((a,b) => a.date.toDate().getTime() - b.date.toDate().getTime());
+    const pastDue = events.filter(e => e.type === 'prazo' && isPast(e.date.toDate()) && e.status !== 'concluido');
+    const thisWeek = events.filter(e => isWithinInterval(e.date.toDate(), { start: startOfThisWeek, end: endOfThisWeek }));
 
-  }, [date, events])
+    return {
+        pastDueDeadlines: pastDue,
+        thisWeekDeadlines: thisWeek.filter(e => e.type === 'prazo'),
+        thisWeekHearings: thisWeek.filter(e => e.type.startsWith('audiencia')),
+        upcomingEvents: events.filter(e => !isPast(e.date.toDate()) || e.type !== 'prazo')
+    }
+  }, [events]);
+
 
   async function onSubmit(values: EventFormValues) {
     if (!user) return
@@ -177,7 +167,6 @@ export function AgendaClient() {
       toast({ title: 'Evento criado com sucesso!' })
       setIsFormOpen(false)
       form.reset()
-      setDate(values.date); // Select the new event's date
     } else {
       toast({
         title: 'Erro ao criar evento',
@@ -190,27 +179,29 @@ export function AgendaClient() {
 
   if (authLoading || loading) {
     return (
-        <div className="grid md:grid-cols-[400px_1fr] gap-8">
-            <Skeleton className="h-[550px]" />
-            <Skeleton className="h-[550px]" />
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                 <Skeleton className="h-10 w-72" />
+                 <Skeleton className="h-10 w-44" />
+            </div>
+             <div className="grid gap-6 md:grid-cols-3">
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+            </div>
+            <Skeleton className="h-80 w-full" />
         </div>
     )
   }
-
-  const modifiers = useMemo(() => {
-      const eventModifiers: Record<string, Date[]> = {};
-      events.forEach(event => {
-          const type = event.type as keyof typeof eventTypeMap;
-          if (!eventModifiers[type]) {
-              eventModifiers[type] = [];
-          }
-          eventModifiers[type].push(event.date.toDate());
-      });
-      return eventModifiers;
-  }, [events]);
+  
+  const summaryCards = [
+    { title: "Prazos Vencidos", value: pastDueDeadlines.length, icon: AlertTriangle, color: "text-destructive" },
+    { title: "Prazos da Semana", value: thisWeekDeadlines.length, icon: FileClock, color: "text-yellow-500" },
+    { title: "Audiências da Semana", value: thisWeekHearings.length, icon: Landmark, color: "text-red-500" },
+  ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
@@ -312,88 +303,71 @@ export function AgendaClient() {
             </DialogContent>
             </Dialog>
         </div>
-        <div className="grid gap-8 md:grid-cols-[400px_1fr]">
-        <Card className="flex flex-col">
-          <CardContent className="p-0">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="p-3"
-              locale={ptBR}
-              modifiers={modifiers}
-              modifiersClassNames={{
-                  ...Object.fromEntries(Object.keys(eventTypeMap).map(type => [type, `event-indicator--${type}`]))
-              }}
-            />
-             <style jsx global>{`
-                ${Object.entries(eventTypeMap).map(([key, value]) => `
-                    .event-indicator--${key}:not([aria-selected]) .rdp-button::after {
-                        content: '';
-                        position: absolute;
-                        bottom: 4px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        width: 6px;
-                        height: 6px;
-                        border-radius: 50%;
-                        background-color: ${value.varColor};
-                    }
-                `).join('\n')}
-            `}</style>
-             <div className="border-t p-4 mt-auto">
-                <h4 className="text-sm font-semibold mb-3">Legenda:</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                    {Object.entries(eventTypeMap).map(([key, value]) => (
-                        <div key={key} className="flex items-center gap-2">
-                            <span className={`w-3 h-3 rounded-full ${value.color}`}></span>
-                            <span>{value.label}</span>
-                        </div>
-                    ))}
-                </div>
-              </div>
-          </CardContent>
-        </Card>
+        
+        {/* Summary Cards */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {summaryCards.map(card => (
+             <Card key={card.title}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                    <card.icon className={`h-5 w-5 ${card.color}`} />
+                </CardHeader>
+                <CardContent>
+                    <div className={`text-4xl font-bold ${card.color}`}>{card.value}</div>
+                </CardContent>
+            </Card>
+          ))}
+        </div>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CalendarIcon className="mr-3 h-6 w-6 text-accent" />
-              {date ? format(date, "d 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedDayEvents.length > 0 ? (
-              <ul className="space-y-4">
-                {selectedDayEvents.map((event) => {
-                  const eventConfig = eventTypeMap[event.type as keyof typeof eventTypeMap] || eventTypeMap.outro;
-                  const Icon = eventConfig.icon;
-                  return (
-                     <li key={event.id} className={`flex items-start space-x-4 border-l-4 p-4 rounded-r-md bg-card/50 ${eventConfig.borderColor}`}>
-                      <Icon className={`mt-1 h-6 w-6 flex-shrink-0 ${eventConfig.color.replace('bg-', 'text-')}`} />
-                      <div className="flex-grow">
-                          <p className="font-semibold text-base leading-tight">{event.title}</p>
-                           <p className="text-sm text-muted-foreground mt-1">
-                              <Badge variant="outline" className="mr-2 border-primary/50 text-primary/90 font-mono">
-                                {format(event.date.toDate(), 'HH:mm')}
-                              </Badge>
-                              {eventConfig.label}
-                            </p>
-                          {event.description && <p className="text-sm text-foreground/80 mt-2">{event.description}</p>}
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16">
-                 <CalendarIcon className="h-20 w-20 mb-4 opacity-30" />
-                <p className="text-lg">Nenhum compromisso para este dia.</p>
-                <p className="text-sm mt-1">Selecione outra data ou adicione um novo evento.</p>
-              </div>
-            )}
-          </CardContent>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <ListTodo className="mr-3 h-6 w-6 text-accent" />
+                    Próximos Compromissos e Prazos
+                </CardTitle>
+                <CardDescription>
+                    Seus próximos eventos agendados, ordenados por data.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {upcomingEvents.length > 0 ? (
+                    <div className="space-y-6">
+                        {upcomingEvents.map(event => {
+                             const config = eventTypeMap[event.type as keyof typeof eventTypeMap] || eventTypeMap.outro;
+                             const isEventPastDue = event.type === 'prazo' && isPast(event.date.toDate());
+                             const Icon = isEventPastDue ? AlertTriangle : config.icon;
+                             const colorClass = isEventPastDue ? 'text-destructive' : config.color;
+
+                             return (
+                                <div key={event.id} className="flex items-start gap-4">
+                                     <div className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${config.bgColor}`}>
+                                        <Icon className={`h-6 w-6 ${colorClass}`} />
+                                     </div>
+                                     <div className="flex-grow">
+                                        <p className={`font-semibold ${colorClass}`}>{event.title}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                             {format(event.date.toDate(), "eeee, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                        </p>
+                                        {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
+                                     </div>
+                                      <Badge variant={isEventPastDue ? "destructive" : "outline"} className={isEventPastDue ? "" : config.borderColor}>
+                                         {isEventPastDue ? "Vencido" : config.label}
+                                      </Badge>
+                                </div>
+                             )
+                        })}
+                    </div>
+                ) : (
+                     <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full py-16">
+                        <CalendarIcon className="h-20 w-20 mb-4 opacity-30" />
+                        <p className="text-lg">Nenhum compromisso futuro.</p>
+                        <p className="text-sm mt-1">Sua agenda está limpa. Aproveite para planejar!</p>
+                    </div>
+                )}
+            </CardContent>
         </Card>
-      </div>
     </div>
   )
 }
+
+    

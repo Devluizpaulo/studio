@@ -50,7 +50,8 @@ export async function createEventAction(
       lawyerId: lawyerId,
       officeId: officeId,
       date: Timestamp.fromDate(date),
-      status: (type === 'audiencia-presencial' || type === 'audiencia-virtual') ? 'pendente' : 'concluido' 
+      // Set a specific status for events that need confirmation, like hearings.
+      status: (type === 'audiencia-presencial' || type === 'audiencia-virtual') ? 'pendente' : 'agendado' 
     }
 
     if (processId) {
@@ -65,3 +66,5 @@ export async function createEventAction(
     return { success: false, error: "Falha ao criar evento. Tente novamente." }
   }
 }
+
+    
