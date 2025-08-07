@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase-admin";
-import { serverTimestamp } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 
 const CreateProcessSchema = z.object({
   clientName: z.string(),
@@ -30,6 +30,10 @@ export async function createProcessAction(
     return { success: false, error: "Input inválido." };
   }
   
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
+  
   try {
     const { lawyerId, ...processData } = parsedInput.data;
     
@@ -50,8 +54,8 @@ export async function createProcessAction(
       officeId: officeId, // Associate process with the office
       lawyerId: lawyerId, // Owner of the process
       collaboratorIds: [lawyerId], // Start with the owner in the collaborators list
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
       movements: [], // Initialize with empty movements history
     });
 

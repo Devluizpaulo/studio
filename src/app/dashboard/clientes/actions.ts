@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { serverTimestamp } from "firebase-admin/firestore"
+import { FieldValue } from "firebase-admin/firestore"
 
 const createClientSchema = z.object({
   fullName: z.string().min(3, "O nome é obrigatório."),
@@ -25,6 +25,10 @@ export async function createClientAction(
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." }
   }
+  
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
 
   try {
     const { lawyerId, ...clientData } = parsedInput.data
@@ -44,7 +48,7 @@ export async function createClientAction(
       ...clientData,
       createdBy: lawyerId,
       officeId: officeId, // Associate client with the office
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     })
 
     return { success: true, data: { clientId: docRef.id } }

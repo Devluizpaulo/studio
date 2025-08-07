@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { serverTimestamp } from "firebase-admin/firestore"
+import { FieldValue } from "firebase-admin/firestore"
 
 const createDocumentTemplateSchema = z.object({
   title: z.string().min(3, "O título é obrigatório."),
@@ -23,13 +23,17 @@ export async function createDocumentTemplateAction(
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." }
   }
+  
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
 
   try {
     const { ...templateData } = parsedInput.data
     
     const docRef = await db.collection("document_templates").add({
       ...templateData,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     })
 
     return { success: true, data: { templateId: docRef.id } }

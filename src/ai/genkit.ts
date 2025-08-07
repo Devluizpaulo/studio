@@ -1,6 +1,6 @@
 import {genkit, Plugin, GenerateInput, Next} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-import {firebase} from '@genkit-ai/firebase';
+import {firebase} from '@genkit-ai/firebase/server';
 import {db} from '@/lib/firebase-admin';
 
 // Keep a cache of initialized GoogleAI plugins per API key
@@ -16,6 +16,9 @@ function getGoogleAI(apiKey: string): Plugin {
 
 // Function to get the current user's officeId from their UID
 async function getOfficeId(uid: string): Promise<string> {
+    if (!db) {
+        throw new Error('Firestore not initialized');
+    }
   const userDoc = await db.collection('users').doc(uid).get();
   if (!userDoc.exists) {
     throw new Error('User not found');
@@ -29,6 +32,9 @@ async function getOfficeId(uid: string): Promise<string> {
 
 // Function to get the API key for a given officeId
 async function getApiKey(officeId: string): Promise<string> {
+    if (!db) {
+        throw new Error('Firestore not initialized');
+    }
   const officeDoc = await db.collection('offices').doc(officeId).get();
   if (!officeDoc.exists) {
     throw new Error('Office configuration not found');

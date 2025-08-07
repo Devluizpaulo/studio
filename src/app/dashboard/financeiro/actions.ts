@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { serverTimestamp } from "firebase-admin/firestore"
+import { FieldValue } from "firebase-admin/firestore"
 
 const createFinancialTaskSchema = z.object({
   title: z.string().min(3, "O título é obrigatório."),
@@ -28,13 +28,17 @@ export async function createFinancialTaskAction(
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." }
   }
+  
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
 
   try {
     const { ...taskData } = parsedInput.data
     
     const docRef = await db.collection("financial_tasks").add({
       ...taskData,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     })
 
     return { success: true, data: { taskId: docRef.id } }
@@ -59,12 +63,15 @@ export async function updateFinancialTaskStatusAction(
   if(!parsedInput.success) {
     return { success: false, error: "Input inválido." };
   }
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   try {
     const { taskId, status } = parsedInput.data;
     const taskRef = db.collection('financial_tasks').doc(taskId);
     await taskRef.update({
       status: status,
-      updatedAt: serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
     return { success: true };
   } catch (error) {
