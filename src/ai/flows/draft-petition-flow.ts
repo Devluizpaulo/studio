@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Um agente de IA para gerar rascunhos de petições com base em uma tese jurídica.
