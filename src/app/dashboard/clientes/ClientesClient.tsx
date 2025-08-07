@@ -89,6 +89,11 @@ export function ClientesClient() {
                 setUserRole(userData.role);
                 const officeId = userData.officeId;
 
+                if (!officeId) {
+                  setLoading(false);
+                  return;
+                }
+
                 const q = query(collection(db, 'clients'), where('officeId', '==', officeId));
                 const unsubscribeClients = onSnapshot(q, (snapshot) => {
                     const clientsData: Client[] = snapshot.docs.map(doc => ({

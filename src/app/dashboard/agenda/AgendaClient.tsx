@@ -12,6 +12,7 @@ import {
   onSnapshot,
   Timestamp,
   DocumentData,
+  doc
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
@@ -99,30 +100,49 @@ export function AgendaClient() {
     }
 
     if (user) {
-      const q = query(
-        collection(db, 'events'),
-        where('lawyerId', '==', user.uid)
-      )
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const eventsData: Event[] = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Event[]
-          setEvents(eventsData)
-          setLoading(false)
-        },
-        (error) => {
-          console.error('Error fetching events:', error)
-          toast({
-            title: 'Erro ao buscar eventos',
-            variant: 'destructive',
-          })
-          setLoading(false)
+      const userDocRef = doc(db, 'users', user.uid);
+      const unsubscribeUser = onSnapshot(userDocRef, (userDoc) => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const officeId = userData.officeId;
+
+          if (!officeId) {
+            setLoading(false);
+            return;
+          }
+
+          let eventsQuery;
+          if (userData.role === 'master' || userData.role === 'secretary') {
+             eventsQuery = query(collection(db, "events"), where("officeId", "==", officeId));
+          } else {
+             eventsQuery = query(collection(db, "events"), where("lawyerId", "==", user.uid));
+          }
+          
+          const unsubscribeEvents = onSnapshot(
+            eventsQuery,
+            (snapshot) => {
+              const eventsData: Event[] = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              })) as Event[]
+              setEvents(eventsData)
+              setLoading(false)
+            },
+            (error) => {
+              console.error('Error fetching events:', error)
+              toast({
+                title: 'Erro ao buscar eventos',
+                variant: 'destructive',
+              })
+              setLoading(false)
+            }
+          );
+           return () => unsubscribeEvents();
+        } else {
+          setLoading(false);
         }
-      )
-      return () => unsubscribe()
+      });
+      return () => unsubscribeUser();
     }
   }, [user, authLoading, router, toast])
 

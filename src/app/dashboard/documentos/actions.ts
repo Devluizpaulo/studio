@@ -1,7 +1,7 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-admin"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 
 const createDocumentTemplateSchema = z.object({

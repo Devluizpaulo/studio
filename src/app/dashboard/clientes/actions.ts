@@ -1,7 +1,7 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-admin"
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore"
 
 const createClientSchema = z.object({
@@ -31,7 +31,7 @@ export async function createClientAction(
     
     // Get user's officeId
     const userDocRef = doc(db, "users", lawyerId);
-    const userDoc = await getDoc(userDocRef);
+    const userDoc = await userDocRef.get();
     if (!userDoc.exists()) {
         return { success: false, error: "Usuário não encontrado." };
     }

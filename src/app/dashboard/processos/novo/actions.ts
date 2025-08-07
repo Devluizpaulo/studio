@@ -36,10 +36,13 @@ export async function createProcessAction(
     // Get user's officeId
     const userDocRef = doc(db, "users", lawyerId);
     const userDoc = await userDocRef.get();
-    if (!userDoc.exists) {
+    if (!userDoc.exists()) {
         return { success: false, error: "Usuário não encontrado."};
     }
     const officeId = userDoc.data()?.officeId;
+    if (!officeId) {
+        return { success: false, error: "Escritório do usuário não encontrado." };
+    }
 
 
     const docRef = await db.collection("processes").add({

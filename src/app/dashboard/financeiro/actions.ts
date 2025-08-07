@@ -1,7 +1,7 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-admin"
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore"
 
 const createFinancialTaskSchema = z.object({

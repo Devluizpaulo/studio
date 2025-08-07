@@ -35,6 +35,11 @@ export function DashboardClient() {
           setUserRole(userData.role);
           const officeId = userData.officeId;
 
+          if (!officeId) {
+            setLoading(false);
+            return;
+          }
+
           let processesQuery;
           // Master and Secretary can see all processes from the office
           if(userData.role === 'master' || userData.role === 'secretary') {

@@ -32,6 +32,10 @@ export function ProcessosClient() {
                 const userData = userDoc.data();
                 setUserRole(userData.role);
                 const officeId = userData.officeId;
+                if (!officeId) {
+                    setLoading(false);
+                    return;
+                }
                 let q;
 
                 if (userData.role === 'master' || userData.role === 'secretary') {
