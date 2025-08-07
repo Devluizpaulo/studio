@@ -60,6 +60,11 @@ export async function TeamSection() {
         return <p className="text-sm text-accent">{specialties}</p>
     }
 
+    // If there's no main lawyer, we might not want to render the section at all, or render a default.
+    // Let's prevent the error by ensuring mainLawyer is not null before rendering its section.
+    if (!mainLawyer) {
+        return null; // Or return a default section if you prefer
+    }
 
     return (
         <>
