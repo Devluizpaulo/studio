@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore"
+import { serverTimestamp } from "firebase/firestore"
 
 const createClientSchema = z.object({
   fullName: z.string().min(3, "O nome é obrigatório."),
@@ -30,9 +30,9 @@ export async function createClientAction(
     const { lawyerId, ...clientData } = parsedInput.data
     
     // Get user's officeId
-    const userDocRef = doc(db, "users", lawyerId);
+    const userDocRef = db.collection("users").doc(lawyerId);
     const userDoc = await userDocRef.get();
-    if (!userDoc.exists()) {
+    if (!userDoc.exists) {
         return { success: false, error: "Usuário não encontrado." };
     }
     const officeId = userDoc.data()?.officeId;
@@ -40,7 +40,7 @@ export async function createClientAction(
         return { success: false, error: "Escritório do usuário não encontrado." };
     }
 
-    const docRef = await addDoc(collection(db, "clients"), {
+    const docRef = await db.collection("clients").add({
       ...clientData,
       createdBy: lawyerId,
       officeId: officeId, // Associate client with the office

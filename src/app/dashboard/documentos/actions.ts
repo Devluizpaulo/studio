@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { serverTimestamp } from "firebase/firestore"
 
 const createDocumentTemplateSchema = z.object({
   title: z.string().min(3, "O título é obrigatório."),
@@ -27,7 +27,7 @@ export async function createDocumentTemplateAction(
   try {
     const { ...templateData } = parsedInput.data
     
-    const docRef = await addDoc(collection(db, "document_templates"), {
+    const docRef = await db.collection("document_templates").add({
       ...templateData,
       createdAt: serverTimestamp(),
     })

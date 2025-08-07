@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore"
+import { serverTimestamp } from "firebase/firestore"
 
 const createFinancialTaskSchema = z.object({
   title: z.string().min(3, "O título é obrigatório."),
@@ -32,7 +32,7 @@ export async function createFinancialTaskAction(
   try {
     const { ...taskData } = parsedInput.data
     
-    const docRef = await addDoc(collection(db, "financial_tasks"), {
+    const docRef = await db.collection("financial_tasks").add({
       ...taskData,
       createdAt: serverTimestamp(),
     })
@@ -61,8 +61,8 @@ export async function updateFinancialTaskStatusAction(
   }
   try {
     const { taskId, status } = parsedInput.data;
-    const taskRef = doc(db, 'financial_tasks', taskId);
-    await updateDoc(taskRef, {
+    const taskRef = db.collection('financial_tasks').doc(taskId);
+    await taskRef.update({
       status: status,
       updatedAt: serverTimestamp(),
     });

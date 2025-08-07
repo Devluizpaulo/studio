@@ -2,7 +2,6 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { doc, updateDoc } from "firebase/firestore"
 
 const updateEventStatusSchema = z.object({
   eventId: z.string(),
@@ -25,8 +24,8 @@ export async function updateEventStatusAction(
   try {
     const { eventId, status } = parsedInput.data
     
-    const eventRef = doc(db, "events", eventId)
-    await updateDoc(eventRef, { status: status })
+    const eventRef = db.collection("events").doc(eventId);
+    await eventRef.update({ status: status })
 
     return { success: true }
   } catch (error) {

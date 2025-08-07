@@ -30,9 +30,9 @@ export async function createEventAction(
     const { lawyerId, date, processId, type, ...eventData } = parsedInput.data
     
     // Get user's officeId
-    const userDocRef = doc(db, "users", lawyerId);
+    const userDocRef = db.collection("users").doc(lawyerId);
     const userDoc = await userDocRef.get();
-    if (!userDoc.exists()) {
+    if (!userDoc.exists) {
         return { success: false, error: "Usuário não encontrado." };
     }
     const officeId = userDoc.data()?.officeId;
@@ -56,7 +56,7 @@ export async function createEventAction(
       docData.processId = processId;
     }
 
-    const docRef = await addDoc(collection(db, "events"), docData)
+    const docRef = await db.collection("events").add(docData);
 
     return { success: true, data: { eventId: docRef.id } }
   } catch (error) {

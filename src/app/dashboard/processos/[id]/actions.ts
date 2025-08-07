@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { doc, updateDoc, arrayUnion, Timestamp, collection, query, where, getDocs, getDoc, addDoc, serverTimestamp } from "firebase/firestore"
+import { Timestamp, FieldValue } from "firebase-admin/firestore"
 import { updateProcessStatus } from "@/ai/flows/update-process-status"
 import { draftPetition } from "@/ai/flows/draft-petition-flow"
 
@@ -30,10 +30,10 @@ export async function updateProcessStatusAction(
 
   try {
     const newMovement = await updateProcessStatus(parsedInput.data);
-    const processRef = doc(db, "processes", parsedInput.data.processId);
+    const processRef = db.collection("processes").doc(parsedInput.data.processId);
 
-    await updateDoc(processRef, {
-        movements: arrayUnion({
+    await processRef.update({
+        movements: FieldValue.arrayUnion({
             ...newMovement,
             date: Timestamp.fromDate(new Date(newMovement.date)),
         })
@@ -59,9 +59,9 @@ export async function findUserByEmailAction(email: string): Promise<FindUserResu
     }
 
     try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", parsedEmail.data));
-        const querySnapshot = await getDocs(q);
+        const usersRef = db.collection("users");
+        const q = usersRef.where("email", "==", parsedEmail.data);
+        const querySnapshot = await q.get();
 
         if (querySnapshot.empty) {
             return { success: true, data: null };
@@ -99,25 +99,25 @@ export async function addCollaboratorAction(
   }
   try {
     const { processId, collaboratorId, currentUserId } = parsedInput.data;
-    const processRef = doc(db, "processes", processId);
-    const processSnap = await getDoc(processRef);
+    const processRef = db.collection("processes").doc(processId);
+    const processSnap = await processRef.get();
 
-    if (!processSnap.exists()) {
+    if (!processSnap.exists) {
         return { success: false, error: "Processo não encontrado." };
     }
 
     const processData = processSnap.data();
-    const currentUserDoc = await getDoc(doc(db, "users", currentUserId));
+    const currentUserDoc = await db.collection("users").doc(currentUserId).get();
     const currentUserRole = currentUserDoc.data()?.role;
 
 
     // Security check: Only owner or master can add collaborators
-    if (processData.lawyerId !== currentUserId && currentUserRole !== 'master') {
+    if (processData?.lawyerId !== currentUserId && currentUserRole !== 'master') {
         return { success: false, error: "Apenas o dono do processo ou o administrador podem adicionar colaboradores."}
     }
 
-    await updateDoc(processRef, {
-        collaboratorIds: arrayUnion(collaboratorId)
+    await processRef.update({
+        collaboratorIds: FieldValue.arrayUnion(collaboratorId)
     });
 
     return { success: true };
@@ -149,11 +149,11 @@ export async function addDocumentAction(
   }
   try {
     const { processId, ...documentData } = parsedInput.data;
-    const documentsCollectionRef = collection(db, "processes", processId, "documents");
+    const documentsCollectionRef = db.collection("processes").doc(processId).collection("documents");
     
-    const docRef = await addDoc(documentsCollectionRef, {
+    const docRef = await documentsCollectionRef.add({
       ...documentData,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     return { success: true, data: { documentId: docRef.id } };
@@ -185,11 +185,11 @@ export async function addChatMessageAction(
   }
   try {
     const { processId, ...messageData } = parsedInput.data;
-    const chatMessagesCollectionRef = collection(db, "processes", processId, "chatMessages");
+    const chatMessagesCollectionRef = db.collection("processes").doc(processId).collection("chatMessages");
     
-    const docRef = await addDoc(chatMessagesCollectionRef, {
+    const docRef = await chatMessagesCollectionRef.add({
       ...messageData,
-      timestamp: serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
     });
 
     return { success: true, data: { messageId: docRef.id } };

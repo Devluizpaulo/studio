@@ -59,5 +59,6 @@ export const ai = genkit({
       },
     },
   ],
-  model: 'googleai/gemini-2.0-flash', // Default model reference
+  logLevel: 'debug',
+  model: 'googleai/gemini-pro', // Default model reference
 });

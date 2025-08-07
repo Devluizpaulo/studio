@@ -2,7 +2,6 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { doc, setDoc } from "firebase/firestore"
 
 // --- Update API Key Action ---
 const updateApiKeySchema = z.object({
@@ -26,8 +25,8 @@ export async function updateApiKeyAction(
   try {
     const { officeId, googleApiKey } = parsedInput.data
     
-    const officeRef = doc(db, "offices", officeId);
-    await setDoc(officeRef, { googleApiKey }, { merge: true });
+    const officeRef = db.collection("offices").doc(officeId);
+    await officeRef.set({ googleApiKey }, { merge: true });
 
     return { success: true }
   } catch (error) {
@@ -46,7 +45,7 @@ export async function getApiKeyAction(officeId: string): Promise<GetApiKeyResult
         return { success: false, error: "ID do escritório é inválido." };
     }
     try {
-        const officeRef = doc(db, "offices", officeId);
+        const officeRef = db.collection("offices").doc(officeId);
         const docSnap = await officeRef.get();
 
         if (docSnap.exists) {
@@ -76,8 +75,8 @@ export async function updateSeoSettingsAction(
 
     try {
         const { officeId, ...seoData } = parsedInput.data;
-        const officeRef = doc(db, "offices", officeId);
-        await setDoc(officeRef, { seo: seoData }, { merge: true });
+        const officeRef = db.collection("offices").doc(officeId);
+        await officeRef.set({ seo: seoData }, { merge: true });
         return { success: true };
     } catch (error) {
         console.error("Erro ao salvar SEO:", error);
@@ -92,7 +91,7 @@ type GetSeoSettingsResult =
 export async function getSeoSettingsAction(officeId: string): Promise<GetSeoSettingsResult> {
     if (!officeId) return { success: false, error: "ID do escritório inválido." };
     try {
-        const officeRef = doc(db, "offices", officeId);
+        const officeRef = db.collection("offices").doc(officeId);
         const docSnap = await officeRef.get();
         if (docSnap.exists) {
             return { success: true, data: docSnap.data()?.seo || null };
@@ -119,8 +118,8 @@ export async function updateGtmIdAction(
 
     try {
         const { officeId, gtmId } = parsedInput.data;
-        const officeRef = doc(db, "offices", officeId);
-        await setDoc(officeRef, { gtmId }, { merge: true });
+        const officeRef = db.collection("offices").doc(officeId);
+        await officeRef.set({ gtmId }, { merge: true });
         return { success: true };
     } catch (error) {
         console.error("Erro ao salvar GTM ID:", error);
@@ -135,7 +134,7 @@ type GetGtmIdResult =
 export async function getGtmIdAction(officeId: string): Promise<GetGtmIdResult> {
     if (!officeId) return { success: false, error: "ID do escritório inválido." };
     try {
-        const officeRef = doc(db, "offices", officeId);
+        const officeRef = db.collection("offices").doc(officeId);
         const docSnap = await officeRef.get();
         if (docSnap.exists) {
             return { success: true, data: docSnap.data()?.gtmId || null };
