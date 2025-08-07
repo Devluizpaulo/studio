@@ -1,8 +1,8 @@
-"use server";
+'use server';
 
-import { z } from "zod";
-import { db } from "@/lib/firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import {z} from 'zod';
+import {db} from '@/lib/firebase-admin';
+import {FieldValue} from 'firebase-admin/firestore';
 
 const CreateProcessSchema = z.object({
   clientName: z.string(),
@@ -12,14 +12,14 @@ const CreateProcessSchema = z.object({
   actionType: z.string(),
   plaintiff: z.string(),
   defendant: z.string(),
-  representation: z.enum(["plaintiff", "defendant"]),
-  status: z.enum(["active", "pending", "archived"]),
+  representation: z.enum(['plaintiff', 'defendant']),
+  status: z.enum(['active', 'pending', 'archived']),
   lawyerId: z.string(),
 });
 
-type Result = 
-    | { success: true; data: { processId: string } }
-    | { success: false; error: string };
+type Result =
+  | {success: true; data: {processId: string}}
+  | {success: false; error: string};
 
 export async function createProcessAction(
   input: z.infer<typeof CreateProcessSchema>
@@ -27,29 +27,31 @@ export async function createProcessAction(
   const parsedInput = CreateProcessSchema.safeParse(input);
 
   if (!parsedInput.success) {
-    return { success: false, error: "Input inválido." };
+    return {success: false, error: 'Input inválido.'};
   }
-  
+
   if (!db) {
-    return { success: false, error: "O serviço de banco de dados não está disponível."}
+    return {
+      success: false,
+      error: 'O serviço de banco de dados não está disponível.',
+    };
   }
-  
+
   try {
-    const { lawyerId, ...processData } = parsedInput.data;
-    
+    const {lawyerId, ...processData} = parsedInput.data;
+
     // Get user's officeId
-    const userDocRef = db.collection("users").doc(lawyerId);
+    const userDocRef = db.collection('users').doc(lawyerId);
     const userDoc = await userDocRef.get();
     if (!userDoc.exists) {
-        return { success: false, error: "Usuário não encontrado."};
+      return {success: false, error: 'Usuário não encontrado.'};
     }
     const officeId = userDoc.data()?.officeId;
     if (!officeId) {
-        return { success: false, error: "Escritório do usuário não encontrado." };
+      return {success: false, error: 'Escritório do usuário não encontrado.'};
     }
 
-
-    const docRef = await db.collection("processes").add({
+    const docRef = await db.collection('processes').add({
       ...processData,
       officeId: officeId, // Associate process with the office
       lawyerId: lawyerId, // Owner of the process
@@ -59,9 +61,12 @@ export async function createProcessAction(
       movements: [], // Initialize with empty movements history
     });
 
-    return { success: true, data: { processId: docRef.id } };
+    return {success: true, data: {processId: docRef.id}};
   } catch (error) {
-    console.error("Erro ao criar processo:", error);
-    return { success: false, error: "Falha ao criar processo. Tente novamente." };
+    console.error('Erro ao criar processo:', error);
+    return {
+      success: false,
+      error: 'Falha ao criar processo. Tente novamente.',
+    };
   }
 }

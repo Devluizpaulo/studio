@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 async function getTeamMembers() {
   if (!db) {
-      console.warn("Firebase Admin is not initialized. Skipping getTeamMembers.");
+      console.warn("Firebase Admin (db) is not initialized. Skipping getTeamMembers.");
       return [];
   }
   try {
@@ -25,7 +25,8 @@ async function getTeamMembers() {
         fullName: data.fullName,
         legalSpecialty: data.legalSpecialty,
         bio: data.bio,
-        photoUrl: data.photoUrl
+        photoUrl: data.photoUrl,
+        role: data.role,
       };
     });
     return members;
@@ -44,8 +45,8 @@ export async function TeamSection() {
     }
 
     // The first user (master) is the main lawyer. We show it separately.
-    const mainLawyer = team.find(member => member.id === 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
-    const otherLawyers = team.filter(member => member.id !== 'UcgSrjP2jEN4v5Vfa8qMR86G3LN2');
+    const mainLawyer = team.find(member => member.role === 'master');
+    const otherLawyers = team.filter(member => member.role !== 'master');
 
     const displaySpecialties = (specialties: string[] | string | undefined) => {
         if (!specialties) return null;
@@ -67,7 +68,7 @@ export async function TeamSection() {
                     <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
                         <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
                              <Image
-                                src="/reinaldo.png"
+                                src={mainLawyer.photoUrl || "/reinaldo.png"}
                                 alt={`Advogado(a) ${mainLawyer.fullName}`}
                                 fill
                                 className="object-cover"

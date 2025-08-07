@@ -1,4 +1,4 @@
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import { getAuth, Auth } from 'firebase-admin/auth';
 
@@ -6,34 +6,34 @@ let app: App | undefined;
 let db: Firestore | null = null;
 let auth: Auth | null = null;
 
-// This check is crucial for server-side environments where credentials might not be present
-// during build time or in certain development setups.
-const hasCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.FIREBASE_CONFIG;
+try {
+  const serviceAccountString = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-if (hasCredentials) {
-  if (getApps().length === 0) {
-    try {
-      app = initializeApp();
-    } catch (e) {
-      console.error("Firebase Admin SDK initialization failed:", e);
+  if (serviceAccountString) {
+    const serviceAccount: ServiceAccount = JSON.parse(serviceAccountString);
+
+    if (getApps().length === 0) {
+        app = initializeApp({
+            credential: cert(serviceAccount),
+        });
+    } else {
+        app = getApps()[0];
     }
   } else {
-    app = getApps()[0];
+      console.warn("GOOGLE_APPLICATION_CREDENTIALS is not set. Firebase Admin SDK will not be initialized on the server.");
   }
 
-  if (app) {
-    try {
-      db = getFirestore(app);
-      auth = getAuth(app);
-    } catch (e) {
-      console.error("Failed to get Firestore or Auth instance from Firebase Admin.", e);
-    }
+} catch (e: any) {
+  if (e.code === 'MODULE_NOT_FOUND') {
+    console.warn("Firebase Admin SDK credentials not found. This is expected in some environments (like client-side browser) and will prevent server-side Firebase operations.");
+  } else {
+    console.error("Firebase Admin SDK initialization failed:", e);
   }
-} else {
-  console.warn(
-    "Firebase Admin SDK not initialized because GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_CONFIG is not set. This is expected in some environments (like client-side browser) but will prevent server-side Firebase operations."
-  );
 }
 
+if (app) {
+    db = getFirestore(app);
+    auth = getAuth(app);
+}
 
 export { db, auth };

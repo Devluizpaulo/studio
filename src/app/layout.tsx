@@ -32,7 +32,6 @@ interface OfficeSettings {
 
 // Function to get the first office settings from the database
 async function getOfficeSettings(): Promise<OfficeSettings | null> {
-  // If db is not initialized (e.g., missing credentials), return null to avoid crashing.
   if (!db) {
     console.warn("Firebase Admin (db) is not initialized. Skipping getOfficeSettings. This is expected if server-side credentials are not set.");
     return null;
