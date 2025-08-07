@@ -99,7 +99,6 @@ export function AgendaClient() {
 
   useEffect(() => {
     if (date) {
-        // When a day is selected, default the form's date to that day at 9:00 AM
         const newDate = new Date(date);
         newDate.setHours(9,0,0,0);
         form.setValue('date', newDate);
@@ -124,13 +123,7 @@ export function AgendaClient() {
             return;
           }
 
-          let eventsQuery;
-          if (userData.role === 'master' || userData.role === 'secretary') {
-             eventsQuery = query(collection(db, "events"), where("officeId", "==", officeId));
-          } else {
-             // In a real scenario you would check for processes the lawyer collaborates on
-             eventsQuery = query(collection(db, "events"), where("officeId", "==", officeId), where("lawyerId", "==", user.uid));
-          }
+          const eventsQuery = query(collection(db, "events"), where("officeId", "==", officeId));
           
           const unsubscribeEvents = onSnapshot(
             eventsQuery,
@@ -335,11 +328,7 @@ export function AgendaClient() {
             />
              <style jsx global>{`
                 ${Object.entries(eventTypeMap).map(([key, value]) => `
-                    .event-indicator--${key}:not([aria-selected]) {
-                        position: relative;
-                        overflow: visible;
-                    }
-                    .event-indicator--${key}:not([aria-selected])::after {
+                    .event-indicator--${key}:not([aria-selected]) .rdp-button::after {
                         content: '';
                         position: absolute;
                         bottom: 4px;

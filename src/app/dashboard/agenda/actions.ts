@@ -5,11 +5,11 @@ import { db } from "@/lib/firebase-admin"
 import { Timestamp } from "firebase-admin/firestore"
 
 const createEventSchema = z.object({
-  title: z.string(),
+  title: z.string().min(3, "O título é obrigatório."),
   date: z.date(),
   type: z.enum(['audiencia-presencial', 'audiencia-virtual', 'prazo', 'reuniao', 'atendimento-presencial', 'outro']),
   description: z.string().optional(),
-  lawyerId: z.string(), // ID of the user creating the event
+  lawyerId: z.string(),
   processId: z.string().optional(),
 })
 
@@ -20,20 +20,19 @@ type Result =
 export async function createEventAction(
   input: z.infer<typeof createEventSchema>
 ): Promise<Result> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
+
   const parsedInput = createEventSchema.safeParse(input)
 
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." }
   }
   
-  if (!db) {
-    return { success: false, error: "O serviço de banco de dados não está disponível."}
-  }
-
   try {
     const { lawyerId, date, processId, type, ...eventData } = parsedInput.data
     
-    // Get user's officeId
     const userDocRef = db.collection("users").doc(lawyerId);
     const userDoc = await userDocRef.get();
     if (!userDoc.exists) {
@@ -44,15 +43,13 @@ export async function createEventAction(
         return { success: false, error: "Escritório do usuário não encontrado." };
     }
 
-
     const docData: any = {
       ...eventData,
       type,
-      createdBy: lawyerId, // Keep track of who created the event
-      lawyerId: lawyerId, // By default, event is for the creator
-      officeId: officeId, // Associate event with the office
+      createdBy: lawyerId,
+      lawyerId: lawyerId,
+      officeId: officeId,
       date: Timestamp.fromDate(date),
-      // Set status to pendente for any type of 'audiencia'
       status: (type === 'audiencia-presencial' || type === 'audiencia-virtual') ? 'pendente' : 'concluido' 
     }
 
