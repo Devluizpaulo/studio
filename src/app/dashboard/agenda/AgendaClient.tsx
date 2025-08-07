@@ -17,7 +17,7 @@ import {
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import *s z from 'zod'
+import * as z from 'zod'
 
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -369,5 +369,3 @@ export function AgendaClient() {
     </div>
   )
 }
-
-    
