@@ -79,4 +79,50 @@ export async function TeamSection() {
                              <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
                                {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
                             </p>
-                            <p className="mt-6 text-xl font-semibold text-primary font-headline">{mainLawy
+                            <p className="mt-6 text-xl font-semibold text-primary font-headline">{mainLawyer.fullName}</p>
+                            <div className="mt-2">
+                                {displaySpecialties(mainLawyer.legalSpecialty)}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+             {otherLawyers.length > 0 && (
+                <section id="team" className="py-24 sm:py-32 bg-card">
+                    <div className="container mx-auto px-4">
+                        <div className="text-center mb-12">
+                            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Nossa Equipe</h2>
+                            <p className="mt-4 text-lg text-muted-foreground">Conheça os profissionais por trás do nosso sucesso.</p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                            {otherLawyers.map((member) => (
+                                <Card key={member.id} className="text-center">
+                                    <CardHeader>
+                                        <div className="relative mx-auto h-32 w-32 rounded-full overflow-hidden border-4 border-accent">
+                                            {member.photoUrl ? (
+                                                <Image src={member.photoUrl} alt={`Foto de ${member.fullName}`} fill className="object-cover" />
+                                            ) : (
+                                                <div className="flex h-full w-full items-center justify-center bg-muted">
+                                                    <User className="h-16 w-16 text-muted-foreground" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CardTitle>{member.fullName}</CardTitle>
+                                        <div className="mt-2">
+                                            {displaySpecialties(member.legalSpecialty)}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-center">
+                                       <p className="text-sm text-muted-foreground text-center px-4">{member.bio}</p>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+        </>
+    );
+}
