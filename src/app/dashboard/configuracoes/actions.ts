@@ -26,11 +26,7 @@ export async function updateApiKeyAction(
   try {
     const { officeId, googleApiKey } = parsedInput.data
     
-    // The document ID is the officeId
     const officeRef = db.collection("offices").doc(officeId);
-    
-    // Use set with merge: true to create the document if it doesn't exist,
-    // or update it if it does.
     await officeRef.set({ googleApiKey }, { merge: true });
 
     return { success: true }
@@ -56,9 +52,97 @@ export async function getApiKeyAction(officeId: string): Promise<GetApiKeyResult
         if (docSnap.exists) {
             return { success: true, data: docSnap.data()?.googleApiKey || "" };
         }
-        return { success: true, data: null }; // No key set yet
+        return { success: true, data: null };
     } catch (error) {
         console.error("Erro ao buscar a chave de API:", error);
         return { success: false, error: "Falha ao buscar a chave." };
+    }
+}
+
+
+// --- SEO Settings Actions ---
+const seoSettingsSchema = z.object({
+  officeId: z.string(),
+  metaTitle: z.string().max(60).optional(),
+  metaDescription: z.string().max(160).optional(),
+  metaKeywords: z.string().optional(),
+})
+
+export async function updateSeoSettingsAction(
+  input: z.infer<typeof seoSettingsSchema>
+): Promise<Result> {
+    const parsedInput = seoSettingsSchema.safeParse(input);
+    if (!parsedInput.success) return { success: false, error: "Input inválido." };
+
+    try {
+        const { officeId, ...seoData } = parsedInput.data;
+        const officeRef = db.collection("offices").doc(officeId);
+        await officeRef.set({ seo: seoData }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao salvar SEO:", error);
+        return { success: false, error: "Falha ao salvar configurações de SEO." };
+    }
+}
+
+type GetSeoSettingsResult = 
+    | { success: true, data: z.infer<Omit<typeof seoSettingsSchema, 'officeId'>> | null }
+    | { success: false, error: string };
+
+export async function getSeoSettingsAction(officeId: string): Promise<GetSeoSettingsResult> {
+    if (!officeId) return { success: false, error: "ID do escritório inválido." };
+    try {
+        const officeRef = db.collection("offices").doc(officeId);
+        const docSnap = await officeRef.get();
+        if (docSnap.exists) {
+            return { success: true, data: docSnap.data()?.seo || null };
+        }
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Erro ao buscar SEO:", error);
+        return { success: false, error: "Falha ao buscar configurações de SEO." };
+    }
+}
+
+
+// --- GTM Settings Actions ---
+const gtmIdSchema = z.object({
+    officeId: z.string(),
+    gtmId: z.string().optional(),
+})
+
+export async function updateGtmIdAction(
+  input: z.infer<typeof gtmIdSchema>
+): Promise<Result> {
+    const parsedInput = gtmIdSchema.safeParse(input);
+    if (!parsedInput.success) return { success: false, error: "Input inválido." };
+
+    try {
+        const { officeId, gtmId } = parsedInput.data;
+        const officeRef = db.collection("offices").doc(officeId);
+        await officeRef.set({ gtmId }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao salvar GTM ID:", error);
+        return { success: false, error: "Falha ao salvar o ID do Google Tag Manager." };
+    }
+}
+
+type GetGtmIdResult = 
+    | { success: true, data: string | null }
+    | { success: false, error: string };
+
+export async function getGtmIdAction(officeId: string): Promise<GetGtmIdResult> {
+    if (!officeId) return { success: false, error: "ID do escritório inválido." };
+    try {
+        const officeRef = db.collection("offices").doc(officeId);
+        const docSnap = await officeRef.get();
+        if (docSnap.exists) {
+            return { success: true, data: docSnap.data()?.gtmId || null };
+        }
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Erro ao buscar GTM ID:", error);
+        return { success: false, error: "Falha ao buscar o ID do Google Tag Manager." };
     }
 }

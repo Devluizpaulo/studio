@@ -22,16 +22,29 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, Settings, KeyRound, BadgeHelp, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Settings, KeyRound, BadgeHelp, Eye, EyeOff, SearchCode, Tag } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { updateApiKeyAction, getApiKeyAction } from './actions'
+import { updateApiKeyAction, getApiKeyAction, updateSeoSettingsAction, getSeoSettingsAction, updateGtmIdAction, getGtmIdAction } from './actions'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Textarea } from '@/components/ui/textarea'
 
-const settingsFormSchema = z.object({
+const apiKeyFormSchema = z.object({
     googleApiKey: z.string().min(10, "A chave de API parece ser muito curta."),
 })
+type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>
 
-type SettingsFormValues = z.infer<typeof settingsFormSchema>
+const seoFormSchema = z.object({
+    metaTitle: z.string().max(60, "O título deve ter no máximo 60 caracteres."),
+    metaDescription: z.string().max(160, "A descrição deve ter no máximo 160 caracteres."),
+    metaKeywords: z.string().optional(),
+})
+type SeoFormValues = z.infer<typeof seoFormSchema>
+
+const gtmFormSchema = z.object({
+    gtmId: z.string().regex(/^GTM-[A-Z0-9]{7,}$/, "Formato de ID inválido. Ex: GTM-XXXXXXX").optional().or(z.literal('')),
+})
+type GtmFormValues = z.infer<typeof gtmFormSchema>
+
 
 export function ConfiguracoesClient() {
   const { user, loading: authLoading } = useAuth()
@@ -44,11 +57,19 @@ export function ConfiguracoesClient() {
   const [officeId, setOfficeId] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState(false);
 
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsFormSchema),
-    defaultValues: {
-        googleApiKey: ""
-    }
+  const apiKeyForm = useForm<ApiKeyFormValues>({
+    resolver: zodResolver(apiKeyFormSchema),
+    defaultValues: { googleApiKey: "" }
+  })
+
+  const seoForm = useForm<SeoFormValues>({
+      resolver: zodResolver(seoFormSchema),
+      defaultValues: { metaTitle: "", metaDescription: "", metaKeywords: "" }
+  })
+
+  const gtmForm = useForm<GtmFormValues>({
+      resolver: zodResolver(gtmFormSchema),
+      defaultValues: { gtmId: "" }
   })
 
   useEffect(() => {
@@ -62,17 +83,33 @@ export function ConfiguracoesClient() {
         const unsubscribe = onSnapshot(userDocRef, async (userDoc) => {
             if (userDoc.exists()) {
                 const userData = userDoc.data();
+                const currentOfficeId = userData.officeId;
+
                 setCurrentUserRole(userData.role);
-                setOfficeId(userData.officeId);
+                setOfficeId(currentOfficeId);
+                
                 if (userData.role !== 'master') {
                     setLoading(false);
                     return;
                 }
                 
-                // Fetch API Key
-                const apiKeyResult = await getApiKeyAction(userData.officeId);
+                // Fetch all settings
+                const [apiKeyResult, seoSettingsResult, gtmIdResult] = await Promise.all([
+                    getApiKeyAction(currentOfficeId),
+                    getSeoSettingsAction(currentOfficeId),
+                    getGtmIdAction(currentOfficeId)
+                ]);
+
                 if (apiKeyResult.success && apiKeyResult.data) {
-                    form.setValue('googleApiKey', apiKeyResult.data);
+                    apiKeyForm.setValue('googleApiKey', apiKeyResult.data);
+                }
+
+                if (seoSettingsResult.success && seoSettingsResult.data) {
+                    seoForm.reset(seoSettingsResult.data);
+                }
+                
+                if (gtmIdResult.success && gtmIdResult.data) {
+                    gtmForm.setValue('gtmId', gtmIdResult.data);
                 }
 
             }
@@ -80,20 +117,40 @@ export function ConfiguracoesClient() {
         });
         return () => unsubscribe();
     }
-  }, [user, authLoading, router, form])
+  }, [user, authLoading, router, apiKeyForm, seoForm, gtmForm])
 
-  async function onSubmit(values: SettingsFormValues) {
+  async function onApiKeySubmit(values: ApiKeyFormValues) {
     if (!user || !officeId) return
     setIsSubmitting(true)
     const result = await updateApiKeyAction({ ...values, officeId: officeId })
     if (result.success) {
       toast({ title: 'Chave de API atualizada com sucesso!' })
     } else {
-      toast({
-        title: 'Erro ao atualizar a chave',
-        description: result.error,
-        variant: 'destructive',
-      })
+      toast({ title: 'Erro ao atualizar a chave', description: result.error, variant: 'destructive'})
+    }
+    setIsSubmitting(false)
+  }
+
+  async function onSeoSubmit(values: SeoFormValues) {
+    if (!user || !officeId) return
+    setIsSubmitting(true)
+    const result = await updateSeoSettingsAction({ ...values, officeId: officeId })
+    if (result.success) {
+      toast({ title: 'Configurações de SEO atualizadas!' })
+    } else {
+      toast({ title: 'Erro ao salvar SEO', description: result.error, variant: 'destructive'})
+    }
+    setIsSubmitting(false)
+  }
+
+  async function onGtmSubmit(values: GtmFormValues) {
+    if (!user || !officeId) return
+    setIsSubmitting(true)
+    const result = await updateGtmIdAction({ ...values, officeId: officeId })
+    if (result.success) {
+      toast({ title: 'ID do Google Tag Manager atualizado!' })
+    } else {
+      toast({ title: 'Erro ao salvar ID do GTM', description: result.error, variant: 'destructive'})
     }
     setIsSubmitting(false)
   }
@@ -139,10 +196,10 @@ export function ConfiguracoesClient() {
                     </AlertDescription>
                 </Alert>
 
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <Form {...apiKeyForm}>
+                <form onSubmit={apiKeyForm.handleSubmit(onApiKeySubmit)} className="space-y-6">
                      <FormField
-                        control={form.control}
+                        control={apiKeyForm.control}
                         name="googleApiKey"
                         render={({ field }) => (
                             <FormItem>
@@ -170,6 +227,108 @@ export function ConfiguracoesClient() {
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Salvar Chave de API
+                    </Button>
+                </form>
+                </Form>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <SearchCode className="mr-3 h-5 w-5 text-accent" />
+                    Configurações de SEO
+                </CardTitle>
+                <CardDescription>
+                    Otimize como seu site aparece em mecanismos de busca como o Google.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...seoForm}>
+                <form onSubmit={seoForm.handleSubmit(onSeoSubmit)} className="space-y-6">
+                     <FormField
+                        control={seoForm.control}
+                        name="metaTitle"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Título do Site (Meta Title)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Ex: RGMJ Advocacia - Especialistas em Direito Cível" {...field} />
+                                </FormControl>
+                                <FormDescription>O título que aparece na aba do navegador e nos resultados de busca.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                     <FormField
+                        control={seoForm.control}
+                        name="metaDescription"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Descrição do Site (Meta Description)</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Descreva seu escritório e serviços em até 160 caracteres." {...field} />
+                                </FormControl>
+                                <FormDescription>Um resumo que aparece sob o título nos resultados de busca.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                     <FormField
+                        control={seoForm.control}
+                        name="metaKeywords"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Palavras-chave</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="advogado, direito cível, são paulo..." {...field} />
+                                </FormControl>
+                                <FormDescription>Termos relevantes separados por vírgula.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                   
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar Configurações de SEO
+                    </Button>
+                </form>
+                </Form>
+            </CardContent>
+        </Card>
+
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <Tag className="mr-3 h-5 w-5 text-accent" />
+                    Google Tag Manager
+                </CardTitle>
+                <CardDescription>
+                    Integre o Google Tag Manager para gerenciar scripts de marketing e análise.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...gtmForm}>
+                <form onSubmit={gtmForm.handleSubmit(onGtmSubmit)} className="space-y-6">
+                     <FormField
+                        control={gtmForm.control}
+                        name="gtmId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>ID do Contêiner do GTM</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="GTM-XXXXXXX" {...field} />
+                                </FormControl>
+                                <FormDescription>Seu ID pode ser encontrado no painel do Google Tag Manager.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                   
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar ID do GTM
                     </Button>
                 </form>
                 </Form>
