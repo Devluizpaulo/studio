@@ -7,6 +7,8 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { Menu, LogOut, LayoutDashboard, Scale } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -70,6 +72,9 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+              <SheetHeader className="text-left">
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+              </SheetHeader>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <Scale className="h-7 w-7 text-accent" />
