@@ -24,6 +24,10 @@ export async function inviteMemberAction(
     return { success: false, error: "Input inválido." }
   }
 
+  if (!db || !auth) {
+    return { success: false, error: "O serviço de banco de dados ou autenticação não está disponível."}
+  }
+
   const { email, fullName, role, officeId, invitingUserId } = parsedInput.data
 
   try {

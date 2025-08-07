@@ -15,6 +15,9 @@ type Result =
 export async function updateEventStatusAction(
   input: z.infer<typeof updateEventStatusSchema>
 ): Promise<Result> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = updateEventStatusSchema.safeParse(input)
 
   if (!parsedInput.success) {

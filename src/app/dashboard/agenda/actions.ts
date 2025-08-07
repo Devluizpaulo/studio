@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { db } from "@/lib/firebase-admin"
-import { Timestamp } from "firebase-admin/firestore"
+import { Timestamp, addDoc, collection, doc } from "firebase-admin/firestore"
 
 const createEventSchema = z.object({
   title: z.string(),
@@ -24,6 +24,10 @@ export async function createEventAction(
 
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." }
+  }
+  
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
   }
 
   try {

@@ -16,6 +16,9 @@ type Result =
 export async function updateApiKeyAction(
   input: z.infer<typeof updateApiKeySchema>
 ): Promise<Result> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = updateApiKeySchema.safeParse(input)
 
   if (!parsedInput.success) {
@@ -41,6 +44,9 @@ type GetApiKeyResult =
   | { success: false, error: string }
 
 export async function getApiKeyAction(officeId: string): Promise<GetApiKeyResult> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     if (!officeId) {
         return { success: false, error: "ID do escritório é inválido." };
     }
@@ -70,6 +76,9 @@ const seoSettingsSchema = z.object({
 export async function updateSeoSettingsAction(
   input: z.infer<typeof seoSettingsSchema>
 ): Promise<Result> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     const parsedInput = seoSettingsSchema.safeParse(input);
     if (!parsedInput.success) return { success: false, error: "Input inválido." };
 
@@ -89,6 +98,9 @@ type GetSeoSettingsResult =
     | { success: false, error: string };
 
 export async function getSeoSettingsAction(officeId: string): Promise<GetSeoSettingsResult> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     if (!officeId) return { success: false, error: "ID do escritório inválido." };
     try {
         const officeRef = db.collection("offices").doc(officeId);
@@ -113,6 +125,9 @@ const gtmIdSchema = z.object({
 export async function updateGtmIdAction(
   input: z.infer<typeof gtmIdSchema>
 ): Promise<Result> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     const parsedInput = gtmIdSchema.safeParse(input);
     if (!parsedInput.success) return { success: false, error: "Input inválido." };
 
@@ -132,6 +147,9 @@ type GetGtmIdResult =
     | { success: false, error: string };
 
 export async function getGtmIdAction(officeId: string): Promise<GetGtmIdResult> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     if (!officeId) return { success: false, error: "ID do escritório inválido." };
     try {
         const officeRef = db.collection("offices").doc(officeId);

@@ -22,6 +22,9 @@ type UpdateResult =
 export async function updateProcessStatusAction(
   input: z.infer<typeof updateProcessStatusSchema>
 ): Promise<UpdateResult> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = updateProcessStatusSchema.safeParse(input)
 
   if (!parsedInput.success) {
@@ -53,6 +56,9 @@ type FindUserResult =
     | { success: false; error: string };
 
 export async function findUserByEmailAction(email: string): Promise<FindUserResult> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
     const parsedEmail = findUserSchema.safeParse(email);
     if (!parsedEmail.success) {
         return { success: false, error: "Formato de e-mail inválido." };
@@ -93,6 +99,9 @@ type AddCollaboratorResult =
 export async function addCollaboratorAction(
   input: z.infer<typeof addCollaboratorSchema>
 ): Promise<AddCollaboratorResult> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = addCollaboratorSchema.safeParse(input);
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." };
@@ -143,6 +152,9 @@ type AddDocumentResult =
 export async function addDocumentAction(
   input: z.infer<typeof addDocumentSchema>
 ): Promise<AddDocumentResult> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = addDocumentSchema.safeParse(input);
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." };
@@ -179,6 +191,9 @@ type AddChatMessageResult =
 export async function addChatMessageAction(
   input: z.infer<typeof addChatMessageSchema>
 ): Promise<AddChatMessageResult> {
+  if (!db) {
+    return { success: false, error: "O serviço de banco de dados não está disponível."}
+  }
   const parsedInput = addChatMessageSchema.safeParse(input);
   if (!parsedInput.success) {
     return { success: false, error: "Input inválido." };
