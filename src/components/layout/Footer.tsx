@@ -1,8 +1,16 @@
 "use client"
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith('/dashboard');
+
+  if (isDashboard) {
+    return null;
+  }
+  
   return (
     <footer className="py-8 bg-background border-t border-border">
       <div className="container mx-auto px-4">
