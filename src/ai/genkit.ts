@@ -1,7 +1,6 @@
-import {genkit} from 'genkit';
+import {genkit, Plugin, GenerateInput, Next} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {firebase} from '@genkit-ai/firebase';
-import type {Plugin} from 'genkit';
 import {db} from '@/lib/firebase-admin';
 
 // Keep a cache of initialized GoogleAI plugins per API key
@@ -48,7 +47,7 @@ export const ai = genkit({
     firebase(),
     {
       name: 'dynamic-google-ai',
-      async onGenerate(input, next) {
+      async onGenerate(input: GenerateInput, next: Next<GenerateInput>) {
         const uid = input.options?.user;
         if (!uid) {
           throw new Error('User ID is required to get API key');

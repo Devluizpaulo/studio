@@ -1,7 +1,7 @@
 "use server"
 
 import { z } from "zod"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-admin"
 import { doc, updateDoc } from "firebase/firestore"
 
 const updateEventStatusSchema = z.object({
