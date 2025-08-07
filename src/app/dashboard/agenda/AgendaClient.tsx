@@ -47,25 +47,35 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
+import { PlusCircle, Calendar as CalendarIcon, Loader2, Video, Landmark, Users, Handshake, Info } from 'lucide-react'
 import { createEventAction } from './actions'
+import { Badge } from '@/components/ui/badge'
 
 interface Event extends DocumentData {
   id: string
   title: string
   date: Timestamp
-  type: 'audiencia' | 'prazo' | 'reuniao' | 'outro'
+  type: 'audiencia-presencial' | 'audiencia-virtual' | 'prazo' | 'reuniao' | 'atendimento-presencial' | 'outro'
   description?: string
 }
 
 const eventFormSchema = z.object({
   title: z.string().min(3, 'O título é obrigatório.'),
   date: z.date({ required_error: 'A data é obrigatória.' }),
-  type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
+  type: z.enum(['audiencia-presencial', 'audiencia-virtual', 'prazo', 'reuniao', 'atendimento-presencial', 'outro']),
   description: z.string().optional(),
 })
 
 type EventFormValues = z.infer<typeof eventFormSchema>
+
+const eventTypeMap = {
+    'audiencia-presencial': { label: 'Audiência Presencial', icon: Landmark, color: 'bg-red-500', borderColor: 'border-red-500' },
+    'audiencia-virtual': { label: 'Audiência Virtual', icon: Video, color: 'bg-red-700', borderColor: 'border-red-700' },
+    'prazo': { label: 'Prazo', icon: CalendarIcon, color: 'bg-yellow-500', borderColor: 'border-yellow-500' },
+    'reuniao': { label: 'Reunião', icon: Users, color: 'bg-blue-500', borderColor: 'border-blue-500' },
+    'atendimento-presencial': { label: 'Atendimento Presencial', icon: Handshake, color: 'bg-green-500', borderColor: 'border-green-500' },
+    'outro': { label: 'Outro', icon: Info, color: 'bg-gray-500', borderColor: 'border-gray-500' },
+}
 
 export function AgendaClient() {
   const { user, loading: authLoading } = useAuth()
@@ -153,10 +163,13 @@ export function AgendaClient() {
     const endOfDay = new Date(date)
     endOfDay.setHours(23, 59, 59, 999)
 
-    return events.filter((event) => {
+    return events
+    .filter((event) => {
       const eventDate = event.date.toDate()
       return eventDate >= startOfDay && eventDate <= endOfDay
     })
+    .sort((a,b) => a.date.toDate().getTime() - b.date.toDate().getTime());
+
   }, [date, events])
 
   async function onSubmit(values: EventFormValues) {
@@ -186,12 +199,27 @@ export function AgendaClient() {
     )
   }
 
-  const eventTypeMap = {
-    audiencia: { label: 'Audiência', color: 'bg-red-500' },
-    prazo: { label: 'Prazo', color: 'bg-yellow-500' },
-    reuniao: { label: 'Reunião', color: 'bg-blue-500' },
-    outro: { label: 'Outro', color: 'bg-gray-500' },
-  }
+  const modifiers = useMemo(() => {
+      const eventModifiers: Record<string, Date[]> = {};
+      events.forEach(event => {
+          if (!eventModifiers[event.type]) {
+              eventModifiers[event.type] = [];
+          }
+          eventModifiers[event.type].push(event.date.toDate());
+      });
+      return eventModifiers;
+  }, [events]);
+
+  const modifiersStyles = useMemo(() => {
+      const styles: Record<string, React.CSSProperties> = {};
+      for (const type in eventTypeMap) {
+          styles[type] = { 
+              border: `2px solid ${eventTypeMap[type as keyof typeof eventTypeMap].color.replace('bg-', 'var(--')})`,
+              backgroundColor: `${eventTypeMap[type as keyof typeof eventTypeMap].color.replace('bg-', 'var(--')})`
+          };
+      }
+      return styles;
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -237,7 +265,12 @@ export function AgendaClient() {
                                 </FormControl>
                                 <SelectContent>
                                     {Object.entries(eventTypeMap).map(([key, value]) => (
-                                        <SelectItem key={key} value={key}>{value.label}</SelectItem>
+                                        <SelectItem key={key} value={key}>
+                                          <div className="flex items-center gap-2">
+                                            <value.icon className="h-4 w-4" />
+                                            {value.label}
+                                          </div>
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -245,6 +278,23 @@ export function AgendaClient() {
                             </FormItem>
                         )}
                         />
+                     <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Data e Hora do Evento</FormLabel>
+                                <FormControl>
+                                      <Input 
+                                          type="datetime-local"
+                                          value={field.value ? format(field.value, "yyyy-MM-dd'T'HH:mm") : ''}
+                                          onChange={e => field.onChange(e.target.valueAsDate)}
+                                      />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                     control={form.control}
                     name="description"
@@ -267,7 +317,7 @@ export function AgendaClient() {
             </DialogContent>
             </Dialog>
         </div>
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-[400px_1fr]">
         <Card>
           <CardContent className="p-2">
             <Calendar
@@ -276,18 +326,44 @@ export function AgendaClient() {
               onSelect={setDate}
               className="rounded-md"
               locale={ptBR}
-              modifiers={{
-                hasEvent: events.map((event) => event.date.toDate()),
+              modifiers={modifiers}
+              modifiersClassNames={{
+                  ...Object.fromEntries(Object.keys(eventTypeMap).map(type => [type, `event-${type}`]))
               }}
-              modifiersStyles={{
-                hasEvent: {
-                  fontWeight: 'bold',
-                  textDecoration: 'underline',
-                  textDecorationColor: 'hsl(var(--accent))',
-                  textUnderlineOffset: '0.2em'
-                },
-              }}
+              footer={
+                <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                    {Object.entries(eventTypeMap).map(([key, value]) => (
+                        <div key={key} className="flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full ${value.color}`}></span>
+                            <span>{value.label}</span>
+                        </div>
+                    ))}
+                </div>
+              }
             />
+            <style jsx global>{`
+                ${Object.entries(eventTypeMap).map(([key, value]) => `
+                    .rdp-day_selected.event-${key}, .rdp-day_selected.event-${key}:hover {
+                        background-color: ${value.color.replace('bg-', 'var(--color-')}) !important;
+                        color: white !important;
+                        opacity: 1 !important;
+                    }
+                    .event-${key}:not(.rdp-day_selected) {
+                        position: relative;
+                    }
+                    .event-${key}:not(.rdp-day_selected)::after {
+                        content: '';
+                        position: absolute;
+                        bottom: 4px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 50%;
+                        background-color: ${value.color.replace('bg-', 'var(--color-')});
+                    }
+                `).join('\n')}
+            `}</style>
           </CardContent>
         </Card>
         <Card>
@@ -300,16 +376,23 @@ export function AgendaClient() {
           <CardContent>
             {selectedDayEvents.length > 0 ? (
               <ul className="space-y-4">
-                {selectedDayEvents.map((event) => (
-                  <li key={event.id} className="flex items-start space-x-3">
-                    <div className={`mt-1.5 h-3 w-3 rounded-full ${eventTypeMap[event.type]?.color || 'bg-gray-500'}`} />
-                    <div>
-                        <p className="font-semibold">{event.title}</p>
-                        <p className="text-sm text-muted-foreground">{eventTypeMap[event.type].label}</p>
-                        {event.description && <p className="text-sm text-foreground/80">{event.description}</p>}
-                    </div>
-                  </li>
-                ))}
+                {selectedDayEvents.map((event) => {
+                  const eventConfig = eventTypeMap[event.type] || eventTypeMap.outro;
+                  const Icon = eventConfig.icon;
+                  return (
+                     <li key={event.id} className={`flex items-start space-x-3 border-l-4 p-3 rounded-r-md ${eventConfig.borderColor}`}>
+                      <Icon className={`mt-1 h-5 w-5 ${eventConfig.color.replace('bg-', 'text-')}`} />
+                      <div>
+                          <p className="font-semibold">{event.title}</p>
+                           <p className="text-sm text-muted-foreground">
+                              <Badge variant="secondary" className="mr-2">{format(event.date.toDate(), 'HH:mm')}</Badge>
+                              {eventConfig.label}
+                            </p>
+                          {event.description && <p className="text-sm text-foreground/80 mt-1">{event.description}</p>}
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <p className="text-center text-muted-foreground py-8">

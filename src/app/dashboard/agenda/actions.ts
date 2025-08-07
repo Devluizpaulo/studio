@@ -7,7 +7,7 @@ import { collection, addDoc, Timestamp, doc, getDoc } from "firebase/firestore"
 const createEventSchema = z.object({
   title: z.string(),
   date: z.date(),
-  type: z.enum(['audiencia', 'prazo', 'reuniao', 'outro']),
+  type: z.enum(['audiencia-presencial', 'audiencia-virtual', 'prazo', 'reuniao', 'atendimento-presencial', 'outro']),
   description: z.string().optional(),
   lawyerId: z.string(), // ID of the user creating the event
   processId: z.string().optional(),
@@ -48,7 +48,7 @@ export async function createEventAction(
       lawyerId: lawyerId, // By default, event is for the creator
       officeId: officeId, // Associate event with the office
       date: Timestamp.fromDate(date),
-      status: type === 'audiencia' ? 'pendente' : 'concluido' // Add status for confirmation
+      status: type.startsWith('audiencia') ? 'pendente' : 'concluido' // Add status for confirmation
     }
 
     if (processId) {
