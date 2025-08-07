@@ -53,7 +53,7 @@ export async function createEventAction(
       officeId: officeId, // Associate event with the office
       date: Timestamp.fromDate(date),
       // Set status to pendente for any type of 'audiencia'
-      status: type.startsWith('audiencia') ? 'pendente' : 'concluido' 
+      status: (type === 'audiencia-presencial' || type === 'audiencia-virtual') ? 'pendente' : 'concluido' 
     }
 
     if (processId) {
