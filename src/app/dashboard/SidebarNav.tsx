@@ -6,7 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useState, useEffect } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import {
   LayoutDashboard,
@@ -20,6 +26,7 @@ import {
   User,
   Settings,
   X,
+  Scale
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -93,14 +100,7 @@ export function SidebarNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
-  const { isOpen, setIsOpen } = useSidebar();
-  const isMobile = useIsMobile();
-  
-  const handleClose = () => {
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  }
+  const { isOpen, setIsOpen, isMobile } = useSidebar();
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -125,67 +125,96 @@ export function SidebarNav() {
     }
     return userRole === item.role;
   });
+  
+  const NavContent = () => (
+    <div className="flex h-full flex-col px-3 py-4">
+        <div className="mb-2 flex items-center justify-between px-4">
+          <div className={cn(
+              "flex items-center gap-2 text-lg font-bold transition-opacity duration-300",
+              !isOpen && "opacity-0"
+            )}>
+            <Scale className="h-6 w-6 text-accent" />
+            <span>JurisAI</span>
+          </div>
+          {isMobile && (
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X size={24} />
+            </button>
+          )}
+        </div>
+        <div className="mt-5 flex-1">
+          <TooltipProvider delayDuration={0}>
+             <nav className="grid items-start gap-1">
+              {filteredItems.map((item) => {
+                const isActive = (item.href === "/dashboard" && pathname === item.href) ||
+                                (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                return (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={item.href}
+                        onClick={isMobile ? () => setIsOpen(false) : undefined}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                           isActive && "bg-muted text-primary"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <span
+                          className={cn(
+                            "overflow-hidden transition-all",
+                            isOpen ? "w-full" : "w-0"
+                          )}
+                        >
+                          {item.title}
+                        </span>
+                      </Link>
+                    </TooltipTrigger>
+                     {!isOpen && (
+                        <TooltipContent side="right">
+                           <p>{item.title}</p>
+                        </TooltipContent>
+                     )}
+                  </Tooltip>
+                );
+              })}
+            </nav>
+          </TooltipProvider>
+        </div>
+      </div>
+  );
 
-  if (!isOpen && isMobile) return null;
+  if (isMobile) {
+    return (
+       <>
+         <div className={cn(
+            "fixed inset-0 z-40 bg-black/60 transition-opacity duration-300",
+            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          onClick={() => setIsOpen(false)}
+         />
+        <aside className={cn(
+            "fixed inset-y-0 left-0 z-50 h-screen w-72 bg-background border-r transition-transform duration-300 ease-in-out",
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <NavContent />
+        </aside>
+       </>
+    )
+  }
 
   return (
     <aside
       className={cn(
-        "bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out",
-        "fixed left-0 top-0 z-40 h-screen lg:relative lg:z-auto",
-        isOpen ? "w-72" : "w-0 lg:w-20",
-        isMobile && "!w-72"
+        "relative hidden h-screen border-r md:block transition-all duration-300 ease-in-out",
+        isOpen ? "w-72" : "w-[78px]"
       )}
     >
-      <div className="flex h-full flex-col overflow-y-auto">
-        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
-          {isOpen && (
-            <span className="text-lg font-semibold text-sidebar-primary-foreground">
-              JurisAI
-            </span>
-          )}
-           {isMobile && (
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-sidebar-foreground hover:text-sidebar-primary-foreground"
-              >
-                <X size={24} />
-              </button>
-            )}
-        </div>
-        <nav className="flex-1 space-y-2 px-4 py-4">
-          {filteredItems.map((item) => {
-            const isActive =
-              (item.href === "/dashboard" && pathname === item.href) ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={handleClose}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-4 py-2.5 transition-colors",
-                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground",
-                  !isOpen && "justify-center"
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span
-                  className={cn(
-                    "truncate transition-opacity duration-200",
-                    !isOpen && "lg:sr-only"
-                  )}
-                >
-                  {item.title}
-                </span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+      <NavContent />
     </aside>
   );
 }

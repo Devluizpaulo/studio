@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 export default function Header() {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ export default function Header() {
       const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
         if (doc.exists()) {
           setPhotoUrl(doc.data().photoUrl || "");
-          const name = doc.data().fullName || "";
+          const name = doc.data().fullName || user.displayName || "";
           setInitials(
             name
               .split(" ")
@@ -53,67 +54,56 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 z-30 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="relative flex h-16 items-center justify-between border-b border-border px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen((prev) => !prev)}
-            className="lg:hidden"
-          >
-            <Menu size={24} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen((prev) => !prev)}
-            className="hidden lg:inline-flex"
-          >
-            <Menu size={24} />
-          </Button>
-          <h1 className="text-lg font-semibold">Dashboard</h1>
-        </div>
+    <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 md:px-6">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Toggle sidebar</span>
+        </Button>
+      </div>
 
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Bell size={20} />
-            <span className="sr-only">Notifications</span>
-          </Button>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon">
+          <Bell className="h-5 w-5" />
+          <span className="sr-only">Notifications</span>
+        </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={photoUrl} alt="User profile photo" />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.displayName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/dashboard/perfil')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={photoUrl} alt="User profile photo" />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {user?.displayName}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => router.push('/dashboard/perfil')}>
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
