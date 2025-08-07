@@ -1,6 +1,6 @@
-import {genkit, type Plugin, type GenerateInput, type Next} from 'genkit';
+import {genkit, type Plugin, type GenerateInput, type Next} from 'genkit/core';
 import {googleAI} from '@genkit-ai/googleai';
-import {firebase} from '@genkit-ai/firebase';
+import {firebaseAuth} from '@genkit-ai/firebase/auth';
 import {db} from '@/lib/firebase-admin';
 
 // Keep a cache of initialized GoogleAI plugins per API key
@@ -50,7 +50,7 @@ async function getApiKey(officeId: string): Promise<string> {
 // Google AI plugin based on the user's office settings.
 export const ai = genkit({
   plugins: [
-    firebase(),
+    firebaseAuth(),
     {
       name: 'dynamic-google-ai',
       async onGenerate(input: GenerateInput, next: Next<GenerateInput>) {

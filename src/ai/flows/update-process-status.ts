@@ -27,7 +27,7 @@ const UpdateProcessStatusOutputSchema = z.object({
 export type UpdateProcessStatusOutput = z.infer<typeof UpdateProcessStatusOutputSchema>;
 
 export async function updateProcessStatus(input: UpdateProcessStatusInput): Promise<UpdateProcessStatusOutput> {
-  return updateProcessStatusFlow(input);
+  return updateProcessStatusFlow(input, {user: input.userId});
 }
 
 const prompt = ai.definePrompt({
@@ -56,7 +56,7 @@ const updateProcessStatusFlow = ai.defineFlow(
     outputSchema: UpdateProcessStatusOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input, {user: input.userId});
+    const {output} = await prompt(input);
     return output!;
   }
 );
