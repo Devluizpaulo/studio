@@ -2,8 +2,8 @@ import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
-let db: FirebaseFirestore.Firestore;
-let auth: import('firebase-admin/auth').Auth;
+let db: FirebaseFirestore.Firestore | null = null;
+let auth: import('firebase-admin/auth').Auth | null = null;
 
 try {
   if (!getApps().length) {
@@ -12,14 +12,7 @@ try {
   db = getFirestore();
   auth = getAuth();
 } catch (error) {
-    console.error("Firebase Admin SDK initialization failed:", error);
-    // Set db and auth to null or a mock implementation if initialization fails
-    // This prevents the application from crashing during build or server-side rendering
-    // if credentials are not available.
-    // @ts-ignore
-    db = null;
-    // @ts-ignore
-    auth = null;
+    console.error("Could not initialize Firebase Admin SDK. This is expected during local development without credentials. Server-side features depending on Firebase Admin will be disabled.", (error as Error).message);
 }
 
 
