@@ -27,17 +27,6 @@ body {
     --border: 217 33% 25%;
     --input: 217 33% 17%;
     --ring: 215 28% 65%;
-    --radius: 0.5rem;
-
-    /* Custom Sidebar Colors */
-    --sidebar-background: 224 71% 8%;
-    --sidebar-foreground: 215 25% 75%;
-    --sidebar-primary: hsl(var(--accent));
-    --sidebar-primary-foreground: hsl(var(--accent-foreground));
-    --sidebar-accent: hsl(var(--background));
-    --sidebar-accent-foreground: hsl(var(--foreground));
-    --sidebar-border: 224 71% 15%;
-    --sidebar-ring: hsl(var(--ring));
   }
 
   .dark {
@@ -60,15 +49,6 @@ body {
     --border: 217 33% 25%;
     --input: 217 33% 17%;
     --ring: 215 28% 65%;
-     /* Custom Sidebar Colors */
-    --sidebar-background: 224 71% 8%;
-    --sidebar-foreground: 215 25% 75%;
-    --sidebar-primary: hsl(var(--accent));
-    --sidebar-primary-foreground: hsl(var(--accent-foreground));
-    --sidebar-accent: hsl(var(--background));
-    --sidebar-accent-foreground: hsl(var(--foreground));
-    --sidebar-border: 224 71% 15%;
-    --sidebar-ring: hsl(var(--ring));
   }
 }
 

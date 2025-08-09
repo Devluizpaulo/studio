@@ -6,6 +6,8 @@ import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 async function getTeamMembers() {
+  // If the db is not initialized (e.g. in a build environment without creds),
+  // return an empty array to prevent the build from crashing.
   if (!db) {
       console.warn("Firebase Admin (db) is not initialized. Skipping getTeamMembers.");
       return [];
@@ -63,7 +65,7 @@ export async function TeamSection() {
     // If there's no main lawyer, we might not want to render the section at all, or render a default.
     // Let's prevent the error by ensuring mainLawyer is not null before rendering its section.
     if (!mainLawyer) {
-        return null; // Or return a default section if you prefer
+        return null;
     }
 
     return (
@@ -73,7 +75,7 @@ export async function TeamSection() {
                     <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
                         <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
                              <Image
-                                src={mainLawyer.photoUrl || "/reinaldo.png"}
+                                src={mainLawyer.photoUrl || "https://placehold.co/600x800.png"}
                                 alt={`Advogado(a) ${mainLawyer.fullName}`}
                                 fill
                                 className="object-cover"

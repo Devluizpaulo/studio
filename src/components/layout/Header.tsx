@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -33,20 +34,20 @@ export default function Header() {
   }
 
   const navLinks = [
-      { href: "/#home", label: "Início" },
+      { href: "/#", label: "Início" },
       { href: "/#services", label: "Atuação" },
       { href: "/#specialties", label: "Especialidades" },
       { href: "/#contact", label: "Contato" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-20 items-center">
+    <header className="sticky top-0 z-50 w-full border-b border-accent/20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-20 items-center justify-between">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Scale className="h-8 w-8 text-accent" />
-            <span className="font-headline text-2xl font-bold text-primary">
-              RGMJ
+            <span className="font-headline text-xl font-bold text-primary">
+              ARTHUR ORTEGA
             </span>
           </Link>
         </div>
@@ -79,7 +80,7 @@ export default function Header() {
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <Scale className="h-7 w-7 text-accent" />
                   <span className="font-headline text-2xl font-bold text-primary">
-                    RGMJ
+                    Arthur Ortega
                   </span>
                 </Link>
                 {navLinks.map(({ href, label }) => (

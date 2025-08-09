@@ -1,6 +1,7 @@
+
 "use client"
 import Link from "next/link";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Scale } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Footer() {
@@ -12,73 +13,37 @@ export default function Footer() {
   }
   
   return (
-    <footer className="py-8 bg-background border-t border-border">
-      <div className="container mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Left Column - Logo and Tagline */}
-          <div className="text-center md:text-left">
-            <div className="mb-3">
-              <div className="text-2xl font-bold tracking-wider bg-gradient-to-r from-accent to-yellow-400 bg-clip-text text-transparent">
-                RGMJ
-              </div>
-              <p className="text-xs text-accent mt-1">ADVOCACIA E CONSULTORIA JURÍDICA</p>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Advocacia e Consultoria Jurídica.
-            </p>
-          </div>
-          
-          {/* Center Column - Contact */}
-          <div className="text-center">
-            <h3 className="text-white font-semibold mb-3 text-sm">Contato</h3>
-            <div className="space-y-1">
-              <div className="flex items-center justify-center gap-2">
-                <Mail className="h-3 w-3 text-accent" />
-                <span className="text-muted-foreground text-xs">contato@rgmj.com.br</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <Phone className="h-3 w-3 text-accent" />
-                <span className="text-muted-foreground text-xs">(11) 96828-5695</span>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <MapPin className="h-3 w-3 text-accent" />
-                <span className="text-muted-foreground text-xs">São Paulo, SP</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Right Column - Navigation */}
-          <div className="text-center md:text-right">
-            <h3 className="text-white font-semibold mb-3 text-sm">Navegação</h3>
-            <div className="space-y-1">
-              <div>
-                <a href="#services" className="text-muted-foreground text-xs hover:text-accent transition-colors">
-                  Atuação
-                </a>
-              </div>
-              <div>
-                <a href="#specialties" className="text-muted-foreground text-xs hover:text-accent transition-colors">
-                  Especialidades
-                </a>
-              </div>
-              <div>
-                <a href="/dashboard" className="text-muted-foreground text-xs hover:text-accent transition-colors">
-                  Login
-                </a>
-              </div>
-            </div>
-          </div>
+    <footer className="py-8 bg-background border-t border-accent/20">
+      <div className="container mx-auto px-4 flex flex-col items-center text-center">
+        <div className="mb-4">
+          <h3 className="text-2xl font-bold font-headline text-accent">ARTHUR ORTEGA</h3>
+          <p className="text-sm text-muted-foreground">Advogado Criminalista | OAB/SP 123.456</p>
         </div>
         
-        {/* Bottom Section - Copyright and Domain */}
-        <div className="text-center pt-4 border-t border-border">
+        <div className="mb-4">
+           <a 
+                href="https://www.instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-block p-2 rounded-full bg-card/80 hover:bg-accent/20 transition-colors"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-muted-foreground hover:text-accent"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
+            </a>
+        </div>
+        
+        <div className="text-center pt-4">
           <p className="text-muted-foreground text-xs mb-1">
-            © 2024 RGMJ Advocacia. Todos os direitos reservados.
+            © 2024 Arthur Ortega Advocacia. Todos os direitos reservados.
           </p>
           <p className="text-muted-foreground text-xs">
-            <a href="https://rgmj.adv.br" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">
-              RGMJ.ADV.BR
+            Desenvolvido por{' '}
+            <a
+              href="https://fenixsb.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-accent hover:underline"
+            >
+              Fênix Solutions & Build
             </a>
           </p>
         </div>
