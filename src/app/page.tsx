@@ -66,7 +66,7 @@ export default function Home() {
             <div className="space-y-6">
                 <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/50 backdrop-blur-md">
                     <div className="text-center lg:text-left mb-6">
-                        <h2 className="text-4xl font-bold font-headline text-accent">ARTHUR ORTEGA</h2>
+                        <h2 className="text-4xl font-bold font-headline text-accent">REINALDO GONÇALVES</h2>
                         <p className="font-semibold text-white">ADVOCACIA E CONSULTORIA</p>
                     </div>
                     <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight font-headline mb-2">
@@ -86,7 +86,7 @@ export default function Home() {
             <div className="hidden lg:flex justify-center">
                 <Image
                   src="https://placehold.co/500x700.png"
-                  alt="Advogado Arthur Ortega"
+                  alt="Advogado Reinaldo Gonçalves"
                   width={500}
                   height={700}
                   className="rounded-lg shadow-2xl"
@@ -102,7 +102,7 @@ export default function Home() {
       <div className="w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
 
       {/* Services Section */}
-      <section className="py-20">
+      <section id="services" className="py-20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {services.map((service, index) => (
@@ -119,7 +119,7 @@ export default function Home() {
       </section>
 
       {/* Specialties Section */}
-       <section className="py-20 bg-card/50">
+       <section id="specialties" className="py-20 bg-card/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-accent font-headline">
@@ -148,7 +148,7 @@ export default function Home() {
 
 
       {/* About Section */}
-      <section className="py-24 sm:py-32">
+      <section id="about" className="py-24 sm:py-32">
         <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
             <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
                     <Image
@@ -164,14 +164,14 @@ export default function Home() {
                     <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
                     Se você está sendo acusado de cometer um crime, é fundamental contar com um advogado especializado nesse tema e que se empenhará incansavelmente em seu favor, assegurando a preservação dos seus direitos. Meus objetivos centrais é preservar os direitos fundamentais garantidos pela Constituição, buscando sempre a estratégia mais eficaz na busca pela preservação da liberdade e pela justiça.
                 </p>
-                <p className="mt-6 text-xl font-semibold text-primary font-headline">Arthur Ortega</p>
+                <p className="mt-6 text-xl font-semibold text-primary font-headline">Reinaldo Gonçalves</p>
                 <p className="text-sm text-accent">Advogado Criminalista</p>
             </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-card/50">
+      <section id="contact" className="py-20 bg-card/50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-4xl mx-auto items-center">
             <div className="space-y-4 text-center lg:text-left">

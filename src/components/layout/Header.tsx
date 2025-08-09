@@ -37,6 +37,7 @@ export default function Header() {
       { href: "/#", label: "Início" },
       { href: "/#services", label: "Atuação" },
       { href: "/#specialties", label: "Especialidades" },
+      { href: "/#about", label: "Sobre" },
       { href: "/#contact", label: "Contato" },
   ];
 
@@ -47,7 +48,7 @@ export default function Header() {
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Scale className="h-8 w-8 text-accent" />
             <span className="font-headline text-xl font-bold text-primary">
-              ARTHUR ORTEGA
+              RGJM
             </span>
           </Link>
         </div>
@@ -80,7 +81,7 @@ export default function Header() {
                 <Link href="/" className="mb-4 flex items-center space-x-2">
                    <Scale className="h-7 w-7 text-accent" />
                   <span className="font-headline text-2xl font-bold text-primary">
-                    Arthur Ortega
+                    RGJM
                   </span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
@@ -112,7 +113,7 @@ export default function Header() {
                     ) : (
                        <SheetClose asChild>
                           <Button asChild variant="outline" className="w-full">
-                            <Link href="/login">Área do Advogado</Link>
+                            <Link href="/login">Área Restrita</Link>
                           </Button>
                         </SheetClose>
                     )}
@@ -138,7 +139,7 @@ export default function Header() {
             </>
           ) : (
             <Button asChild variant="outline">
-               <Link href="/login">Área do Advogado</Link>
+               <Link href="/login">Área Restrita</Link>
             </Button>
           )}
         </div>

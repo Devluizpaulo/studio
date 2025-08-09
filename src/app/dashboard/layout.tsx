@@ -15,14 +15,14 @@ export default function DashboardLayout({
           <div className="container mx-auto px-6 py-8">{children}</div>
         </main>
          <footer className="border-t border-border bg-background/95 p-4 text-center text-xs text-muted-foreground">
-            <span>Versão 1.0.0 | Desenvolvido por </span>
+            <span>Versão 1.0.0 | Plataforma desenvolvida para </span>
             <a
-              href="https://fenixsb.vercel.app"
+              href="https://rgjm.adv.br"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-accent hover:underline"
             >
-              Fênix Solutions & Build
+              RGJM Advocacia
             </a>
           </footer>
       </div>

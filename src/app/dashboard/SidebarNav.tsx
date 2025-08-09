@@ -134,7 +134,7 @@ export function SidebarNav() {
               !isOpen && "opacity-0"
             )}>
             <Scale className="h-6 w-6 text-accent" />
-            <span>JurisAI</span>
+            <span>RGJM Juris</span>
           </div>
           {isMobile && (
             <button

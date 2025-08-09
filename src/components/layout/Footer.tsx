@@ -16,7 +16,7 @@ export default function Footer() {
     <footer className="py-8 bg-background border-t border-accent/20">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         <div className="mb-4">
-          <h3 className="text-2xl font-bold font-headline text-accent">ARTHUR ORTEGA</h3>
+          <h3 className="text-2xl font-bold font-headline text-accent">REINALDO GONÇALVES</h3>
           <p className="text-sm text-muted-foreground">Advogado Criminalista | OAB/SP 123.456</p>
         </div>
         
@@ -33,7 +33,7 @@ export default function Footer() {
         
         <div className="text-center pt-4">
           <p className="text-muted-foreground text-xs mb-1">
-            © 2024 Arthur Ortega Advocacia. Todos os direitos reservados.
+            © 2024 RGJM Advocacia. Todos os direitos reservados.
           </p>
           <p className="text-muted-foreground text-xs">
             Desenvolvido por{' '}

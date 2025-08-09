@@ -253,7 +253,7 @@ export function ConfiguracoesClient() {
                             <FormItem>
                                 <FormLabel>Título do Site (Meta Title)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ex: RGMJ Advocacia - Especialistas em Direito Cível" {...field} />
+                                    <Input placeholder="Ex: RGJM Advocacia - Especialistas em Direito Cível" {...field} />
                                 </FormControl>
                                 <FormDescription>O título que aparece na aba do navegador e nos resultados de busca.</FormDescription>
                                 <FormMessage />

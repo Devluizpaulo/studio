@@ -84,7 +84,7 @@ export function LoginForm() {
   return (
       <Card className="mx-auto max-w-sm border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-3xl">Área do Advogado</CardTitle>
+          <CardTitle className="font-headline text-3xl">Área Restrita</CardTitle>
           <CardDescription>
             Acesse sua conta para gerenciar seus processos.
           </CardDescription>
