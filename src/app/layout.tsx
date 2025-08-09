@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, PT_Sans } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Header from "@/components/layout/Header";
@@ -10,16 +10,12 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import { db } from "@/lib/firebase-admin";
 import Script from "next/script";
 
-const playfair = Playfair_Display({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-headline",
-});
-
-const ptSans = PT_Sans({
-  subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "600", "700"],
   variable: "--font-body",
 });
+
 
 interface OfficeSettings {
   seo?: {
@@ -97,8 +93,7 @@ export default async function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-body antialiased",
-          playfair.variable,
-          ptSans.variable
+          poppins.variable
         )}
       >
          {settings?.gtmId && (
