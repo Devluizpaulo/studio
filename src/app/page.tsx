@@ -1,25 +1,30 @@
 
 import { Button } from "@/components/ui/button";
-import { Check, Scale, Briefcase, Gavel, Shield, Globe } from "lucide-react";
+import { Check, Scale, Briefcase, Gavel, Shield, Globe, Users, Heart, Landmark } from "lucide-react";
 import Image from "next/image";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
-const services = [
+const practiceAreas = [
+  {
+    icon: <Landmark className="h-8 w-8 text-accent" />,
+    title: "Direito Civil",
+    description: "Soluções para contratos, obrigações, responsabilidade civil e questões do dia a dia."
+  },
+  {
+    icon: <Briefcase className="h-8 w-8 text-accent" />,
+    title: "Direito Trabalhista",
+    description: "Defesa dos direitos de trabalhadores e empresas, buscando relações de trabalho justas."
+  },
+  {
+    icon: <Heart className="h-8 w-8 text-accent" />,
+    title: "Família e Sucessões",
+    description: "Assessoria em divórcios, partilhas, heranças e planejamentos sucessórios com sensibilidade."
+  },
   {
     icon: <Shield className="h-8 w-8 text-accent" />,
-    title: "Advocacia Criminal",
+    title: "Direito Criminal",
     description: "Defesa estratégica para casos complexos, garantindo seus direitos em todas as instâncias."
-  },
-  {
-    icon: <Gavel className="h-8 w-8 text-accent" />,
-    title: "Tribunal do Júri",
-    description: "Atuação especializada e combativa no Tribunal do Júri, com vasta experiência em plenário."
-  },
-  {
-    icon: <Globe className="h-8 w-8 text-accent" />,
-    title: "Todo Brasil",
-    description: "Conte com nosso atendimento especializado e defesa estratégica em qualquer região do país."
   },
 ];
 
@@ -66,18 +71,18 @@ export default function Home() {
             <div className="space-y-6">
                 <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/50 backdrop-blur-md">
                     <div className="text-center lg:text-left mb-6">
-                        <h2 className="text-4xl font-bold font-headline text-accent">REINALDO GONÇALVES</h2>
+                        <h2 className="text-4xl font-bold font-headline text-accent">RGJM</h2>
                         <p className="font-semibold text-white">ADVOCACIA E CONSULTORIA</p>
                     </div>
                     <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight font-headline mb-2">
-                        Advocacia Criminal Especializada
+                        Assessoria Jurídica Completa e Especializada
                     </h1>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                        Proteja seus direitos e garanta uma defesa sólida em casos criminais.
+                        Proteja seus direitos e garanta uma defesa sólida com a nossa equipe de especialistas.
                     </p>
                     <Button asChild size="lg" className="w-full lg:w-auto bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                        Falar com o Advogado
+                        Falar com um Advogado
                         </a>
                     </Button>
                 </div>
@@ -101,17 +106,22 @@ export default function Home() {
       {/* Thin Divider */}
       <div className="w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
 
-      {/* Services Section */}
+      {/* Practice Areas Section */}
       <section id="services" className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {services.map((service, index) => (
+          <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-accent font-headline">
+                Nossas Áreas de Atuação
+              </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {practiceAreas.map((area, index) => (
               <div key={index} className="bg-card/50 p-8 rounded-lg text-center border border-accent/20">
                 <div className="flex justify-center mb-4">
-                    {service.icon}
+                    {area.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 font-headline">{service.title}</h3>
-                <p className="text-muted-foreground">{service.description}</p>
+                <h3 className="text-xl font-bold text-white mb-2 font-headline">{area.title}</h3>
+                <p className="text-muted-foreground">{area.description}</p>
               </div>
             ))}
           </div>
@@ -135,10 +145,10 @@ export default function Home() {
             ))}
           </div>
            <div className="text-center mt-12">
-                <p className="text-muted-foreground mb-4">Se você está enfrentando alguma situação criminal, entre em contato conosco e agende sua consulta agora mesmo.</p>
+                <p className="text-muted-foreground mb-4">Se você está enfrentando alguma situação legal, entre em contato conosco e agende sua consulta agora mesmo.</p>
                  <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                     <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                    Falar com o Advogado
+                    Falar com um Advogado
                     </a>
                 </Button>
                 <p className="text-muted-foreground text-sm mt-2">Atendimento para todo Brasil.</p>
@@ -160,7 +170,7 @@ export default function Home() {
                     />
             </div>
             <div>
-                <h2 className="font-headline text-3xl font-bold tracking-tight text-accent sm:text-4xl">O sucesso no enfrentamento de um processo criminal, demanda uma defesa especializada.</h2>
+                <h2 className="font-headline text-3xl font-bold tracking-tight text-accent sm:text-4xl">O sucesso no enfrentamento de um processo demanda uma defesa especializada.</h2>
                     <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
                     Se você está sendo acusado de cometer um crime, é fundamental contar com um advogado especializado nesse tema e que se empenhará incansavelmente em seu favor, assegurando a preservação dos seus direitos. Meus objetivos centrais é preservar os direitos fundamentais garantidos pela Constituição, buscando sempre a estratégia mais eficaz na busca pela preservação da liberdade e pela justiça.
                 </p>
