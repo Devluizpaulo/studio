@@ -172,6 +172,7 @@ export {
   FormItem,
   FormLabel,
   FormControl,
+  FormDescription as FormDescriptionComponent,
   FormDescription,
   FormMessage,
   FormField,

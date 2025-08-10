@@ -8,6 +8,8 @@ import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -26,6 +28,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription as FormDescriptionComponent,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -207,6 +210,9 @@ export function DocumentosClient() {
                       <FormControl>
                         <Textarea placeholder="Cole ou digite o texto do seu modelo aqui..." {...field} className="min-h-[300px]" />
                       </FormControl>
+                       <FormDescriptionComponent>
+                        Você pode usar Markdown para formatação. Ex: `**negrito**`, `*itálico*`, `- Item de lista`.
+                      </FormDescriptionComponent>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -240,8 +246,10 @@ export function DocumentosClient() {
                         <AccordionItem value={template.id} key={template.id}>
                             <AccordionTrigger>{template.title}</AccordionTrigger>
                             <AccordionContent>
-                                <div className="prose max-w-none whitespace-pre-wrap p-4 bg-muted/50 rounded-md">
-                                    {template.content}
+                                <div className="prose prose-invert max-w-none rounded-md bg-muted/50 p-4">
+                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {template.content}
+                                    </ReactMarkdown>
                                 </div>
                             </AccordionContent>
                         </AccordionItem>
