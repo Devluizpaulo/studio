@@ -56,7 +56,7 @@ export function ControleInternoClient() {
                 const q = query(
                     collection(db, 'events'), 
                     where('officeId', '==', officeId),
-                    where('type', '==', 'audiencia'),
+                    where('type', 'in', ['audiencia-presencial', 'audiencia-virtual']),
                     where('status', '==', 'pendente')
                 );
 
@@ -66,8 +66,6 @@ export function ControleInternoClient() {
                         const eventData = eventDoc.data();
                         let processData: DocumentData = {};
                         if (eventData.processId) {
-                            // This part has a potential issue with onSnapshot inside a loop.
-                            // For simplicity, we'll keep it, but for production, it might be better to fetch process data separately.
                             const processDocRef = doc(db, 'processes', eventData.processId);
                             const processDocSnap = await getDoc(processDocRef);
                             if (processDocSnap.exists()) {
