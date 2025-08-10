@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Briefcase, Users, Scale } from "lucide-react";
+import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -40,9 +40,12 @@ const formSchema = z.object({
   justiceType: z.enum(["civel", "criminal", "trabalhista", "federal", "outra"], { required_error: "Selecione o tipo de justiça."}),
   comarca: z.string().min(3, "A comarca é obrigatória."),
   court: z.string().min(3, "A vara ou fórum é obrigatório."),
-  actionType: z.string().min(3, "O tipo de ação é obrigatório."),
-  plaintiff: z.string().min(3, "O nome do autor é obrigatório. Para múltiplos autores, separe por vírgula."),
-  defendant: z.string().min(3, "O nome do réu é obrigatório. Para múltiplos réus, separe por vírgula."),
+  actionType: z.string().min(3, "A 'classe' ou tipo de ação é obrigatório."),
+  subject: z.string().min(3, "O 'assunto' é obrigatório."),
+  judge: z.string().optional(),
+  actionValue: z.coerce.number().optional(),
+  plaintiff: z.string().min(3, "O nome do autor é obrigatório. Para múltiplos, separe por vírgula."),
+  defendant: z.string().min(3, "O nome do réu é obrigatório. Para múltiplos, separe por vírgula."),
   representation: z.enum(["plaintiff", "defendant"], { required_error: "Selecione a sua representação."}),
   status: z.enum(["a_distribuir", "em_andamento", "em_recurso", "execucao", "arquivado_provisorio", "arquivado_definitivo"]),
   lawyerId: z.string().min(1, "É obrigatório selecionar um advogado responsável."),
@@ -85,14 +88,12 @@ export function NewProcessForm() {
   useEffect(() => {
       if (!officeId) return;
       
-      // Fetch Clients
       const clientQuery = query(collection(db, 'clients'), where('officeId', '==', officeId));
       const unsubClients = onSnapshot(clientQuery, (snapshot) => {
           const clientList = snapshot.docs.map(doc => ({ id: doc.id, fullName: doc.data().fullName }));
           setClients(clientList);
       });
 
-      // Fetch Lawyers
       const lawyerQuery = query(collection(db, 'users'), where('officeId', '==', officeId), where('role', 'in', ['master', 'lawyer']));
       const unsubLawyers = onSnapshot(lawyerQuery, (snapshot) => {
           const lawyerList = snapshot.docs.map(doc => ({ uid: doc.id, fullName: doc.data().fullName }));
@@ -116,8 +117,7 @@ export function NewProcessForm() {
       comarca: "",
       court: "",
       actionType: "",
-      plaintiff: "",
-      defendant: "",
+      subject: "",
       status: "a_distribuir",
       lawyerId: user?.uid || "",
     },
@@ -135,7 +135,7 @@ export function NewProcessForm() {
     const result = await createProcessAction({ 
         ...values, 
         officeId: officeId,
-        clientName, // Pass the client name for storage
+        clientName,
     });
     
     if (result.success) {
@@ -143,7 +143,7 @@ export function NewProcessForm() {
         title: "Processo Criado!",
         description: "O novo processo foi adicionado com sucesso.",
       });
-      router.push("/dashboard/processos");
+      router.push(`/dashboard/processos/${result.data.processId}`);
     } else {
       toast({
         title: "Erro ao Criar Processo",
@@ -160,7 +160,7 @@ export function NewProcessForm() {
       <CardHeader>
         <CardTitle className="font-headline text-xl flex items-center">
             <Briefcase className="mr-3 h-5 w-5 text-accent" />
-            Detalhes do Processo
+            Dados Fundamentais do Processo
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -227,58 +227,133 @@ export function NewProcessForm() {
                 )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <FormField
-                    control={form.control}
-                    name="justiceType"
-                    render={({ field }) => (
+            <Card className="bg-background/50">
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                        <Gavel className="mr-3 h-5 w-5 text-accent" />
+                        Informações do Juízo
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="justiceType"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Área do Direito</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="civel">Cível</SelectItem>
+                                        <SelectItem value="criminal">Criminal</SelectItem>
+                                        <SelectItem value="trabalhista">Trabalhista</SelectItem>
+                                        <SelectItem value="federal">Federal</SelectItem>
+                                        <SelectItem value="outra">Outra</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="comarca"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Comarca</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: São Paulo" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="court"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Vara / Fórum</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: 1ª Vara Cível" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="judge"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Juiz(a) (Opcional)</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Nome do(a) magistrado(a)" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+            
+            <Card className="bg-background/50">
+                <CardHeader>
+                     <CardTitle className="text-lg flex items-center">
+                        <DollarSign className="mr-3 h-5 w-5 text-accent" />
+                        Detalhes da Ação
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <FormField
+                            control={form.control}
+                            name="actionType"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Classe (Tipo de Ação)</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: Execução Fiscal" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="subject"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Assunto</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Ex: Dívida Ativa" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                     <FormField
+                        control={form.control}
+                        name="actionValue"
+                        render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Tipo de Justiça</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel>Valor da Ação (Opcional)</FormLabel>
                             <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
+                            <Input type="number" placeholder="1500.00" {...field} />
                             </FormControl>
-                            <SelectContent>
-                                <SelectItem value="civel">Cível</SelectItem>
-                                <SelectItem value="criminal">Criminal</SelectItem>
-                                <SelectItem value="trabalhista">Trabalhista</SelectItem>
-                                <SelectItem value="federal">Federal</SelectItem>
-                                <SelectItem value="outra">Outra</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
+                            <FormMessage />
                         </FormItem>
-                    )}
-                 />
-                  <FormField
-                    control={form.control}
-                    name="comarca"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Comarca</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Ex: São Paulo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="court"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Vara / Fórum</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Ex: 1ª Vara Cível" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-            </div>
+                        )}
+                    />
+                </CardContent>
+            </Card>
 
             <Card className="bg-background/50">
                 <CardHeader>
@@ -336,7 +411,7 @@ export function NewProcessForm() {
                                     <RadioGroupItem value="plaintiff" />
                                     </FormControl>
                                     <FormLabel className="font-normal">
-                                    Pelo Autor
+                                    Pelo Autor (Exequente)
                                     </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -344,7 +419,7 @@ export function NewProcessForm() {
                                     <RadioGroupItem value="defendant" />
                                     </FormControl>
                                     <FormLabel className="font-normal">
-                                    Pelo Réu
+                                    Pelo Réu (Executado)
                                     </FormLabel>
                                 </FormItem>
                                 </RadioGroup>
@@ -355,48 +430,32 @@ export function NewProcessForm() {
                         />
                 </CardContent>
             </Card>
-
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <FormField
-                    control={form.control}
-                    name="actionType"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Tipo de Ação</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Ex: Ação de Indenização por Danos Morais" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status Inicial</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o status do processo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="a_distribuir">A Distribuir</SelectItem>
-                          <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                          <SelectItem value="em_recurso">Em Grau de Recurso</SelectItem>
-                          <SelectItem value="execucao">Execução</SelectItem>
-                          <SelectItem value="arquivado_provisorio">Arquivado Provisoriamente</SelectItem>
-                          <SelectItem value="arquivado_definitivo">Arquivado Definitivamente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-            </div>
+            
+             <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status Inicial</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o status do processo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="a_distribuir">A Distribuir</SelectItem>
+                      <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                      <SelectItem value="em_recurso">Em Grau de Recurso</SelectItem>
+                      <SelectItem value="execucao">Execução</SelectItem>
+                      <SelectItem value="arquivado_provisorio">Arquivado Provisoriamente</SelectItem>
+                      <SelectItem value="arquivado_definitivo">Arquivado Definitivamente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
               
             <Button type="submit" disabled={isLoading} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

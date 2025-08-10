@@ -12,6 +12,9 @@ const CreateProcessSchema = z.object({
   comarca: z.string(),
   court: z.string(),
   actionType: z.string(),
+  subject: z.string(),
+  judge: z.string().optional(),
+  actionValue: z.number().optional(),
   plaintiff: z.string(),
   defendant: z.string(),
   representation: z.enum(['plaintiff', 'defendant']),
@@ -46,11 +49,11 @@ export async function createProcessAction(
 
     const docRef = await db.collection('processes').add({
       ...processData,
-      ownerId: lawyerId, // The lawyer who created it
-      collaboratorIds: [lawyerId], // Start with the owner in the collaborators list
+      ownerId: lawyerId, 
+      collaboratorIds: [lawyerId], 
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
-      movements: [], // Initialize with empty movements history
+      movements: [], 
     });
 
     return {success: true, data: {processId: docRef.id}};

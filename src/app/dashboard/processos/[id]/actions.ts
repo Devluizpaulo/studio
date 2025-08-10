@@ -150,7 +150,6 @@ export async function addCollaboratorAction(
     const currentUserDoc = await db.collection('users').doc(currentUserId).get();
     const currentUserRole = currentUserDoc.data()?.role;
 
-    // Security check: Only owner or master can add collaborators
     if (processData?.ownerId !== currentUserId && currentUserRole !== 'master') {
       return {
         success: false,

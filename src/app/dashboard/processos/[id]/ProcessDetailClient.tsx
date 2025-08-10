@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles, Video, Landmark, Handshake, Info, Building, MapPin, Gavel as GavelIcon } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles, Video, Landmark, Handshake, Info, Building, MapPin, Gavel as GavelIcon, CircleDollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
@@ -178,7 +178,6 @@ export function ProcessDetailClient() {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 
-                // Permission Check
                 const canView = (currentUserData.role === 'master' || currentUserData.role === 'secretary' || (data.collaboratorIds && data.collaboratorIds.includes(currentUserData.uid)));
                 
                 if (!canView || currentUserData.officeId !== data.officeId) {
@@ -203,21 +202,18 @@ export function ProcessDetailClient() {
             }
         });
 
-        // Subscribe to process events
         const eventsQuery = query(collection(db, "events"), where("processId", "==", processId));
         const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
             const eventsData: ProcessEvent[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessEvent);
             setProcessEvents(eventsData.sort((a, b) => a.date.toMillis() - b.date.toMillis()));
         });
         
-        // Subscribe to process documents
         const documentsQuery = query(collection(db, "processes", processId, "documents"));
         const unsubscribeDocuments = onSnapshot(documentsQuery, (snapshot) => {
             const docsData: ProcessDocument[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ProcessDocument);
             setDocuments(docsData.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
         })
 
-         // Subscribe to chat messages
         const chatQuery = query(collection(db, "processes", processId, "chatMessages"), orderBy("timestamp", "asc"));
         const unsubscribeChat = onSnapshot(chatQuery, (snapshot) => {
             const messagesData: ChatMessage[] = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as ChatMessage);
@@ -416,7 +412,18 @@ export function ProcessDetailClient() {
     setIsDraftingPetition(true);
     setDraftContent("");
 
-    const caseFacts = `Processo No: ${processData.processNumber}. Ação de ${processData.actionType}. Vara: ${processData.court}. Autor: ${processData.plaintiff}. Réu: ${processData.defendant}. Cliente: ${processData.clientName}.`;
+    const caseFacts = `
+Processo Nº: ${processData.processNumber}
+Classe: ${processData.actionType}
+Assunto: ${processData.subject}
+Comarca: ${processData.comarca}
+Vara: ${processData.court}
+Juiz: ${processData.judge || 'Não informado'}
+Valor da Ação: ${processData.actionValue ? `R$ ${processData.actionValue.toFixed(2)}` : 'Não informado'}
+Autor: ${processData.plaintiff}
+Réu: ${processData.defendant}
+Cliente do Escritório: ${processData.clientName}
+Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'}`;
     
     const result = await draftPetitionAction({
         ...values,
@@ -492,61 +499,67 @@ export function ProcessDetailClient() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary font-headline flex items-center">
-            <Briefcase className="mr-3 h-7 w-7 text-accent" />
-            Processo: {processData.processNumber}
-        </h1>
-        <p className="text-muted-foreground mt-1 text-lg">
-          {processData.actionType}
-        </p>
-      </div>
-      
-       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Cliente Principal</CardTitle>
-                    <User className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold">{processData.clientName}</div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Status</CardTitle>
-                    <GanttChartSquare className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <Badge variant={"default"}>{statusTextMap[processData.status]}</Badge>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Sua Representação</CardTitle>
-                    <Scale className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold">{representationTextMap[processData.representation]}</div>
-                </CardContent>
-            </Card>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+         <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline flex items-center">
+                <Briefcase className="mr-3 h-7 w-7 text-accent" />
+                Processo: {processData.processNumber}
+            </h1>
+            <Badge variant={"default"} className="mt-2">{statusTextMap[processData.status]}</Badge>
         </div>
+        {userRole !== 'secretary' && (
+            <Button variant="outline" onClick={handleUpdateStatus} disabled={isUpdating} className="mt-4 sm:mt-0">
+                {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Atualizar Andamento com IA
+            </Button>
+        )}
+      </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardContent className="pt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 text-sm">
+             <div>
+                <p className="font-semibold text-muted-foreground">Classe</p>
+                <p>{processData.actionType}</p>
+             </div>
+              <div>
+                <p className="font-semibold text-muted-foreground">Assunto</p>
+                <p>{processData.subject}</p>
+             </div>
+             <div>
+                <p className="font-semibold text-muted-foreground">Vara</p>
+                <p>{processData.court}</p>
+             </div>
+             <div>
+                <p className="font-semibold text-muted-foreground">Juiz</p>
+                <p>{processData.judge || 'N/A'}</p>
+             </div>
+              <div>
+                <p className="font-semibold text-muted-foreground">Valor da Ação</p>
+                <p>{processData.actionValue ? `R$ ${processData.actionValue.toFixed(2)}` : 'N/A'}</p>
+             </div>
+        </CardContent>
+      </Card>
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
             <CardHeader>
                  <CardTitle className="text-lg flex items-center">
                      <Users className="mr-3 h-5 w-5 text-accent" />
-                    Partes e Informações Gerais
+                    Partes Envolvidas
                  </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-                <p><span className="font-semibold">Autor(es):</span> {processData.plaintiff}</p>
-                <p><span className="font-semibold">Réu(s):</span> {processData.defendant}</p>
-                 <div className="border-t pt-4 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <p className="flex items-center"><GavelIcon className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Justiça:</span> {justiceTypeMap[processData.justiceType]}</p>
-                    <p className="flex items-center"><Building className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Vara/Fórum:</span> {processData.court}</p>
-                    <p className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Comarca:</span> {processData.comarca}</p>
+                <div>
+                    <p className="font-semibold text-muted-foreground">{processData.representation === 'plaintiff' ? 'Exequente (Autor)' : 'Autor'}</p>
+                    <p>{processData.plaintiff}</p>
+                </div>
+                 <div>
+                    <p className="font-semibold text-muted-foreground">{processData.representation === 'defendant' ? 'Executado (Réu)' : 'Réu'}</p>
+                    <p>{processData.defendant}</p>
+                </div>
+                 <div className="border-t pt-4">
+                    <p className="font-semibold text-muted-foreground">Sua Representação</p>
+                    <p>{representationTextMap[processData.representation]}</p>
                  </div>
             </CardContent>
         </Card>
@@ -634,7 +647,7 @@ export function ProcessDetailClient() {
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="updates">
             <Calendar className="mr-2 h-4 w-4"/>
-            Andamentos
+            Movimentações
           </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="mr-2 h-4 w-4"/>
@@ -646,7 +659,7 @@ export function ProcessDetailClient() {
           </TabsTrigger>
           <TabsTrigger value="chat">
             <MessageSquare className="mr-2 h-4 w-4"/>
-            Chat
+            Chat Interno
           </TabsTrigger>
           <TabsTrigger value="ai_assistant">
             <Sparkles className="mr-2 h-4 w-4"/>
@@ -655,31 +668,25 @@ export function ProcessDetailClient() {
         </TabsList>
         <TabsContent value="updates">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Últimos Andamentos</CardTitle>
-                <CardDescription>Histórico de movimentações do processo.</CardDescription>
-              </div>
-              {userRole !== 'secretary' && (
-                <Button variant="outline" onClick={handleUpdateStatus} disabled={isUpdating}>
-                    {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Atualizar Andamento
-                </Button>
-              )}
+            <CardHeader>
+                <CardTitle>Últimas Movimentações</CardTitle>
+                <CardDescription>Histórico de andamentos do processo.</CardDescription>
             </CardHeader>
             <CardContent>
                 {movements.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="relative pl-6">
+                         <div className="absolute left-0 top-0 h-full w-px bg-border translate-x-[11px]"></div>
                         {movements.sort((a, b) => b.date.toMillis() - a.date.toMillis()).map((mov, index) => (
-                            <div key={index} className="flex space-x-4">
-                               <div className="flex flex-col items-center">
-                                    <div className="w-4 h-4 rounded-full bg-accent mt-1"></div>
-                                    {index < movements.length - 1 && <div className="flex-grow w-px bg-border"></div>}
+                            <div key={index} className="flex space-x-4 mb-6">
+                               <div className="flex flex-col items-center relative">
+                                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center z-10">
+                                       <Calendar className="h-4 w-4 text-accent-foreground"/>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="font-semibold">{mov.description}</p>
+                                    <p className="font-semibold text-primary">{mov.description}</p>
                                     <p className="text-sm text-muted-foreground">{format(mov.date.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-                                    <p className="text-sm mt-1">{mov.details}</p>
+                                    <p className="text-sm mt-1 text-foreground/80">{mov.details}</p>
                                 </div>
                             </div>
                         ))}
@@ -916,7 +923,7 @@ export function ProcessDetailClient() {
         <TabsContent value="chat">
             <Card>
                 <CardHeader>
-                    <CardTitle>Chat da Equipe</CardTitle>
+                    <CardTitle>Chat Interno da Equipe</CardTitle>
                     <CardDescription>Converse com os colaboradores deste processo.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col h-[500px]">
@@ -1035,7 +1042,7 @@ export function ProcessDetailClient() {
                                 />
                                 <Button type="submit" disabled={isDraftingPetition} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
                                     {isDraftingPetition && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Gerar Rascunho
+                                    Gerar Rascunho com IA
                                 </Button>
                             </form>
                         </Form>
