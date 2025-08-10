@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles, Video, Landmark, Handshake, Info } from "lucide-react"
+import { Briefcase, User, Users, Scale, Calendar, FileText, GanttChartSquare, Loader2, UserPlus, Shield, Search, PlusCircle, Paperclip, Download, MessageSquare, Send, Sparkles, Video, Landmark, Handshake, Info, Building, MapPin, Gavel as GavelIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
@@ -421,7 +421,7 @@ export function ProcessDetailClient() {
     const result = await draftPetitionAction({
         ...values,
         caseFacts,
-        clientInfo: `${processData.clientName}, CPF/CNPJ: ${processData.clientDocument}`,
+        clientInfo: `${processData.clientName}`,
         opponentInfo: processData.representation === 'plaintiff' ? processData.defendant : processData.plaintiff,
         userId: user.uid
     });
@@ -457,9 +457,12 @@ export function ProcessDetailClient() {
   }
     
   const statusTextMap: { [key: string]: string } = {
-    active: "Em Andamento",
-    pending: "Aguardando",
-    archived: "Arquivado",
+    a_distribuir: "A Distribuir",
+    em_andamento: "Em Andamento",
+    em_recurso: "Em Recurso",
+    execucao: "Execução",
+    arquivado_provisorio: "Arq. Provisório",
+    arquivado_definitivo: "Arq. Definitivo",
   }
 
   const representationTextMap: { [key: string]: string } = {
@@ -474,6 +477,14 @@ export function ProcessDetailClient() {
         'reuniao': { label: 'Reunião', icon: Users, color: 'bg-blue-500' },
         'atendimento-presencial': { label: 'Atendimento', icon: Handshake, color: 'bg-green-500' },
         'outro': { label: 'Outro', icon: Info, color: 'bg-gray-500' },
+    }
+
+    const justiceTypeMap: { [key: string]: string } = {
+        civel: "Cível",
+        criminal: "Criminal",
+        trabalhista: "Trabalhista",
+        federal: "Federal",
+        outra: "Outra",
     }
 
   const movements: Movement[] = processData.movements || [];
@@ -499,7 +510,6 @@ export function ProcessDetailClient() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-xl font-bold">{processData.clientName}</div>
-                    <p className="text-xs text-muted-foreground">{processData.clientDocument}</p>
                 </CardContent>
             </Card>
             <Card>
@@ -508,7 +518,7 @@ export function ProcessDetailClient() {
                     <GanttChartSquare className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <Badge variant={processData.status === 'active' ? 'default' : (processData.status === 'pending' ? 'secondary' : 'outline')}>{statusTextMap[processData.status]}</Badge>
+                    <Badge variant={"default"}>{statusTextMap[processData.status]}</Badge>
                 </CardContent>
             </Card>
              <Card>
@@ -531,11 +541,13 @@ export function ProcessDetailClient() {
                  </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><span className="font-semibold">Autor(es):</span> {processData.plaintiff}</div>
-                    <div><span className="font-semibold">Réu(s):</span> {processData.defendant}</div>
-                    <div><span className="font-semibold">Vara e Comarca:</span> {processData.court}</div>
-                </div>
+                <p><span className="font-semibold">Autor(es):</span> {processData.plaintiff}</p>
+                <p><span className="font-semibold">Réu(s):</span> {processData.defendant}</p>
+                 <div className="border-t pt-4 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p className="flex items-center"><GavelIcon className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Justiça:</span> {justiceTypeMap[processData.justiceType]}</p>
+                    <p className="flex items-center"><Building className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Vara/Fórum:</span> {processData.court}</p>
+                    <p className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground"/> <span className="font-semibold mr-1">Comarca:</span> {processData.comarca}</p>
+                 </div>
             </CardContent>
         </Card>
 
@@ -545,7 +557,7 @@ export function ProcessDetailClient() {
                      <Shield className="mr-3 h-5 w-5 text-accent" />
                     Equipe Jurídica
                  </CardTitle>
-                 {(userRole === 'master' || user?.uid === processData.lawyerId) && (
+                 {(userRole === 'master' || user?.uid === processData.ownerId) && (
                      <Dialog open={isAddCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -605,7 +617,7 @@ export function ProcessDetailClient() {
                                 <AvatarFallback>{collab.fullName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-semibold">{collab.fullName} {collab.uid === processData.lawyerId && <span className="text-xs text-accent font-normal">(Dono)</span>}</p>
+                                <p className="font-semibold">{collab.fullName} {collab.uid === processData.ownerId && <span className="text-xs text-accent font-normal">(Responsável)</span>}</p>
                                 <p className="text-xs text-muted-foreground">{collab.email}</p>
                             </div>
                         </div>

@@ -20,23 +20,29 @@ export interface Process extends DocumentData {
     clientName: string;
     processNumber: string;
     actionType: string;
-    status: "active" | "pending" | "archived";
+    status: "a_distribuir" | "em_andamento" | "em_recurso" | "execucao" | "arquivado_provisorio" | "arquivado_definitivo";
 }
 
 interface ProcessListProps {
   processes: Process[];
 }
 
-const statusVariantMap = {
-    active: "default",
-    pending: "secondary",
-    archived: "outline",
-} as const;
+const statusVariantMap: { [key in Process['status']]: "default" | "secondary" | "outline" | "destructive" } = {
+    a_distribuir: "secondary",
+    em_andamento: "default",
+    em_recurso: "default",
+    execucao: "default",
+    arquivado_provisorio: "outline",
+    arquivado_definitivo: "destructive",
+};
 
-const statusTextMap = {
-    active: "Em Andamento",
-    pending: "Aguardando",
-    archived: "Arquivado",
+const statusTextMap: { [key in Process['status']]: string } = {
+    a_distribuir: "A Distribuir",
+    em_andamento: "Em Andamento",
+    em_recurso: "Em Recurso",
+    execucao: "Execução",
+    arquivado_provisorio: "Arq. Provisório",
+    arquivado_definitivo: "Arq. Definitivo",
 }
 
 export function ProcessList({ processes }: ProcessListProps) {

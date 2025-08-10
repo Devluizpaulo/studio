@@ -115,7 +115,7 @@ export function DashboardClient() {
     );
   }
 
-  const activeProcessesCount = processes.filter(p => p.status === 'active').length;
+  const activeProcessesCount = processes.filter(p => p.status === 'em_andamento').length;
   const clientCount = new Set(processes.map(p => p.clientName)).size;
 
   const roleTextMap: { [key: string]: string } = {

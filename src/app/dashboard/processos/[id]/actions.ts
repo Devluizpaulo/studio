@@ -151,7 +151,7 @@ export async function addCollaboratorAction(
     const currentUserRole = currentUserDoc.data()?.role;
 
     // Security check: Only owner or master can add collaborators
-    if (processData?.lawyerId !== currentUserId && currentUserRole !== 'master') {
+    if (processData?.ownerId !== currentUserId && currentUserRole !== 'master') {
       return {
         success: false,
         error:
