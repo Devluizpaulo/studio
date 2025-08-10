@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { format as formatCurrency } from 'n-val';
-import { numeroParaExtenso } from 'numero-por-extenso';
+import numero from 'numero-por-extenso';
 
 type ReceiptData = {
     task: any;
@@ -58,12 +57,7 @@ export function ReceiptClient({ receiptId }: { receiptId: string }) {
     }
 
     const { task, client, office, process } = data;
-    const valueInWords = numeroParaExtenso(task.value, {
-      mode: 'currency',
-      currency: {
-        type: 'BRL',
-      },
-    });
+    const valueInWords = numero.porExtenso(task.value, numero.estilo.monetario);
 
     return (
         <div className="bg-gray-100 min-h-screen p-4 sm:p-8">
@@ -120,5 +114,3 @@ export function ReceiptClient({ receiptId }: { receiptId: string }) {
         </div>
     );
 }
-
-    
