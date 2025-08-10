@@ -195,7 +195,7 @@ export function EquipeClient() {
         </div>
         <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogTrigger asChild>
-             <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+             <Button>
                 <UserPlus className="mr-2 h-4 w-4" />
                 Convidar Membro
               </Button>

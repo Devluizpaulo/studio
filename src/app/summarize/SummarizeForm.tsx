@@ -173,7 +173,7 @@ export function SummarizeForm() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} size="lg" className="w-full" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+              <Button type="submit" disabled={isLoading} size="lg" className="w-full">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

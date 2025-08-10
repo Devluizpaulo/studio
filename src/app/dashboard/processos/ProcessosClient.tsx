@@ -87,7 +87,7 @@ export function ProcessosClient() {
        <div className="flex items-center justify-between">
          <div/>
          {userRole !== 'secretary' && (
-            <Button asChild style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Button asChild>
                 <Link href="/dashboard/processos/novo">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Novo Processo

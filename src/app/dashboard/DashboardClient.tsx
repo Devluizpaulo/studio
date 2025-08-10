@@ -142,7 +142,7 @@ export function DashboardClient() {
             </p>
         </div>
         {userRole !== 'secretary' && (
-            <Button asChild size="lg" className="mt-4 sm:mt-0" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Button asChild size="lg" className="mt-4 sm:mt-0">
               <Link href="/dashboard/processos/novo">
                 <PlusCircle className="mr-2 h-5 w-5" />
                 Novo Processo

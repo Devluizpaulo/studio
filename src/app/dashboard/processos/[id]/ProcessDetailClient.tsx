@@ -1040,7 +1040,7 @@ Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'
                                         </FormItem>
                                     )}
                                 />
-                                <Button type="submit" disabled={isDraftingPetition} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                                <Button type="submit" disabled={isDraftingPetition} className="w-full" size="lg">
                                     {isDraftingPetition && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Gerar Rascunho com IA
                                 </Button>

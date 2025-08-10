@@ -240,7 +240,7 @@ export function NewProcessForm() {
       setClientDialogOpen(false);
       clientForm.reset();
       // Wait for the new client to be available in the list via snapshot, then select it.
-      // This is a simple way, a more robust way could involve re-fetching or optimistic updates.
+      // This is a simple way, a more robust way could involve optimistic updates.
       setTimeout(() => processForm.setValue('clientId', result.data.clientId), 500);
     } else {
       toast({
@@ -695,7 +695,7 @@ export function NewProcessForm() {
               )}
             />
               
-            <Button type="submit" disabled={isLoading} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Button type="submit" disabled={isLoading} className="w-full" size="lg">
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Cadastrar Processo
             </Button>

@@ -200,7 +200,7 @@ export function ClientesClient() {
         {userRole !== 'secretary' && (
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-                <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                <Button>
                 <UserPlus className="mr-2 h-4 w-4" />
                 Novo Cliente
                 </Button>

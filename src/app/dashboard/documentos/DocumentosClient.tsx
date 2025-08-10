@@ -171,7 +171,7 @@ export function DocumentosClient() {
         </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+            <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
               Novo Modelo
             </Button>

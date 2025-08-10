@@ -80,7 +80,7 @@ export default function Home() {
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                         Proteja seus direitos e garanta uma defesa sólida com a nossa equipe de especialistas.
                     </p>
-                    <Button asChild size="lg" className="w-full lg:w-auto bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
+                    <Button asChild size="lg" className="w-full lg:w-auto text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                         <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                         Falar com um Advogado
                         </a>
@@ -146,7 +146,7 @@ export default function Home() {
           </div>
            <div className="text-center mt-12">
                 <p className="text-muted-foreground mb-4">Se você está enfrentando alguma situação legal, entre em contato conosco e agende sua consulta agora mesmo.</p>
-                 <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
+                 <Button asChild size="lg" className="text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                     <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                     Falar com um Advogado
                     </a>
@@ -187,7 +187,7 @@ export default function Home() {
             <div className="space-y-4 text-center lg:text-left">
               <h2 className="text-3xl font-bold text-accent font-headline">Fale comigo</h2>
               <p className="text-muted-foreground">Não envie uma mensagem, pois as respostas podem levar dias. Agilize seu atendimento e fale conosco direto pelo WhatsApp. Garantimos que nossa equipe responderá o mais breve possível!</p>
-               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-4 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
+               <Button asChild size="lg" className="text-lg py-4 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                   Clique aqui
                 </a>
@@ -220,7 +220,7 @@ export default function Home() {
                         className="w-full p-3 bg-input border border-border rounded-lg text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-none"
                         ></textarea>
                     </div>
-                    <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-3 rounded-lg">
+                    <Button type="submit" className="w-full text-lg py-3 rounded-lg">
                         Enviar Mensagem
                     </Button>
                 </form>

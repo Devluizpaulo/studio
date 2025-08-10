@@ -203,7 +203,7 @@ Por favor, verifique essas configurações no console do Google Cloud.`
               </Alert>
 
 
-              <Button type="submit" disabled={isLoading} className="w-full" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+              <Button type="submit" disabled={isLoading} className="w-full" size="lg">
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar Conta do Escritório
               </Button>
