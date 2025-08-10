@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { createProcessAction } from "./actions";
-import { collection, query, where, onSnapshot, DocumentData, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, DocumentData, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 
@@ -283,6 +283,17 @@ export function NewProcessForm() {
     
     setIsLoading(false);
   }
+  
+  async function onClientDialogOpen() {
+    if (!officeId && user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+            setOfficeId(docSnap.data().officeId);
+        }
+    }
+    setClientDialogOpen(true);
+  }
 
   return (
     <Card>
@@ -319,7 +330,7 @@ export function NewProcessForm() {
                             
                              <Dialog open={isClientDialogOpen} onOpenChange={setClientDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="icon">
+                                    <Button type="button" variant="outline" size="icon" onClick={onClientDialogOpen}>
                                         <UserPlus className="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
