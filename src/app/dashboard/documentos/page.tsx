@@ -7,7 +7,7 @@ export default function DocumentosPage() {
                 <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
                     Modelos de Documentos
                 </h1>
-                <p className="mt-2 text-muted-foreground">
+                <p className="text-muted-foreground mt-2">
                     Crie e gerencie modelos de documentos para sua equipe.
                 </p>
             </div>
