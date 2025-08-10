@@ -14,12 +14,12 @@ const createClientSchema = z.object({
   rg: z.string().min(5, "O RG é obrigatório."),
   issuingBody: z.string().min(2, "O órgão emissor é obrigatório."),
   document: z.string().min(11, "O CPF/CNPJ é obrigatório."),
+  zipCode: z.string().min(8, "O CEP é obrigatório."),
   street: z.string().min(3, "O logradouro é obrigatório."),
   number: z.string().min(1, "O número é obrigatório."),
   neighborhood: z.string().min(3, "O bairro é obrigatório."),
   city: z.string().min(3, "A cidade é obrigatória."),
   state: z.string().min(2, "O estado é obrigatório."),
-  zipCode: z.string().min(8, "O CEP é obrigatório."),
   lawyerId: z.string(), // ID of the lawyer creating the client
 });
 

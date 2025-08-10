@@ -29,7 +29,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Loader2, UserPlus, Users, FileText } from 'lucide-react'
+import { PlusCircle, Loader2, UserPlus, Users, FileText, Search } from 'lucide-react'
 import { createClientAction } from './actions'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -54,12 +54,12 @@ const clientFormSchema = z.object({
   rg: z.string().min(5, "O RG é obrigatório."),
   issuingBody: z.string().min(2, "O órgão emissor é obrigatório."),
   document: z.string().min(11, "O CPF/CNPJ deve ter no mínimo 11 dígitos."),
+  zipCode: z.string().min(8, "O CEP deve ter 8 dígitos.").max(9, "O CEP deve ter 8 dígitos."),
   street: z.string().min(3, "O logradouro é obrigatório."),
   number: z.string().min(1, "O número é obrigatório."),
   neighborhood: z.string().min(3, "O bairro é obrigatório."),
   city: z.string().min(3, "A cidade é obrigatória."),
   state: z.string().min(2, "O estado é obrigatório."),
-  zipCode: z.string().min(8, "O CEP é obrigatório."),
 })
 
 type ClientFormValues = z.infer<typeof clientFormSchema>
@@ -74,6 +74,7 @@ export function ClientesClient() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userRole, setUserRole] = useState<string|null>(null);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
 
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
@@ -91,10 +92,36 @@ export function ClientesClient() {
       number: '',
       neighborhood: '',
       city: '',
-      state: 'SP',
+      state: '',
       zipCode: ''
     },
   })
+    
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const cep = e.target.value.replace(/\D/g, '');
+    if (cep.length !== 8) {
+      return;
+    }
+    setIsFetchingCep(true);
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (data.erro) {
+            toast({ title: "CEP não encontrado", variant: 'destructive'});
+            return;
+        }
+        form.setValue('street', data.logradouro);
+        form.setValue('neighborhood', data.bairro);
+        form.setValue('city', data.localidade);
+        form.setValue('state', data.uf);
+        toast({ title: "Endereço preenchido!"});
+    } catch (error) {
+        toast({ title: "Erro ao buscar CEP", variant: 'destructive'});
+    } finally {
+        setIsFetchingCep(false);
+    }
+  }
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -183,7 +210,7 @@ export function ClientesClient() {
                 <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
                    <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
                     <FormField control={form.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,10 +229,26 @@ export function ClientesClient() {
                     </div>
 
                     <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField control={form.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>CEP</FormLabel><FormControl><Input placeholder="00000-000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                         <FormField control={form.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="zipCode"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>CEP</FormLabel>
+                              <div className="flex items-center">
+                                  <FormControl>
+                                      <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
+                                  </FormControl>
+                                  {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                              </div>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                      <FormField control={form.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
+
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField control={form.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
                         <FormField control={form.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />

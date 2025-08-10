@@ -65,12 +65,12 @@ const clientFormSchema = z.object({
   rg: z.string().min(5, "O RG é obrigatório."),
   issuingBody: z.string().min(2, "O órgão emissor é obrigatório."),
   document: z.string().min(11, "O CPF/CNPJ deve ter no mínimo 11 dígitos."),
+  zipCode: z.string().min(8, "O CEP deve ter 8 dígitos.").max(9, "O CEP deve ter 8 dígitos."),
   street: z.string().min(3, "O logradouro é obrigatório."),
   number: z.string().min(1, "O número é obrigatório."),
   neighborhood: z.string().min(3, "O bairro é obrigatório."),
   city: z.string().min(3, "A cidade é obrigatória."),
   state: z.string().min(2, "O estado é obrigatório."),
-  zipCode: z.string().min(8, "O CEP é obrigatório."),
 })
 
 type ClientFormValues = z.infer<typeof clientFormSchema>
@@ -100,6 +100,8 @@ export function NewProcessForm() {
   
   const [isClientDialogOpen, setClientDialogOpen] = useState(false);
   const [isSubmittingClient, setSubmittingClient] = useState(false);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
+
 
   const processForm = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -134,10 +136,35 @@ export function NewProcessForm() {
       number: '',
       neighborhood: '',
       city: '',
-      state: 'SP',
+      state: '',
       zipCode: ''
     },
   });
+
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const cep = e.target.value.replace(/\D/g, '');
+    if (cep.length !== 8) {
+      return;
+    }
+    setIsFetchingCep(true);
+    try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await response.json();
+        if (data.erro) {
+            toast({ title: "CEP não encontrado", variant: 'destructive'});
+            return;
+        }
+        clientForm.setValue('street', data.logradouro);
+        clientForm.setValue('neighborhood', data.bairro);
+        clientForm.setValue('city', data.localidade);
+        clientForm.setValue('state', data.uf);
+        toast({ title: "Endereço preenchido!"});
+    } catch (error) {
+        toast({ title: "Erro ao buscar CEP", variant: 'destructive'});
+    } finally {
+        setIsFetchingCep(false);
+    }
+  }
 
   useEffect(() => {
     processForm.setValue("plaintiffs", plaintiffsList);
@@ -321,7 +348,22 @@ export function NewProcessForm() {
 
                                             <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <FormField control={clientForm.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>CEP</FormLabel><FormControl><Input placeholder="00000-000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField
+                                                  control={clientForm.control}
+                                                  name="zipCode"
+                                                  render={({ field }) => (
+                                                  <FormItem>
+                                                      <FormLabel>CEP</FormLabel>
+                                                      <div className="flex items-center">
+                                                          <FormControl>
+                                                              <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
+                                                          </FormControl>
+                                                          {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                                      </div>
+                                                      <FormMessage />
+                                                  </FormItem>
+                                                  )}
+                                                />
                                                 <FormField control={clientForm.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
