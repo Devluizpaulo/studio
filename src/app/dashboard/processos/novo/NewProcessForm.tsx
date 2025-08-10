@@ -56,11 +56,21 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const clientFormSchema = z.object({
-    fullName: z.string().min(3, "O nome completo é obrigatório."),
-    email: z.string().email("Por favor, insira um e-mail válido."),
-    phone: z.string().min(10, "O telefone deve ter no mínimo 10 dígitos."),
-    document: z.string().min(11, "O CPF/CNPJ deve ter no mínimo 11 dígitos."),
-    address: z.string().min(5, "O endereço é obrigatório."),
+  fullName: z.string().min(3, "O nome completo é obrigatório."),
+  email: z.string().email("Por favor, insira um e-mail válido."),
+  phone: z.string().min(10, "O telefone deve ter no mínimo 10 dígitos."),
+  nationality: z.string().min(3, "A nacionalidade é obrigatória."),
+  maritalStatus: z.enum(["solteiro", "casado", "divorciado", "viuvo", "uniao_estavel"]),
+  profession: z.string().min(3, "A profissão é obrigatória."),
+  rg: z.string().min(5, "O RG é obrigatório."),
+  issuingBody: z.string().min(2, "O órgão emissor é obrigatório."),
+  document: z.string().min(11, "O CPF/CNPJ deve ter no mínimo 11 dígitos."),
+  street: z.string().min(3, "O logradouro é obrigatório."),
+  number: z.string().min(1, "O número é obrigatório."),
+  neighborhood: z.string().min(3, "O bairro é obrigatório."),
+  city: z.string().min(3, "A cidade é obrigatória."),
+  state: z.string().min(2, "O estado é obrigatório."),
+  zipCode: z.string().min(8, "O CEP é obrigatório."),
 })
 
 type ClientFormValues = z.infer<typeof clientFormSchema>
@@ -109,7 +119,24 @@ export function NewProcessForm() {
   });
 
   const clientForm = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema)
+    resolver: zodResolver(clientFormSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      phone: '',
+      nationality: 'Brasileiro(a)',
+      maritalStatus: 'solteiro',
+      profession: '',
+      rg: '',
+      issuingBody: 'SSP/SP',
+      document: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: 'SP',
+      zipCode: ''
+    },
   });
 
   useEffect(() => {
@@ -269,18 +296,43 @@ export function NewProcessForm() {
                                         <UserPlus className="h-4 w-4" />
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="sm:max-w-[800px]">
                                      <DialogHeader>
                                         <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
                                     </DialogHeader>
                                      <Form {...clientForm}>
-                                        <form onSubmit={clientForm.handleSubmit(handleClientSubmit)} className="space-y-4 py-4">
+                                        <form onSubmit={clientForm.handleSubmit(handleClientSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
+                                            <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
                                             <FormField control={clientForm.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={clientForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={clientForm.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="Número do documento" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={clientForm.control} name="address" render={({ field }) => (<FormItem><FormLabel>Endereço</FormLabel><FormControl><Input placeholder="Endereço completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <DialogFooter>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <FormField control={clientForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <FormField control={clientForm.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>Nacionalidade</FormLabel><FormControl><Input placeholder="Brasileiro(a)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Estado Civil</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="solteiro">Solteiro(a)</SelectItem><SelectItem value="casado">Casado(a)</SelectItem><SelectItem value="divorciado">Divorciado(a)</SelectItem><SelectItem value="viuvo">Viúvo(a)</SelectItem><SelectItem value="uniao_estavel">União Estável</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                            </div>
+                                            <FormField control={clientForm.control} name="profession" render={({ field }) => (<FormItem><FormLabel>Profissão</FormLabel><FormControl><Input placeholder="Profissão do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <FormField control={clientForm.control} name="rg" render={({ field }) => (<FormItem><FormLabel>RG</FormLabel><FormControl><Input placeholder="00.000.000-0" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="issuingBody" render={({ field }) => (<FormItem><FormLabel>Órgão Emissor</FormLabel><FormControl><Input placeholder="SSP/SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            </div>
+
+                                            <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <FormField control={clientForm.control} name="zipCode" render={({ field }) => (<FormItem><FormLabel>CEP</FormLabel><FormControl><Input placeholder="00000-000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <FormField control={clientForm.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <FormField control={clientForm.control} name="city" render={({ field }) => (<FormItem><FormLabel>Cidade</FormLabel><FormControl><Input placeholder="São Paulo" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField control={clientForm.control} name="state" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><FormControl><Input placeholder="SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            </div>
+                                            <DialogFooter className="pt-4">
                                                 <Button type="submit" disabled={isSubmittingClient}>
                                                     {isSubmittingClient && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                                     Salvar Cliente
