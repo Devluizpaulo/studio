@@ -420,8 +420,8 @@ Comarca: ${processData.comarca}
 Vara: ${processData.court}
 Juiz: ${processData.judge || 'Não informado'}
 Valor da Ação: ${processData.actionValue ? `R$ ${processData.actionValue.toFixed(2)}` : 'Não informado'}
-Autor: ${processData.plaintiff}
-Réu: ${processData.defendant}
+Autor(es): ${processData.plaintiffs.join(', ')}
+Réu(s): ${processData.defendants.join(', ')}
 Cliente do Escritório: ${processData.clientName}
 Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'}`;
     
@@ -429,7 +429,7 @@ Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'
         ...values,
         caseFacts,
         clientInfo: `${processData.clientName}`,
-        opponentInfo: processData.representation === 'plaintiff' ? processData.defendant : processData.plaintiff,
+        opponentInfo: processData.representation === 'plaintiff' ? processData.defendants.join(', ') : processData.plaintiffs.join(', '),
         userId: user.uid
     });
     
@@ -550,12 +550,12 @@ Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
                 <div>
-                    <p className="font-semibold text-muted-foreground">{processData.representation === 'plaintiff' ? 'Exequente (Autor)' : 'Autor'}</p>
-                    <p>{processData.plaintiff}</p>
+                    <p className="font-semibold text-muted-foreground">Autor(es)</p>
+                    <p>{processData.plaintiffs?.join(', ')}</p>
                 </div>
                  <div>
-                    <p className="font-semibold text-muted-foreground">{processData.representation === 'defendant' ? 'Executado (Réu)' : 'Réu'}</p>
-                    <p>{processData.defendant}</p>
+                    <p className="font-semibold text-muted-foreground">Réu(s)</p>
+                    <p>{processData.defendants?.join(', ')}</p>
                 </div>
                  <div className="border-t pt-4">
                     <p className="font-semibold text-muted-foreground">Sua Representação</p>

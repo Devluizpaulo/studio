@@ -30,9 +30,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign } from "lucide-react";
+import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign, Plus, X } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   clientId: z.string().min(1, "É obrigatório vincular o processo a um cliente."),
@@ -44,8 +44,8 @@ const formSchema = z.object({
   subject: z.string().min(3, "O 'assunto' é obrigatório."),
   judge: z.string().optional(),
   actionValue: z.coerce.number().optional(),
-  plaintiff: z.string().min(3, "O nome do autor é obrigatório. Para múltiplos, separe por vírgula."),
-  defendant: z.string().min(3, "O nome do réu é obrigatório. Para múltiplos, separe por vírgula."),
+  plaintiffs: z.array(z.string()).min(1, "Adicione pelo menos um autor."),
+  defendants: z.array(z.string()).min(1, "Adicione pelo menos um réu."),
   representation: z.enum(["plaintiff", "defendant"], { required_error: "Selecione a sua representação."}),
   status: z.enum(["a_distribuir", "em_andamento", "em_recurso", "execucao", "arquivado_provisorio", "arquivado_definitivo"]),
   lawyerId: z.string().min(1, "É obrigatório selecionar um advogado responsável."),
@@ -70,6 +70,37 @@ export function NewProcessForm() {
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [lawyers, setLawyers] =useState<LawyerOption[]>([]);
   const [officeId, setOfficeId] = useState<string | null>(null);
+
+  const [currentPlaintiff, setCurrentPlaintiff] = useState("");
+  const [plaintiffsList, setPlaintiffsList] = useState<string[]>([]);
+  const [currentDefendant, setCurrentDefendant] = useState("");
+  const [defendantsList, setDefendantsList] = useState<string[]>([]);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      clientId: "",
+      processNumber: "",
+      justiceType: "civel",
+      comarca: "",
+      court: "",
+      actionType: "",
+      subject: "",
+      status: "a_distribuir",
+      lawyerId: user?.uid || "",
+      plaintiffs: [],
+      defendants: [],
+    },
+  });
+
+  useEffect(() => {
+    form.setValue("plaintiffs", plaintiffsList);
+  }, [plaintiffsList, form]);
+
+  useEffect(() => {
+    form.setValue("defendants", defendantsList);
+  }, [defendantsList, form]);
+
 
   useEffect(() => {
     if (user) {
@@ -107,21 +138,26 @@ export function NewProcessForm() {
 
   }, [officeId]);
 
+  const handleAddPlaintiff = () => {
+    if (currentPlaintiff.trim() !== "") {
+        setPlaintiffsList(prev => [...prev, currentPlaintiff.trim()]);
+        setCurrentPlaintiff("");
+    }
+  }
+  const handleRemovePlaintiff = (index: number) => {
+    setPlaintiffsList(prev => prev.filter((_, i) => i !== index));
+  }
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      clientId: "",
-      processNumber: "",
-      justiceType: "civel",
-      comarca: "",
-      court: "",
-      actionType: "",
-      subject: "",
-      status: "a_distribuir",
-      lawyerId: user?.uid || "",
-    },
-  });
+  const handleAddDefendant = () => {
+    if (currentDefendant.trim() !== "") {
+        setDefendantsList(prev => [...prev, currentDefendant.trim()]);
+        setCurrentDefendant("");
+    }
+  }
+  const handleRemoveDefendant = (index: number) => {
+    setDefendantsList(prev => prev.filter((_, i) => i !== index));
+  }
+
 
   async function onSubmit(values: FormValues) {
     if (!user || !officeId) {
@@ -361,38 +397,77 @@ export function NewProcessForm() {
                         <Users className="mr-3 h-5 w-5 text-accent" />
                         Partes Envolvidas e Representação
                     </CardTitle>
-                     <CardDescription>
-                        Para múltiplas partes, separe os nomes por vírgula.
-                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="plaintiff"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Autor(es)</FormLabel>
-                                <FormControl>
-                                <Textarea placeholder="Nome da parte autora" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="defendant"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Réu(s)</FormLabel>
-                                <FormControl>
-                                <Textarea placeholder="Nome da parte ré" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
+                        {/* Plaintiff section */}
+                        <div className="space-y-2">
+                           <FormField
+                                control={form.control}
+                                name="plaintiffs"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Autor(es)</FormLabel>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={currentPlaintiff}
+                                                onChange={(e) => setCurrentPlaintiff(e.target.value)}
+                                                placeholder="Nome da parte autora"
+                                            />
+                                            <Button type="button" size="icon" onClick={handleAddPlaintiff}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                           />
+                           <div className="space-y-2 pt-2">
+                                {plaintiffsList.map((plaintiff, index) => (
+                                    <Badge key={index} variant="secondary" className="flex justify-between items-center text-base">
+                                        <span>{plaintiff}</span>
+                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2" onClick={() => handleRemovePlaintiff(index)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </Badge>
+                                ))}
+                           </div>
+                        </div>
+
+                        {/* Defendant section */}
+                        <div className="space-y-2">
+                           <FormField
+                                control={form.control}
+                                name="defendants"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Réu(s)</FormLabel>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={currentDefendant}
+                                                onChange={(e) => setCurrentDefendant(e.target.value)}
+                                                placeholder="Nome da parte ré"
+                                            />
+                                            <Button type="button" size="icon" onClick={handleAddDefendant}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                           />
+                           <div className="space-y-2 pt-2">
+                                {defendantsList.map((defendant, index) => (
+                                    <Badge key={index} variant="secondary" className="flex justify-between items-center text-base">
+                                        <span>{defendant}</span>
+                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2" onClick={() => handleRemoveDefendant(index)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </Badge>
+                                ))}
+                           </div>
+                        </div>
+
                     </div>
                      <FormField
                         control={form.control}
