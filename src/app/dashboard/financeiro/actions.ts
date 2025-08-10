@@ -8,6 +8,7 @@ const createFinancialTaskSchema = z.object({
   title: z.string().min(3, 'O título é obrigatório.'),
   processId: z.string().optional(),
   processNumber: z.string().optional(),
+  clientId: z.string().optional(),
   type: z.enum(['honorarios', 'custas', 'reembolso', 'guia', 'outro']),
   dueDate: z.date(),
   value: z.number(),
@@ -77,6 +78,7 @@ export async function updateFinancialTaskStatusAction(
     const taskRef = db.collection('financial_tasks').doc(taskId);
     await taskRef.update({
       status: status,
+      paymentDate: status === 'pago' ? FieldValue.serverTimestamp() : FieldValue.delete(),
       updatedAt: FieldValue.serverTimestamp(),
     });
     return {success: true};
@@ -85,3 +87,84 @@ export async function updateFinancialTaskStatusAction(
     return {success: false, error: 'Falha ao atualizar o status.'};
   }
 }
+
+
+// --- Get Financial Task Details for Receipt ---
+type ReceiptDetails = {
+    task: any;
+    client: any;
+    office: any;
+    process?: any;
+};
+
+type GetReceiptResult = 
+    | { success: true, data: ReceiptDetails }
+    | { success: false, error: string };
+
+export async function getFinancialTaskDetailsForReceiptAction(taskId: string): Promise<GetReceiptResult> {
+    if (!db) {
+        return { success: false, error: 'O serviço de banco de dados não está disponível.'};
+    }
+    if (!taskId) {
+        return { success: false, error: 'ID do lançamento não fornecido.' };
+    }
+
+    try {
+        const taskRef = db.collection('financial_tasks').doc(taskId);
+        const taskSnap = await taskRef.get();
+
+        if (!taskSnap.exists) {
+            return { success: false, error: 'Lançamento financeiro não encontrado.' };
+        }
+        const taskData = taskSnap.data()!;
+
+        if (!taskData.clientId) {
+            return { success: false, error: 'Este lançamento não está vinculado a um cliente.' };
+        }
+
+        const clientRef = db.collection('clients').doc(taskData.clientId);
+        const clientSnap = await clientRef.get();
+        if (!clientSnap.exists) {
+            return { success: false, error: 'Cliente não encontrado.' };
+        }
+        const clientData = clientSnap.data()!;
+
+
+        const officeRef = db.collection('offices').doc(taskData.officeId);
+        const officeSnap = await officeRef.get();
+        if (!officeSnap.exists) {
+            return { success: false, error: 'Escritório não encontrado.' };
+        }
+        const officeData = officeSnap.data()!;
+        
+        // Fetch owner details for office contact info
+        const ownerRef = db.collection('users').doc(officeData.ownerId);
+        const ownerSnap = await ownerRef.get();
+        const ownerData = ownerSnap.exists() ? ownerSnap.data() : {};
+
+
+        let processData = undefined;
+        if (taskData.processId) {
+            const processRef = db.collection('processes').doc(taskData.processId);
+            const processSnap = await processRef.get();
+            if (processSnap.exists) {
+                processData = processSnap.data();
+            }
+        }
+        
+        return {
+            success: true,
+            data: {
+                task: { id: taskSnap.id, ...taskData },
+                client: { id: clientSnap.id, ...clientData },
+                office: { id: officeSnap.id, ...officeData, ...ownerData },
+                process: processData ? { ...processData } : undefined
+            }
+        };
+
+    } catch (error) {
+        console.error('Erro ao buscar detalhes para o recibo:', error);
+        return { success: false, error: 'Falha ao carregar os dados do recibo.' };
+    }
+}
+    

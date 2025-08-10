@@ -39,7 +39,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Loader2, DollarSign, Check, X, FileText } from 'lucide-react'
+import { PlusCircle, Loader2, DollarSign, Check, X, FileText, Printer } from 'lucide-react'
 import { createFinancialTaskAction, updateFinancialTaskStatusAction } from './actions'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -161,9 +161,15 @@ export function FinanceiroClient() {
         return;
     }
 
-    const processNumber = values.processId ? processes.find(p => p.id === values.processId)?.processNumber : undefined;
+    const selectedProcess = values.processId ? processes.find(p => p.id === values.processId) : undefined;
 
-    const result = await createFinancialTaskAction({ ...values, officeId, createdBy: user.uid, processNumber })
+    const result = await createFinancialTaskAction({ 
+      ...values, 
+      officeId, 
+      createdBy: user.uid, 
+      processNumber: selectedProcess?.processNumber,
+      clientId: selectedProcess ? (await getDoc(doc(db, 'processes', selectedProcess.id))).data()?.clientId : undefined
+    })
     if (result.success) {
       toast({ title: 'Lançamento adicionado!' })
       setIsFormOpen(false)
@@ -189,6 +195,10 @@ export function FinanceiroClient() {
       }
       setUpdatingId(null);
     });
+  }
+  
+  const handleGenerateReceipt = (taskId: string) => {
+    window.open(`/dashboard/financeiro/recibo/${taskId}`, '_blank');
   }
 
   if (authLoading || loading) {
@@ -355,7 +365,7 @@ export function FinanceiroClient() {
                         <TableHead>Vencimento</TableHead>
                         <TableHead>Valor</TableHead>
                         <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-right">Ação</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -370,19 +380,26 @@ export function FinanceiroClient() {
                                 {task.status === 'pago' ? 'Pago' : 'Pendente'}
                             </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right space-x-2">
                            {isUpdating && updatingId === task.id ? (
                              <Loader2 className="h-4 w-4 animate-spin ml-auto" />
                            ) : (
-                            task.status === 'pendente' ? (
-                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(task.id, 'pago')}>
-                                    <Check className="mr-2 h-4 w-4"/> Marcar como Pago
+                            <>
+                              {task.status === 'pendente' ? (
+                                  <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(task.id, 'pago')}>
+                                      <Check className="mr-2 h-4 w-4"/> Marcar como Pago
+                                  </Button>
+                              ) : (
+                                  <Button variant="ghost" size="sm" onClick={() => handleUpdateStatus(task.id, 'pendente')}>
+                                      <X className="mr-2 h-4 w-4"/> Marcar como Pendente
+                                  </Button>
+                              )}
+                              {task.status === 'pago' && (
+                                <Button variant="outline" size="sm" onClick={() => handleGenerateReceipt(task.id)}>
+                                    <Printer className="mr-2 h-4 w-4" /> Gerar Recibo
                                 </Button>
-                            ) : (
-                                <Button variant="ghost" size="sm" onClick={() => handleUpdateStatus(task.id, 'pendente')}>
-                                    <X className="mr-2 h-4 w-4"/> Marcar como Pendente
-                                </Button>
-                            )
+                              )}
+                            </>
                            )}
                         </TableCell>
                         </TableRow>
@@ -402,3 +419,5 @@ export function FinanceiroClient() {
     </div>
   )
 }
+
+    
