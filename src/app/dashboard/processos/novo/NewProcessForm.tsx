@@ -30,9 +30,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign, Plus, X } from "lucide-react";
+import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign, Plus, X, UserPlus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { createClientAction } from "../../clientes/actions";
 
 const formSchema = z.object({
   clientId: z.string().min(1, "É obrigatório vincular o processo a um cliente."),
@@ -52,6 +54,16 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const clientFormSchema = z.object({
+    fullName: z.string().min(3, "O nome completo é obrigatório."),
+    email: z.string().email("Por favor, insira um e-mail válido."),
+    phone: z.string().min(10, "O telefone deve ter no mínimo 10 dígitos."),
+    document: z.string().min(11, "O CPF/CNPJ deve ter no mínimo 11 dígitos."),
+    address: z.string().min(5, "O endereço é obrigatório."),
+})
+
+type ClientFormValues = z.infer<typeof clientFormSchema>
 
 interface ClientOption {
     id: string;
@@ -75,8 +87,11 @@ export function NewProcessForm() {
   const [plaintiffsList, setPlaintiffsList] = useState<string[]>([]);
   const [currentDefendant, setCurrentDefendant] = useState("");
   const [defendantsList, setDefendantsList] = useState<string[]>([]);
+  
+  const [isClientDialogOpen, setClientDialogOpen] = useState(false);
+  const [isSubmittingClient, setSubmittingClient] = useState(false);
 
-  const form = useForm<FormValues>({
+  const processForm = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientId: "",
@@ -93,13 +108,17 @@ export function NewProcessForm() {
     },
   });
 
-  useEffect(() => {
-    form.setValue("plaintiffs", plaintiffsList);
-  }, [plaintiffsList, form]);
+  const clientForm = useForm<ClientFormValues>({
+    resolver: zodResolver(clientFormSchema)
+  });
 
   useEffect(() => {
-    form.setValue("defendants", defendantsList);
-  }, [defendantsList, form]);
+    processForm.setValue("plaintiffs", plaintiffsList);
+  }, [plaintiffsList, processForm]);
+
+  useEffect(() => {
+    processForm.setValue("defendants", defendantsList);
+  }, [defendantsList, processForm]);
 
 
   useEffect(() => {
@@ -158,8 +177,28 @@ export function NewProcessForm() {
     setDefendantsList(prev => prev.filter((_, i) => i !== index));
   }
 
+  async function handleClientSubmit(values: ClientFormValues) {
+    if (!user) return;
+    setSubmittingClient(true);
+    const result = await createClientAction({ ...values, lawyerId: user.uid });
+    if (result.success) {
+      toast({ title: "Cliente cadastrado com sucesso!" });
+      setClientDialogOpen(false);
+      clientForm.reset();
+      // Wait for the new client to be available in the list via snapshot, then select it.
+      // This is a simple way, a more robust way could involve re-fetching or optimistic updates.
+      setTimeout(() => processForm.setValue('clientId', result.data.clientId), 500);
+    } else {
+      toast({
+        title: "Erro ao cadastrar cliente",
+        description: result.error,
+        variant: "destructive",
+      });
+    }
+    setSubmittingClient(false);
+  }
 
-  async function onSubmit(values: FormValues) {
+  async function onProcessSubmit(values: FormValues) {
     if (!user || !officeId) {
         toast({ title: "Erro", description: "Você precisa estar logado e associado a um escritório.", variant: "destructive" });
         return;
@@ -200,34 +239,64 @@ export function NewProcessForm() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Form {...processForm}>
+          <form onSubmit={processForm.handleSubmit(onProcessSubmit)} className="space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <FormField
-                    control={form.control}
+                    control={processForm.control}
                     name="clientId"
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Cliente Principal</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o cliente deste processo" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {clients.map(client => (
-                                    <SelectItem key={client.id} value={client.id}>{client.fullName}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o cliente deste processo" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {clients.map(client => (
+                                        <SelectItem key={client.id} value={client.id}>{client.fullName}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            
+                             <Dialog open={isClientDialogOpen} onOpenChange={setClientDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" size="icon">
+                                        <UserPlus className="h-4 w-4" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                     <DialogHeader>
+                                        <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
+                                    </DialogHeader>
+                                     <Form {...clientForm}>
+                                        <form onSubmit={clientForm.handleSubmit(handleClientSubmit)} className="space-y-4 py-4">
+                                            <FormField control={clientForm.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <FormField control={clientForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <FormField control={clientForm.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="Número do documento" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <FormField control={clientForm.control} name="address" render={({ field }) => (<FormItem><FormLabel>Endereço</FormLabel><FormControl><Input placeholder="Endereço completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                            <DialogFooter>
+                                                <Button type="submit" disabled={isSubmittingClient}>
+                                                    {isSubmittingClient && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                    Salvar Cliente
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </Form>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
                  <FormField
-                    control={form.control}
+                    control={processForm.control}
                     name="lawyerId"
                     render={({ field }) => (
                     <FormItem>
@@ -250,7 +319,7 @@ export function NewProcessForm() {
                 />
             </div>
              <FormField
-                control={form.control}
+                control={processForm.control}
                 name="processNumber"
                 render={({ field }) => (
                 <FormItem>
@@ -273,7 +342,7 @@ export function NewProcessForm() {
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="justiceType"
                             render={({ field }) => (
                                 <FormItem>
@@ -297,7 +366,7 @@ export function NewProcessForm() {
                             )}
                         />
                         <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="comarca"
                             render={({ field }) => (
                             <FormItem>
@@ -310,7 +379,7 @@ export function NewProcessForm() {
                             )}
                         />
                          <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="court"
                             render={({ field }) => (
                             <FormItem>
@@ -323,7 +392,7 @@ export function NewProcessForm() {
                             )}
                         />
                         <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="judge"
                             render={({ field }) => (
                             <FormItem>
@@ -349,7 +418,7 @@ export function NewProcessForm() {
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="actionType"
                             render={({ field }) => (
                             <FormItem>
@@ -362,7 +431,7 @@ export function NewProcessForm() {
                             )}
                         />
                          <FormField
-                            control={form.control}
+                            control={processForm.control}
                             name="subject"
                             render={({ field }) => (
                             <FormItem>
@@ -376,7 +445,7 @@ export function NewProcessForm() {
                         />
                     </div>
                      <FormField
-                        control={form.control}
+                        control={processForm.control}
                         name="actionValue"
                         render={({ field }) => (
                         <FormItem>
@@ -403,7 +472,7 @@ export function NewProcessForm() {
                         {/* Plaintiff section */}
                         <div className="space-y-2">
                            <FormField
-                                control={form.control}
+                                control={processForm.control}
                                 name="plaintiffs"
                                 render={() => (
                                     <FormItem>
@@ -437,7 +506,7 @@ export function NewProcessForm() {
                         {/* Defendant section */}
                         <div className="space-y-2">
                            <FormField
-                                control={form.control}
+                                control={processForm.control}
                                 name="defendants"
                                 render={() => (
                                     <FormItem>
@@ -470,7 +539,7 @@ export function NewProcessForm() {
 
                     </div>
                      <FormField
-                        control={form.control}
+                        control={processForm.control}
                         name="representation"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
@@ -507,7 +576,7 @@ export function NewProcessForm() {
             </Card>
             
              <FormField
-              control={form.control}
+              control={processForm.control}
               name="status"
               render={({ field }) => (
                 <FormItem>

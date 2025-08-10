@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { collection, query, where, onSnapshot, DocumentData, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, DocumentData, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -148,10 +148,7 @@ export function ClientesClient() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl font-bold tracking-tight">Clientes do Escritório</h2>
-            <p className="text-muted-foreground">Gerencie a carteira de clientes.</p>
-        </div>
+        <div/>
         {userRole !== 'secretary' && (
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
