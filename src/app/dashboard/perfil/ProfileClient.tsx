@@ -20,12 +20,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescriptionComponent as FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User, BadgeHelp, Upload, Camera, Check, ChevronsUpDown, X, KeyRound, Mail } from 'lucide-react'
+import { Loader2, User, BadgeHelp, Camera, Check, ChevronsUpDown, KeyRound, Mail } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { updateProfileAction, updateProfilePhotoAction, changePasswordAction, changeEmailAction } from './actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -33,7 +34,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 
 const legalSpecialties = [
   { value: "Direito Civil", label: "Direito Civil" },
@@ -466,27 +466,30 @@ export function ProfileClient() {
         </Card>
         
         <Card>
-             <CardHeader>
+            <CardHeader>
                 <CardTitle className="flex items-center">
-                    <KeyRound className="mr-3 h-5 w-5 text-accent" />
-                    Segurança da Conta
+                    <Mail className="mr-3 h-5 w-5 text-accent" />
+                    Alterar E-mail de Login
                 </CardTitle>
                 <CardDescription>
-                    Gerencie seu e-mail de login e sua senha de acesso.
+                    Gerencie seu e-mail de acesso à plataforma.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8">
-                 <Form {...emailForm}>
+            <CardContent>
+                <Form {...emailForm}>
                     <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-6 max-w-md">
                         <FormField
                             control={emailForm.control}
                             name="newEmail"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>E-mail de Login</FormLabel>
+                                    <FormLabel>Novo E-mail</FormLabel>
                                     <FormControl>
-                                        <Input type="email" placeholder="seu@email.com" {...field} />
+                                        <Input type="email" placeholder="seu.novo@email.com" {...field} />
                                     </FormControl>
+                                    <FormDescription>
+                                        O novo e-mail será usado no seu próximo login.
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -510,12 +513,22 @@ export function ProfileClient() {
                         </Button>
                     </form>
                  </Form>
+            </CardContent>
+        </Card>
 
-                <Separator />
-                
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <KeyRound className="mr-3 h-5 w-5 text-accent" />
+                    Alterar Senha
+                </CardTitle>
+                <CardDescription>
+                    Recomendamos o uso de uma senha forte e única.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
                  <Form {...passwordForm}>
                     <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6 max-w-md">
-                         <h3 className="text-base font-semibold">Alterar Senha</h3>
                         <FormField
                             control={passwordForm.control}
                             name="currentPassword"
@@ -566,3 +579,5 @@ export function ProfileClient() {
     </div>
   )
 }
+
+    
