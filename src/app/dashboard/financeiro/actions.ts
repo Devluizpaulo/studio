@@ -121,7 +121,8 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
         if (!taskData.clientId) {
             return { success: false, error: 'Este lançamento não está vinculado a um cliente.' };
         }
-
+        
+        // Fetch client data
         const clientRef = db.collection('clients').doc(taskData.clientId);
         const clientSnap = await clientRef.get();
         if (!clientSnap.exists) {
@@ -129,7 +130,7 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
         }
         const clientData = clientSnap.data()!;
 
-
+        // Fetch office data
         const officeRef = db.collection('offices').doc(taskData.officeId);
         const officeSnap = await officeRef.get();
         if (!officeSnap.exists) {
@@ -137,12 +138,20 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
         }
         const officeData = officeSnap.data()!;
         
-        // Fetch owner details for office contact info
+        // Fetch owner user data for contact details
         const ownerRef = db.collection('users').doc(officeData.ownerId);
         const ownerSnap = await ownerRef.get();
         const ownerData = ownerSnap.exists ? ownerSnap.data() : {};
+        
+        const officeDetails = {
+            id: officeSnap.id,
+            officeName: officeData.name,
+            city: ownerData?.city,
+            ownerName: ownerData?.fullName,
+            ownerOab: ownerData?.oab,
+        };
 
-
+        // Fetch process data if it exists
         let processData = undefined;
         if (taskData.processId) {
             const processRef = db.collection('processes').doc(taskData.processId);
@@ -157,7 +166,7 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
             data: {
                 task: { id: taskSnap.id, ...taskData },
                 client: { id: clientSnap.id, ...clientData },
-                office: { id: officeSnap.id, ...officeData, ...ownerData },
+                office: officeDetails,
                 process: processData ? { ...processData } : undefined
             }
         };

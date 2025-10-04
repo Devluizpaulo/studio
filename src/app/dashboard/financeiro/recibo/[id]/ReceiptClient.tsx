@@ -8,9 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-// Correctly import the CommonJS module
-const numero = require('numero-por-extenso');
+import numero from 'numero-por-extenso';
 
 
 type ReceiptData = {
@@ -67,9 +65,9 @@ export function ReceiptClient({ receiptId }: { receiptId: string }) {
             <div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 shadow-lg print:shadow-none">
                 <header className="flex justify-between items-start pb-8 border-b-2 border-gray-800">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">{office.office || 'Escritório de Advocacia'}</h1>
-                        <p className="text-sm text-gray-600">Dr(a). {office.fullName}</p>
-                        <p className="text-sm text-gray-600">OAB: {office.oab || 'Não informado'}</p>
+                        <h1 className="text-2xl font-bold text-gray-800">{office.officeName || 'Escritório de Advocacia'}</h1>
+                        <p className="text-sm text-gray-600">Dr(a). {office.ownerName}</p>
+                        <p className="text-sm text-gray-600">OAB: {office.ownerOab || 'Não informado'}</p>
                     </div>
                     <div className="text-right">
                         <h2 className="text-3xl font-bold text-gray-800">RECIBO</h2>
@@ -102,8 +100,8 @@ export function ReceiptClient({ receiptId }: { receiptId: string }) {
                         {office.city || "Cidade"}, {format(task.paymentDate?.toDate() || new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}.
                     </p>
                     <div className="mt-16 border-t-2 border-gray-400 w-80 mx-auto">
-                        <p className="mt-2 text-sm font-semibold text-gray-800">{office.fullName}</p>
-                        <p className="text-sm text-gray-600">OAB: {office.oab}</p>
+                        <p className="mt-2 text-sm font-semibold text-gray-800">{office.ownerName}</p>
+                        <p className="text-sm text-gray-600">OAB: {office.ownerOab}</p>
                     </div>
                 </footer>
             </div>
