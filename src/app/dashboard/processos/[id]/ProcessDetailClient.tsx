@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot, orderBy } from "firebase/firestore"
+import { doc, getDocs, collection, query, where, DocumentData, Timestamp, onSnapshot, orderBy } from "firebase/firestore"
 import { db, storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { useAuth } from "@/contexts/AuthContext"
@@ -30,6 +30,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PetitionGenerator, PetitionFormValues } from "./PetitionGenerator"
+import { DraftDisplay } from "./DraftDisplay"
 
 
 interface Movement {
@@ -92,14 +94,6 @@ const chatFormSchema = z.object({
 })
 type ChatFormValues = z.infer<typeof chatFormSchema>;
 
-const petitionFormSchema = z.object({
-    petitionType: z.string().min(3, "O tipo de petição é obrigatório."),
-    legalThesis: z.string().min(20, "A tese jurídica deve ter pelo menos 20 caracteres."),
-    toneAndStyle: z.string().min(10, "Descreva o tom e estilo desejado."),
-})
-
-type PetitionFormValues = z.infer<typeof petitionFormSchema>;
-
 
 export function ProcessDetailClient() {
   const { user, loading: authLoading } = useAuth()
@@ -152,15 +146,6 @@ export function ProcessDetailClient() {
   const chatForm = useForm<ChatFormValues>({
       resolver: zodResolver(chatFormSchema),
       defaultValues: { text: "" }
-  })
-    
-  const petitionForm = useForm<PetitionFormValues>({
-    resolver: zodResolver(petitionFormSchema),
-    defaultValues: {
-        petitionType: "Petição Inicial",
-        legalThesis: "",
-        toneAndStyle: "Tom formal e combativo. Citar jurisprudência relevante do TJSP.",
-    }
   })
 
   useEffect(() => {
@@ -407,7 +392,7 @@ export function ProcessDetailClient() {
     }
   }
     
-  async function handlePetitionSubmit(values: PetitionFormValues) {
+  async function handleDraftPetition(values: PetitionFormValues) {
     if (!processData || !user) return;
     setIsDraftingPetition(true);
     setDraftContent("");
@@ -996,77 +981,16 @@ Representação: ${processData.representation === 'plaintiff' ? 'Autor' : 'Réu'
                     <CardTitle>Assistente de IA para Petições</CardTitle>
                     <CardDescription>Gere rascunhos de petições com base na estratégia do caso.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 lg:grid-cols-2">
-                   <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-primary">Diretrizes para a IA</h3>
-                        <Form {...petitionForm}>
-                            <form onSubmit={petitionForm.handleSubmit(handlePetitionSubmit)} className="space-y-4">
-                               <FormField
-                                    control={petitionForm.control}
-                                    name="petitionType"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Tipo de Petição</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Ex: Contestação, Recurso de Apelação" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={petitionForm.control}
-                                    name="legalThesis"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Tese Jurídica Central</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Qual é o principal argumento que a petição deve defender? Ex: 'A prescrição do débito impede a cobrança...'" {...field} className="min-h-[100px]" />
-                                            </FormControl>
-                                             <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                 <FormField
-                                    control={petitionForm.control}
-                                    name="toneAndStyle"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Tom e Estilo da Escrita</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Ex: 'Tom formal e combativo. Citar jurisprudência do TJSP sobre o tema...'" {...field} />
-                                            </FormControl>
-                                             <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button type="submit" disabled={isDraftingPetition} className="w-full" size="lg">
-                                    {isDraftingPetition && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Gerar Rascunho com IA
-                                </Button>
-                            </form>
-                        </Form>
-                   </div>
-                   <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-primary">Rascunho Gerado</h3>
-                        <div className="w-full h-[500px] bg-muted/50 rounded-md p-4 overflow-y-auto">
-                           {isDraftingPetition && (
-                                <div className="flex flex-col items-center justify-center h-full">
-                                    <Loader2 className="h-8 w-8 animate-spin text-accent" />
-                                    <p className="mt-4 text-muted-foreground">Aguarde, a IA está redigindo a petição...</p>
-                                </div>
-                           )}
-                           {draftContent ? (
-                             <Textarea 
-                                readOnly
-                                value={draftContent}
-                                className="w-full h-full text-base whitespace-pre-wrap bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                             />
-                           ) : (
-                             !isDraftingPetition && <p className="text-center text-muted-foreground pt-20">O rascunho da sua petição aparecerá aqui.</p>
-                           )}
-                        </div>
-                   </div>
+                <CardContent className="grid gap-8 lg:grid-cols-2">
+                    <PetitionGenerator
+                        representation={processData.representation}
+                        isDrafting={isDraftingPetition}
+                        onDraftPetition={handleDraftPetition}
+                    />
+                    <DraftDisplay
+                        draftContent={draftContent}
+                        isDrafting={isDraftingPetition}
+                    />
                 </CardContent>
             </Card>
         </TabsContent>
