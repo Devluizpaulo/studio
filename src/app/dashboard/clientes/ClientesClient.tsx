@@ -199,91 +199,98 @@ export function ClientesClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div/>
-        {userRole !== 'secretary' && (
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-                <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Novo Cliente
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px]">
-                <DialogHeader>
-                <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
-                   <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
-                    <FormField control={form.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                       <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>Nacionalidade</FormLabel><FormControl><Input placeholder="Brasileiro(a)" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Estado Civil</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="solteiro">Solteiro(a)</SelectItem><SelectItem value="casado">Casado(a)</SelectItem><SelectItem value="divorciado">Divorciado(a)</SelectItem><SelectItem value="viuvo">Viúvo(a)</SelectItem><SelectItem value="uniao_estavel">União Estável</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                    </div>
-                     <FormField control={form.control} name="profession" render={({ field }) => (<FormItem><FormLabel>Profissão</FormLabel><FormControl><Input placeholder="Profissão do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField control={form.control} name="rg" render={({ field }) => (<FormItem><FormLabel>RG</FormLabel><FormControl><Input placeholder="00.000.000-0" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="issuingBody" render={({ field }) => (<FormItem><FormLabel>Órgão Emissor</FormLabel><FormControl><Input placeholder="SSP/SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </div>
-
-                    <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                          control={form.control}
-                          name="zipCode"
-                          render={({ field }) => (
-                          <FormItem>
-                              <FormLabel>CEP</FormLabel>
-                              <div className="flex items-center">
-                                  <FormControl>
-                                      <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
-                                  </FormControl>
-                                  {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                              </div>
-                              <FormMessage />
-                          </FormItem>
-                          )}
-                      />
-                      <FormField control={form.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </div>
-
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormField control={form.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>Cidade</FormLabel><FormControl><Input placeholder="São Paulo" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><FormControl><Input placeholder="SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    </div>
-
-                    <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Salvar Cliente
-                        </Button>
-                    </DialogFooter>
-                </form>
-                </Form>
-            </DialogContent>
-            </Dialog>
-        )}
-      </div>
+       <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Clientes do Escritório
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Visualize e gerencie a sua carteira de clientes.
+            </p>
+        </div>
 
        <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-             <Users className="mr-3 h-5 w-5 text-accent" />
-            Lista de Clientes
-          </CardTitle>
-           <CardDescription>
-            {clients.length > 0 ? `Seu escritório tem ${clients.length} cliente(s) cadastrado(s).` : 'Nenhum cliente cadastrado ainda.'}
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div >
+                <CardTitle className="flex items-center">
+                    <Users className="mr-3 h-5 w-5 text-accent" />
+                    Lista de Clientes
+                </CardTitle>
+                <CardDescription>
+                    {clients.length > 0 ? `Seu escritório tem ${clients.length} cliente(s) cadastrado(s).` : 'Nenhum cliente cadastrado ainda.'}
+                </CardDescription>
+            </div>
+            {userRole !== 'secretary' && (
+                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Novo Cliente
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[800px]">
+                    <DialogHeader>
+                    <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
+                    <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
+                        <FormField control={form.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>Nacionalidade</FormLabel><FormControl><Input placeholder="Brasileiro(a)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Estado Civil</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="solteiro">Solteiro(a)</SelectItem><SelectItem value="casado">Casado(a)</SelectItem><SelectItem value="divorciado">Divorciado(a)</SelectItem><SelectItem value="viuvo">Viúvo(a)</SelectItem><SelectItem value="uniao_estavel">União Estável</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                        </div>
+                        <FormField control={form.control} name="profession" render={({ field }) => (<FormItem><FormLabel>Profissão</FormLabel><FormControl><Input placeholder="Profissão do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="rg" render={({ field }) => (<FormItem><FormLabel>RG</FormLabel><FormControl><Input placeholder="00.000.000-0" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="issuingBody" render={({ field }) => (<FormItem><FormLabel>Órgão Emissor</FormLabel><FormControl><Input placeholder="SSP/SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+
+                        <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="zipCode"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>CEP</FormLabel>
+                                <div className="flex items-center">
+                                    <FormControl>
+                                        <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
+                                    </FormControl>
+                                    {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField control={form.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>Cidade</FormLabel><FormControl><Input placeholder="São Paulo" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="state" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><FormControl><Input placeholder="SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Salvar Cliente
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                    </Form>
+                </DialogContent>
+                </Dialog>
+            )}
         </CardHeader>
         <CardContent>
            {clients.length > 0 ? (
