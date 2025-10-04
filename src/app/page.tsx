@@ -52,6 +52,7 @@ async function getMainLawyer() {
       legalSpecialty: data.legalSpecialty,
       bio: data.bio,
       photoUrl: data.photoUrl,
+      office: data.office,
     };
   } catch (error) {
     console.error("Error fetching main lawyer:", error);
@@ -93,7 +94,7 @@ export default async function Home() {
             <div className="flex justify-center lg:justify-start items-center gap-4 mb-4">
               <Scale className="h-12 w-12 text-primary" />
               <div>
-                <h2 className="text-2xl font-bold font-headline text-foreground">RGJM</h2>
+                <h2 className="text-2xl font-bold font-headline text-foreground">{mainLawyer?.office || 'RGJM'}</h2>
                 <p className="font-semibold text-primary/80 tracking-widest">ADVOCACIA</p>
               </div>
             </div>
@@ -171,6 +172,7 @@ export default async function Home() {
                          {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
                       </p>
                       <p className="mt-6 text-xl font-semibold text-foreground font-headline">{mainLawyer.fullName}</p>
+                       <p className="mt-1 text-md text-primary/80">{mainLawyer.office}</p>
                       <div className="mt-2">
                           {displaySpecialties(mainLawyer.legalSpecialty)}
                       </div>

@@ -24,6 +24,11 @@ interface OfficeSettings {
     metaKeywords?: string;
   };
   gtmId?: string;
+  ownerInfo?: {
+    fullName: string;
+    office: string;
+    oab: string;
+  }
 }
 
 // Function to get the first office settings from the database
@@ -33,17 +38,32 @@ async function getOfficeSettings(): Promise<OfficeSettings | null> {
     return null;
   }
   try {
-    // This is a simplified approach. In a multi-tenant app,
-    // you'd determine the office based on the domain or another identifier.
-    // Here, we just grab the first one we find for demonstration.
     const officeSnapshot = await db.collection("offices").limit(1).get();
     if (officeSnapshot.empty) {
       return null;
     }
     const officeData = officeSnapshot.docs[0].data();
+
+    // Fetch owner info
+    let ownerInfo = undefined;
+    if (officeData.ownerId) {
+      const ownerSnapshot = await db.collection('users').doc(officeData.ownerId).get();
+      if (ownerSnapshot.exists) {
+        const ownerData = ownerSnapshot.data();
+        if (ownerData) {
+            ownerInfo = {
+                fullName: ownerData.fullName || 'Advogado',
+                office: ownerData.office || officeData.name || 'Escritório de Advocacia',
+                oab: ownerData.oab || 'OAB não informada'
+            }
+        }
+      }
+    }
+
     return {
       seo: officeData.seo,
       gtmId: officeData.gtmId,
+      ownerInfo: ownerInfo,
     };
   } catch (error) {
     console.error("Error fetching office settings for layout. This can happen if server credentials are not set correctly. Using default settings.", error);
@@ -108,7 +128,7 @@ export default async function RootLayout({
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">{children}</main>
-              <Footer />
+              <Footer ownerInfo={settings?.ownerInfo} />
             </div>
             <Toaster />
           </SidebarProvider>
