@@ -1,7 +1,7 @@
 'use server';
 
-import {genkit, GenkitPlugin} from 'genkit';
-import type {GenerateRequest} from 'genkit';
+import {genkit} from 'genkit';
+import type {GenerateRequest, GenkitPlugin} from 'genkit/experimental';
 import {googleAI} from '@genkit-ai/googleai';
 import {db} from '@/lib/firebase-admin';
 
@@ -53,8 +53,8 @@ async function getApiKey(officeId: string): Promise<string> {
 export const ai = genkit({
   plugins: [
     {
-      async onGenerate(req: GenerateRequest, next) {
-        const uid = req.uid;
+      onGenerate: async function (req: GenerateRequest, next: any) {
+        const uid = req.context.auth?.uid;
         if (!uid) {
           throw new Error('User ID is required to get API key');
         }
