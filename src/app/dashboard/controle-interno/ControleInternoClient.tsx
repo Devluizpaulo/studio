@@ -122,11 +122,6 @@ export function ControleInternoClient() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Controle Interno</h2>
-        <p className="text-muted-foreground">Gerencie as tarefas administrativas do escritório.</p>
-      </div>
-
        <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -184,7 +179,6 @@ export function ControleInternoClient() {
            )}
         </CardContent>
       </Card>
-
     </div>
   )
 }

@@ -8,7 +8,7 @@ export default function ControleInternoPage() {
                     Controle Interno
                 </h1>
                 <p className="mt-2 text-muted-foreground">
-                    Gerencie as tarefas administrativas do escritório.
+                    Gerencie as tarefas administrativas e pendências do escritório.
                 </p>
             </div>
             <ControleInternoClient />
