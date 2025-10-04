@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Landmark, Briefcase, Heart, Shield } from "lucide-react";
 import Image from "next/image";
 import { TeamSection } from "./TeamSection";
-import placeholderImages from "@/lib/placeholder-images.json";
+import placeholderImagesData from "@/lib/placeholder-images.json";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
@@ -31,6 +31,7 @@ const practiceAreas = [
 
 
 export default function Home() {
+  const placeholderImages: any[] = placeholderImagesData;
   const heroImages = placeholderImages.filter(p => p.section === 'hero');
   const officeImage = heroImages.find(p => p.id === 'office-background');
   const lawyerPortrait = heroImages.find(p => p.id === 'lawyer-portrait-hero');
@@ -45,9 +46,8 @@ export default function Home() {
             <Image
               src={officeImage.src}
               alt={officeImage.alt}
-              layout="fill"
-              objectFit="cover"
-              className="z-0 opacity-20"
+              fill
+              className="object-cover z-0 opacity-20"
               data-ai-hint={officeImage.hint}
             />
         )}
@@ -56,7 +56,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             <div className="space-y-6">
-                <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/70 backdrop-blur-md">
+                <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/70 backdrop-blur-md shadow-2xl">
                     <div className="text-center lg:text-left mb-6">
                         <h2 className="text-4xl font-bold font-headline text-accent">RGJM</h2>
                         <p className="font-semibold text-white">ADVOCACIA E CONSULTORIA</p>
@@ -96,16 +96,17 @@ export default function Home() {
       <div className="w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
 
       {/* Practice Areas Section */}
-      <section id="services" className="py-20">
+      <section id="services" className="py-24 sm:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-accent font-headline">
                 Nossas Áreas de Atuação
               </h2>
+               <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">Oferecemos consultoria e representação jurídica em diversas áreas do direito, sempre com foco na excelência e na defesa intransigente dos seus interesses.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {practiceAreas.map((area, index) => (
-              <div key={index} className="bg-card/50 p-8 rounded-lg text-center border border-accent/20 hover:border-accent/50 hover:bg-card transition-all duration-300 transform hover:-translate-y-2">
+              <div key={index} className="bg-card/50 p-8 rounded-lg text-center border border-accent/20 hover:border-accent/50 hover:bg-card transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-accent/10">
                 <div className="flex justify-center mb-4">
                     {area.icon}
                 </div>
@@ -120,20 +121,20 @@ export default function Home() {
       <TeamSection />
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-card/50">
+      <section id="contact" className="py-24 sm:py-32 bg-card">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-4xl mx-auto items-center">
             <div className="space-y-4 text-center lg:text-left">
-              <h2 className="text-3xl font-bold text-accent font-headline">Fale comigo</h2>
-              <p className="text-muted-foreground">Não envie uma mensagem, pois as respostas podem levar dias. Agilize seu atendimento e fale conosco direto pelo WhatsApp. Garantimos que nossa equipe responderá o mais breve possível!</p>
+              <h2 className="text-3xl font-bold text-accent font-headline">Entre em Contato</h2>
+              <p className="text-muted-foreground text-lg">Para agilizar seu atendimento, recomendamos o contato direto via WhatsApp. Nossa equipe está pronta para responder o mais breve possível.</p>
                <Button asChild size="lg" className="text-lg py-4 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
                 <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                  Clique aqui
+                  Fale Conosco Agora
                 </a>
               </Button>
             </div>
             
-            <div className="bg-background/50 p-8 rounded-lg">
+            <div className="bg-background/50 p-8 rounded-lg shadow-inner">
                  <form className="space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">Nome</label>

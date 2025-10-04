@@ -13,7 +13,7 @@ export default function Footer() {
   }
   
   return (
-    <footer className="py-8 bg-background border-t border-accent/20">
+    <footer className="py-8 bg-card border-t border-accent/20">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         <div className="mb-4">
           <h3 className="text-2xl font-bold font-headline text-accent">REINALDO GONÇALVES</h3>

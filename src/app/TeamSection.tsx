@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import placeholderImages from "@/lib/placeholder-images.json";
+import placeholderImagesData from "@/lib/placeholder-images.json";
 
 async function getTeamMembers() {
   if (!db) {
@@ -40,6 +40,7 @@ async function getTeamMembers() {
 
 export async function TeamSection() {
     const team = await getTeamMembers();
+    const placeholderImages: any[] = placeholderImagesData;
 
     if (team.length === 0) {
         return null;
@@ -107,7 +108,7 @@ export async function TeamSection() {
                                     <CardHeader className="p-0">
                                         <div className="relative mx-auto h-56 w-full">
                                             {member.photoUrl ? (
-                                                <Image src={member.photoUrl} alt={`Foto de ${member.fullName}`} layout="fill" className="object-cover" />
+                                                <Image src={member.photoUrl} alt={`Foto de ${member.fullName}`} fill className="object-cover" />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center bg-muted">
                                                     <User className="h-24 w-24 text-muted-foreground" />
