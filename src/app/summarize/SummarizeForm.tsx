@@ -72,7 +72,7 @@ export function SummarizeForm() {
                             description: `${file.name} has been parsed and loaded.`,
                         });
                     })
-                    .catch(error => {
+                    .catch((error: any) => {
                         console.error("Error parsing .docx file:", error);
                         toast({
                             title: "Error Parsing File",

@@ -62,7 +62,7 @@ const draftPetitionFlow = ai.defineFlow(
     outputSchema: DraftPetitionOutputSchema,
   },
   async (input: DraftPetitionInput) => {
-    const {output} = await prompt(input, { user: input.userId });
+    const {output} = await prompt(input, { uid: input.userId });
     return output!;
   }
 );
