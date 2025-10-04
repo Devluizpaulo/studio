@@ -13,7 +13,8 @@ async function getTeamMembers() {
   }
   try {
     const usersCollection = db.collection('users');
-    const snapshot = await usersCollection.where('role', 'in', ['master', 'lawyer']).get();
+    // Fetch only non-master lawyers now
+    const snapshot = await usersCollection.where('role', '==', 'lawyer').get();
     
     if (snapshot.empty) {
       return [];
@@ -39,65 +40,34 @@ async function getTeamMembers() {
 
 
 export async function TeamSection() {
-    const team = await getTeamMembers();
+    const otherLawyers = await getTeamMembers();
     const placeholderImages: any[] = placeholderImagesData;
 
-    if (team.length === 0) {
+    if (otherLawyers.length === 0) {
         return null;
     }
-
-    const mainLawyer = team.find(member => member.role === 'master');
-    const otherLawyers = team.filter(member => member.role !== 'master');
     
-    const teamImages = placeholderImages.filter(p => p.section === 'team');
-    const mainLawyerImage = teamImages.find(p => p.id === 'main-lawyer');
-    const otherLawyerImages = teamImages.filter(p => p.id.startsWith('other-lawyer'));
+    const otherLawyerImages = placeholderImages.filter(p => p.id.startsWith('other-lawyer'));
 
 
     const displaySpecialties = (specialties: string[] | string | undefined) => {
         if (!specialties) return null;
-        if (Array.isArray(specialties) && specialties.length > 0) {
+        const specialtiesArray = Array.isArray(specialties) ? specialties : (typeof specialties === 'string' ? specialties.split(',').map(s => s.trim()) : []);
+        
+        if (specialtiesArray.length > 0) {
             return (
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    {specialties.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                    {specialtiesArray.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
                 </div>
             )
-        }
-        if (typeof specialties === 'string' && specialties) {
-             return <p className="text-sm text-primary">{specialties}</p>
         }
         return null;
     }
 
     return (
         <>
-            {mainLawyer && (
-                <section id="about" className="py-24 sm:py-32 bg-card">
-                    <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
-                        <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
-                             <Image
-                                src={mainLawyer.photoUrl || mainLawyerImage?.src || "https://placehold.co/600x800.png"}
-                                alt={mainLawyerImage?.alt || `Advogado(a) ${mainLawyer.fullName}`}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={mainLawyerImage?.hint || "lawyer portrait"}
-                              />
-                        </div>
-                        <div>
-                            <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
-                             <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
-                               {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
-                            </p>
-                            <p className="mt-6 text-xl font-semibold text-foreground font-headline">{mainLawyer.fullName}</p>
-                            <div className="mt-2">
-                                {displaySpecialties(mainLawyer.legalSpecialty)}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-             {otherLawyers.length > 0 && (
-                <section id="team" className="py-24 sm:py-32 bg-background">
+            {otherLawyers.length > 0 && (
+                <section id="team" className="py-24 sm:py-32 bg-card">
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-16">
                             <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Nossa Equipe</h2>
@@ -107,7 +77,7 @@ export async function TeamSection() {
                             {otherLawyers.map((member, index) => {
                                 const placeholderImage = otherLawyerImages[index % otherLawyerImages.length];
                                 return (
-                                <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-card">
+                                <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-background">
                                     <CardHeader className="p-0">
                                         <div className="relative mx-auto h-56 w-full">
                                             <Image 

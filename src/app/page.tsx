@@ -4,6 +4,8 @@ import { Landmark, Briefcase, Heart, Shield, Scale, CalendarCheck2 } from "lucid
 import Image from "next/image";
 import { TeamSection } from "./TeamSection";
 import placeholderImagesData from "@/lib/placeholder-images.json";
+import { db } from "@/lib/firebase-admin";
+import { Badge } from "@/components/ui/badge";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
@@ -30,11 +32,55 @@ const practiceAreas = [
   },
 ];
 
+async function getMainLawyer() {
+  if (!db) {
+    console.warn("Firebase Admin (db) is not initialized. Skipping getMainLawyer.");
+    return null;
+  }
+  try {
+    const usersCollection = db.collection('users');
+    const snapshot = await usersCollection.where('role', '==', 'master').limit(1).get();
+    
+    if (snapshot.empty) {
+      return null;
+    }
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+      id: doc.id,
+      fullName: data.fullName,
+      legalSpecialty: data.legalSpecialty,
+      bio: data.bio,
+      photoUrl: data.photoUrl,
+    };
+  } catch (error) {
+    console.error("Error fetching main lawyer:", error);
+    return null;
+  }
+}
 
-export default function Home() {
+const displaySpecialties = (specialties: string[] | string | undefined) => {
+    if (!specialties) return null;
+    const specialtiesArray = Array.isArray(specialties) ? specialties : (typeof specialties === 'string' ? specialties.split(',').map(s => s.trim()) : []);
+
+    if (specialtiesArray.length > 0) {
+        return (
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                {specialtiesArray.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+            </div>
+        )
+    }
+    return null;
+}
+
+
+export default async function Home() {
   const placeholderImages: any[] = placeholderImagesData;
   const heroImages = placeholderImages.filter(p => p.section === 'hero');
   const lawyerPortrait = heroImages.find(p => p.id === 'lawyer-portrait-hero');
+  
+  const mainLawyer = await getMainLawyer();
+  const mainLawyerImage = placeholderImages.find(p => p.id === 'main-lawyer');
 
   return (
     <div className="flex flex-col bg-background text-foreground">
@@ -105,6 +151,33 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* About Section */}
+      {mainLawyer && (
+          <section id="about" className="py-24 sm:py-32 bg-background">
+              <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
+                  <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
+                       <Image
+                          src={mainLawyer.photoUrl || mainLawyerImage?.src || "https://placehold.co/600x800.png"}
+                          alt={mainLawyerImage?.alt || `Advogado(a) ${mainLawyer.fullName}`}
+                          fill
+                          className="object-cover"
+                          data-ai-hint={mainLawyerImage?.hint || "lawyer portrait"}
+                        />
+                  </div>
+                  <div>
+                      <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
+                       <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
+                         {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
+                      </p>
+                      <p className="mt-6 text-xl font-semibold text-foreground font-headline">{mainLawyer.fullName}</p>
+                      <div className="mt-2">
+                          {displaySpecialties(mainLawyer.legalSpecialty)}
+                      </div>
+                  </div>
+              </div>
+          </section>
+      )}
 
        <TeamSection />
 
