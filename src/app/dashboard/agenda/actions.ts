@@ -66,5 +66,3 @@ export async function createEventAction(
     return { success: false, error: "Falha ao criar evento. Tente novamente." }
   }
 }
-
-    
