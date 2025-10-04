@@ -1,4 +1,3 @@
-
 "use client"
 import Link from "next/link";
 import { Scale } from "lucide-react";
@@ -27,7 +26,6 @@ export default function Footer({ ownerInfo }: FooterProps) {
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         <div className="mb-4">
           <h3 className="text-2xl font-bold font-headline text-accent">RGJM Advocacia</h3>
-          <p className="text-sm text-muted-foreground">Advogado(a) | OAB/UF 000.000</p>
         </div>
         
         <div className="mb-4">
