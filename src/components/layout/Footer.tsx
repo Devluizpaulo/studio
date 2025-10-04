@@ -3,7 +3,15 @@ import Link from "next/link";
 import { Scale, Instagram, Linkedin } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-export default function Footer() {
+interface FooterProps {
+    ownerInfo?: {
+        fullName: string;
+        office: string;
+        oab: string;
+    }
+}
+
+export default function Footer({ ownerInfo }: FooterProps) {
   const pathname = usePathname();
   const isDashboard = pathname.startsWith('/dashboard');
 

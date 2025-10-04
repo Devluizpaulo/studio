@@ -74,7 +74,7 @@ export function SummarizeForm() {
                 title: "Arquivo Carregado",
                 description: `${file.name} foi processado e o texto inserido no campo abaixo.`,
             });
-        } else {
+        } else if (!result.success) {
              toast({
                 title: "Erro ao Processar Arquivo",
                 description: result.error || "Não foi possível ler o conteúdo do arquivo.",
