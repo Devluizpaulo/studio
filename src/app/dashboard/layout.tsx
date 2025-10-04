@@ -15,7 +15,7 @@ export default function DashboardLayout({
           <div className="container mx-auto px-6 py-8">{children}</div>
         </main>
          <footer className="border-t border-border bg-background/95 p-4 text-center text-xs text-muted-foreground">
-            <span>Versão 1.0.0 | Plataforma de gestão para escritórios de advocacia.</span>
+            <span>Plataforma de gestão para escritórios de advocacia.</span>
           </footer>
       </div>
     </div>
