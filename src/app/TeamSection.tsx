@@ -13,8 +13,11 @@ async function getTeamMembers() {
   }
   try {
     const usersCollection = db.collection('users');
-    // Fetch only non-master lawyers now
-    const snapshot = await usersCollection.where('role', '==', 'lawyer').get();
+    // Fetch only non-master lawyers that are marked as public
+    const snapshot = await usersCollection
+        .where('role', '==', 'lawyer')
+        .where('showOnPublicSite', '==', true)
+        .get();
     
     if (snapshot.empty) {
       return [];
@@ -80,7 +83,7 @@ export async function TeamSection() {
                                         <CardTitle className="text-2xl">{member.fullName}</CardTitle>
                                         <div className="mt-3 min-h-[40px]">
                                             {specialties.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                                <div className="flex flex-wrap gap-2 justify-center">
                                                     {specialties.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
                                                 </div>
                                             )}

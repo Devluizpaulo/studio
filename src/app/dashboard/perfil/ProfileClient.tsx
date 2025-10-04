@@ -20,13 +20,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescriptionComponent as FormDescription,
+  FormDescription as FormDescriptionComponent,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, User, BadgeHelp, Camera, Check, ChevronsUpDown, KeyRound, Mail } from 'lucide-react'
+import { Loader2, User, BadgeHelp, Camera, Check, ChevronsUpDown, KeyRound, Mail, Eye } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { updateProfileAction, updateProfilePhotoAction, changePasswordAction, changeEmailAction } from './actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 
 const legalSpecialties = [
   { value: "Direito Civil", label: "Direito Civil" },
@@ -44,8 +45,7 @@ const legalSpecialties = [
   { value: "Direito do Consumidor", label: "Direito do Consumidor" },
   { value: "Direito de Família", label: "Direito de Família" },
   { value: "Direito Previdenciário", label: "Direito Previdenciário" },
-  { value: "Direito Ambiental", label: "Direito Ambiental" },
-  { value: "Direito Digital", label: "Direito Digital" },
+  { value: "Direito Ambiental", label: "Direito Digital" },
   { value: "Direito Imobiliário", label: "Direito Imobiliário" },
 ] as const;
 
@@ -57,6 +57,7 @@ const profileFormSchema = z.object({
     office: z.string().min(2, "O nome do escritório é obrigatório.").optional(),
     bio: z.string().optional(),
     photoFile: z.instanceof(File).optional(),
+    showOnPublicSite: z.boolean().default(false).optional(),
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -97,7 +98,8 @@ export function ProfileClient() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-        legalSpecialty: []
+        legalSpecialty: [],
+        showOnPublicSite: false,
     }
   })
 
@@ -137,6 +139,7 @@ export function ProfileClient() {
                     legalSpecialty: userData.legalSpecialty || [],
                     office: userData.office,
                     bio: userData.bio,
+                    showOnPublicSite: userData.showOnPublicSite || false,
                 })
                  emailForm.reset({
                     newEmail: userData.email,
@@ -174,6 +177,7 @@ export function ProfileClient() {
             legalSpecialty: values.legalSpecialty,
             office: values.office,
             bio: values.bio,
+            showOnPublicSite: values.showOnPublicSite,
         })
         if (result.success) {
           toast({ title: 'Perfil atualizado com sucesso!' })
@@ -458,9 +462,53 @@ export function ProfileClient() {
 
                     <Button type="submit" disabled={isSubmittingProfile}>
                         {isSubmittingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Salvar Alterações
+                        Salvar Alterações de Perfil
                     </Button>
                 </form>
+                </Form>
+            </CardContent>
+        </Card>
+
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <Eye className="mr-3 h-5 w-5 text-accent" />
+                    Configurações de Visibilidade
+                </CardTitle>
+                <CardDescription>
+                    Controle se o seu perfil aparece na página inicial do site.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                        <FormField
+                            control={profileForm.control}
+                            name="showOnPublicSite"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                    <FormLabel className="text-base">
+                                        Exibir perfil publicamente no site
+                                    </FormLabel>
+                                    <FormDescriptionComponent>
+                                       Se ativado, seu perfil (foto, nome, especialidades) aparecerá na seção "Nossa Equipe" da página inicial.
+                                    </FormDescriptionComponent>
+                                </div>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                         <Button type="submit" disabled={isSubmittingProfile}>
+                            {isSubmittingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Visibilidade
+                        </Button>
+                    </form>
                 </Form>
             </CardContent>
         </Card>
@@ -487,9 +535,9 @@ export function ProfileClient() {
                                     <FormControl>
                                         <Input type="email" placeholder="seu.novo@email.com" {...field} />
                                     </FormControl>
-                                    <FormDescription>
+                                    <FormDescriptionComponent>
                                         O novo e-mail será usado no seu próximo login.
-                                    </FormDescription>
+                                    </FormDescriptionComponent>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -579,5 +627,3 @@ export function ProfileClient() {
     </div>
   )
 }
-
-    

@@ -13,6 +13,7 @@ const updateProfileSchema = z.object({
   legalSpecialty: z.array(z.string()).optional(),
   office: z.string().min(2, "O nome do escritório é obrigatório.").optional(),
   bio: z.string().optional(),
+  showOnPublicSite: z.boolean().optional(),
 })
 
 type Result =
