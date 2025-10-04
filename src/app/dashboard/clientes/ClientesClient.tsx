@@ -29,7 +29,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PlusCircle, Loader2, UserPlus, Users, FileText, Search } from 'lucide-react'
+import { PlusCircle, Loader2, UserPlus, Users, FileText, Search, ChevronRight } from 'lucide-react'
 import { createClientAction } from './actions'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -121,6 +121,10 @@ export function ClientesClient() {
         setIsFetchingCep(false);
     }
   }
+
+  const handleRowClick = (clientId: string) => {
+    router.push(`/dashboard/clientes/${clientId}`);
+  };
 
 
   useEffect(() => {
@@ -290,15 +294,19 @@ export function ClientesClient() {
                         <TableHead>Email</TableHead>
                         <TableHead>Telefone</TableHead>
                         <TableHead>Documento</TableHead>
+                        <TableHead className="text-right"></TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
                     {clients.map((client) => (
-                        <TableRow key={client.id}>
-                        <TableCell className="font-medium">{client.fullName}</TableCell>
-                        <TableCell>{client.email}</TableCell>
-                        <TableCell>{client.phone}</TableCell>
-                        <TableCell>{client.document}</TableCell>
+                        <TableRow key={client.id} onClick={() => handleRowClick(client.id)} className="cursor-pointer">
+                          <TableCell className="font-medium">{client.fullName}</TableCell>
+                          <TableCell>{client.email}</TableCell>
+                          <TableCell>{client.phone}</TableCell>
+                          <TableCell>{client.document}</TableCell>
+                          <TableCell className="text-right">
+                              <ChevronRight className="h-4 w-4" />
+                          </TableCell>
                         </TableRow>
                     ))}
                     </TableBody>
