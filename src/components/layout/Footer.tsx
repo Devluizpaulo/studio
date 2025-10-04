@@ -26,8 +26,8 @@ export default function Footer({ ownerInfo }: FooterProps) {
     <footer className="py-8 bg-card border-t border-accent/20">
       <div className="container mx-auto px-4 flex flex-col items-center text-center">
         <div className="mb-4">
-          <h3 className="text-2xl font-bold font-headline text-accent">{ownerInfo?.office || 'RGJM Advocacia'}</h3>
-          <p className="text-sm text-muted-foreground">{ownerInfo?.fullName || 'Advogado(a)'} | {ownerInfo?.oab || 'OAB/UF 000.000'}</p>
+          <h3 className="text-2xl font-bold font-headline text-accent">RGJM Advocacia</h3>
+          <p className="text-sm text-muted-foreground">Advogado(a) | OAB/UF 000.000</p>
         </div>
         
         <div className="mb-4">
@@ -43,7 +43,7 @@ export default function Footer({ ownerInfo }: FooterProps) {
         
         <div className="text-center pt-4">
           <p className="text-muted-foreground text-xs mb-1">
-            © 2024 {ownerInfo?.office || 'RGJM Advocacia'}. Todos os direitos reservados.
+            © 2024 RGJM Advocacia. Todos os direitos reservados.
           </p>
           <p className="text-muted-foreground text-xs">
             Desenvolvido por{' '}

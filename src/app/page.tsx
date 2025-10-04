@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Landmark, Briefcase, Heart, Shield, Scale } from "lucide-react";
 import Image from "next/image";
@@ -107,7 +108,7 @@ export default async function Home() {
             <div className="flex justify-center lg:justify-start items-center gap-4 mb-4">
               <Scale className="h-12 w-12 text-primary" />
               <div>
-                <h2 className="text-2xl font-bold font-headline text-foreground">{mainLawyer?.office || 'RGJM'}</h2>
+                <h2 className="text-2xl font-bold font-headline text-foreground">RGJM</h2>
                 <p className="font-semibold text-primary/80 tracking-widest">ADVOCACIA</p>
               </div>
             </div>
