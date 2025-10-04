@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { summarizeLegalBriefAction } from "./actions";
+import DocxParser from "docx-parser";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -53,18 +54,59 @@ export function SummarizeForm() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        form.setValue("documentText", text);
+    if (!file) return;
+
+    const fileType = file.type;
+    const reader = new FileReader();
+
+    if (fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        reader.readAsArrayBuffer(file);
+        reader.onload = (e) => {
+            const arrayBuffer = e.target?.result;
+            if (arrayBuffer) {
+                DocxParser.parse(arrayBuffer as ArrayBuffer)
+                    .then((result: {text: string}) => {
+                        form.setValue("documentText", result.text);
+                        toast({
+                            title: "File Loaded",
+                            description: `${file.name} has been parsed and loaded.`,
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error parsing .docx file:", error);
+                        toast({
+                            title: "Error Parsing File",
+                            description: "Could not read the content of the .docx file.",
+                            variant: "destructive"
+                        });
+                    });
+            }
+        };
+    } else if (fileType === "text/plain" || fileType === "text/markdown") {
+        reader.readAsText(file);
+        reader.onload = (e) => {
+            const text = e.target?.result as string;
+            form.setValue("documentText", text);
+            toast({
+                title: "File Loaded",
+                description: `${file.name} has been loaded into the document text field.`,
+            });
+        };
+    } else {
         toast({
-            title: "File Loaded",
-            description: `${file.name} has been loaded into the document text field.`,
-        })
-      };
-      reader.readAsText(file);
+            title: "Unsupported File Type",
+            description: "Please upload a .txt, .md, or .docx file.",
+            variant: "destructive"
+        });
     }
+
+    reader.onerror = () => {
+        toast({
+            title: "File Read Error",
+            description: "An error occurred while reading the file.",
+            variant: "destructive"
+        });
+    };
   };
 
   async function onSubmit(values: FormValues) {
@@ -122,7 +164,7 @@ export function SummarizeForm() {
                       </>
                     </FormControl>
                     <FormDescription>
-                      Upload a .txt, .md, or .docx file, or paste the text directly.
+                      Supported file types: .txt, .md, .docx
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -194,7 +236,7 @@ export function SummarizeForm() {
               Generated Summary
             </CardTitle>
           </CardHeader>
-          <CardContent className="prose prose-lg max-w-none text-foreground/90">
+          <CardContent className="prose prose-invert max-w-none text-foreground/90">
             {isLoading && (
               <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-accent" />
