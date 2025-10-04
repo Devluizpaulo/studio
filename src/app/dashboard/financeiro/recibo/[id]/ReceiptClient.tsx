@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import numero from 'numero-por-extenso';
+
+// Correctly import the CommonJS module
+const numero = require('numero-por-extenso');
+
 
 type ReceiptData = {
     task: any;

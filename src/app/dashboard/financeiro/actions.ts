@@ -140,7 +140,7 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
         // Fetch owner details for office contact info
         const ownerRef = db.collection('users').doc(officeData.ownerId);
         const ownerSnap = await ownerRef.get();
-        const ownerData = ownerSnap.exists() ? ownerSnap.data() : {};
+        const ownerData = ownerSnap.exists ? ownerSnap.data() : {};
 
 
         let processData = undefined;
@@ -167,4 +167,3 @@ export async function getFinancialTaskDetailsForReceiptAction(taskId: string): P
         return { success: false, error: 'Falha ao carregar os dados do recibo.' };
     }
 }
-    

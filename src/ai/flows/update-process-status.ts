@@ -57,7 +57,7 @@ const updateProcessStatusFlow = ai.defineFlow(
     outputSchema: UpdateProcessStatusOutputSchema,
   },
   async (input: UpdateProcessStatusInput) => {
-    const {output} = await prompt(input, { options: { user: input.userId } });
+    const {output} = await prompt(input, { user: input.userId });
     return output!;
   }
 );
