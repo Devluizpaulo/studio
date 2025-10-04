@@ -1,7 +1,8 @@
-
 import { Button } from "@/components/ui/button";
-import { Check, Scale, Briefcase, Gavel, Shield, Globe, Users, Heart, Landmark } from "lucide-react";
+import { Landmark, Briefcase, Heart, Shield } from "lucide-react";
 import Image from "next/image";
+import { TeamSection } from "./TeamSection";
+import { placeholderImages } from "@/lib/placeholder-images";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
@@ -28,48 +29,34 @@ const practiceAreas = [
   },
 ];
 
-const specialties = [
-    "Crimes de organização criminosa",
-    "Crimes de Homicídio",
-    "Ações de improbidade administrativa",
-    "Crimes licitatórios",
-    "Crimes aduaneiros",
-    "Investigação defensiva",
-    "Crimes militares",
-    "Crimes contra a administração pública",
-    "Atuação perante Tribunais Superiores",
-    "Crimes de lavagem de dinheiro",
-    "Crimes contra o meio ambiente",
-    "Crimes de estelionato",
-    "Crimes contra o sistema financeiro",
-    "Crimes da Lei de drogas",
-    "Crimes tributários",
-    "Acordo de não persecução penal",
-    "Lei Maria da Penha"
-];
-
 
 export default function Home() {
+  const heroImages = placeholderImages.filter(p => p.section === 'hero');
+  const officeImage = heroImages.find(p => p.id === 'office-background');
+  const lawyerPortrait = heroImages.find(p => p.id === 'lawyer-portrait-hero');
+
   return (
     <div className="flex flex-col bg-background text-foreground">
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10"></div>
-        <Image
-          src="https://placehold.co/1920x1080.png"
-          alt="Escritório de advocacia"
-          layout="fill"
-          objectFit="cover"
-          className="z-0 opacity-20"
-          data-ai-hint="library background"
-        />
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10"></div>
+        {officeImage && (
+            <Image
+              src={officeImage.src}
+              alt={officeImage.alt}
+              layout="fill"
+              objectFit="cover"
+              className="z-0 opacity-20"
+              data-ai-hint={officeImage.hint}
+            />
+        )}
         
         <div className="container mx-auto px-4 z-20 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             <div className="space-y-6">
-                <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/50 backdrop-blur-md">
+                <div className="p-8 border-2 border-accent/30 rounded-lg bg-background/70 backdrop-blur-md">
                     <div className="text-center lg:text-left mb-6">
                         <h2 className="text-4xl font-bold font-headline text-accent">RGJM</h2>
                         <p className="font-semibold text-white">ADVOCACIA E CONSULTORIA</p>
@@ -89,15 +76,17 @@ export default function Home() {
             </div>
             
             <div className="hidden lg:flex justify-center">
-                <Image
-                  src="https://placehold.co/500x700.png"
-                  alt="Advogado Reinaldo Gonçalves"
-                  width={500}
-                  height={700}
-                  className="rounded-lg shadow-2xl"
-                  priority
-                  data-ai-hint="lawyer portrait"
-                />
+                {lawyerPortrait && (
+                    <Image
+                      src={lawyerPortrait.src}
+                      alt={lawyerPortrait.alt}
+                      width={500}
+                      height={700}
+                      className="rounded-lg shadow-2xl"
+                      priority
+                      data-ai-hint={lawyerPortrait.hint}
+                    />
+                )}
             </div>
           </div>
         </div>
@@ -116,7 +105,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {practiceAreas.map((area, index) => (
-              <div key={index} className="bg-card/50 p-8 rounded-lg text-center border border-accent/20">
+              <div key={index} className="bg-card/50 p-8 rounded-lg text-center border border-accent/20 hover:border-accent/50 hover:bg-card transition-all duration-300 transform hover:-translate-y-2">
                 <div className="flex justify-center mb-4">
                     {area.icon}
                 </div>
@@ -128,57 +117,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Specialties Section */}
-       <section id="specialties" className="py-20 bg-card/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-accent font-headline">
-              Algumas das nossas especialidades
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 max-w-6xl mx-auto">
-            {specialties.map((specialty, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                <span className="text-muted-foreground">{specialty}</span>
-              </div>
-            ))}
-          </div>
-           <div className="text-center mt-12">
-                <p className="text-muted-foreground mb-4">Se você está enfrentando alguma situação legal, entre em contato conosco e agende sua consulta agora mesmo.</p>
-                 <Button asChild size="lg" className="text-lg py-6 px-8 rounded-lg shadow-lg hover:shadow-accent/20 transition-all duration-300">
-                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                    Falar com um Advogado
-                    </a>
-                </Button>
-                <p className="text-muted-foreground text-sm mt-2">Atendimento para todo Brasil.</p>
-           </div>
-        </div>
-      </section>
-
-
-      {/* About Section */}
-      <section id="about" className="py-24 sm:py-32">
-        <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
-            <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
-                    <Image
-                    src="https://placehold.co/600x800.png"
-                    alt="Advogado em reflexão"
-                    fill
-                    className="object-cover"
-                    data-ai-hint="lawyer profile"
-                    />
-            </div>
-            <div>
-                <h2 className="font-headline text-3xl font-bold tracking-tight text-accent sm:text-4xl">O sucesso no enfrentamento de um processo demanda uma defesa especializada.</h2>
-                    <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
-                    Se você está sendo acusado de cometer um crime, é fundamental contar com um advogado especializado nesse tema e que se empenhará incansavelmente em seu favor, assegurando a preservação dos seus direitos. Meus objetivos centrais é preservar os direitos fundamentais garantidos pela Constituição, buscando sempre a estratégia mais eficaz na busca pela preservação da liberdade e pela justiça.
-                </p>
-                <p className="mt-6 text-xl font-semibold text-primary font-headline">Reinaldo Gonçalves</p>
-                <p className="text-sm text-accent">Advogado Criminalista</p>
-            </div>
-        </div>
-      </section>
+      <TeamSection />
 
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-card/50">

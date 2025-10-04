@@ -1,0 +1,23 @@
+[
+  {
+    "id": "office-background",
+    "section": "hero",
+    "src": "https://picsum.photos/seed/officebg/1920/1080",
+    "alt": "Interior de um escritório de advocacia moderno e sofisticado.",
+    "hint": "modern office"
+  },
+  {
+    "id": "lawyer-portrait-hero",
+    "section": "hero",
+    "src": "https://picsum.photos/seed/reinaldo/500/700",
+    "alt": "Retrato profissional do advogado Reinaldo Gonçalves.",
+    "hint": "lawyer portrait"
+  },
+  {
+    "id": "main-lawyer",
+    "section": "team",
+    "src": "https://picsum.photos/seed/mainlawyer/600/800",
+    "alt": "Retrato do advogado principal do escritório.",
+    "hint": "professional lawyer"
+  }
+]
