@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import React from "react";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ interface OfficeSettings {
     metaKeywords?: string;
   };
   gtmId?: string;
+  whatsappLink?: string;
   ownerInfo?: {
     fullName: string;
     office: string;
@@ -63,6 +65,7 @@ async function getOfficeSettings(): Promise<OfficeSettings | null> {
     return {
       seo: officeData.seo,
       gtmId: officeData.gtmId,
+      whatsappLink: officeData.whatsappLink,
       ownerInfo: ownerInfo,
     };
   } catch (error) {
@@ -97,6 +100,15 @@ export default async function RootLayout({
 }>) {
   const settings = await getOfficeSettings();
 
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      // @ts-ignore
+      return React.cloneElement(child, { settings });
+    }
+    return child;
+  });
+
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
        {settings?.gtmId && (
@@ -127,7 +139,7 @@ export default async function RootLayout({
           <SidebarProvider>
             <div className="relative flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1">{childrenWithProps}</main>
               <Footer ownerInfo={settings?.ownerInfo} />
             </div>
             <Toaster />

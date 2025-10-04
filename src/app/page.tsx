@@ -1,14 +1,12 @@
 
 import { Button } from "@/components/ui/button";
-import { Landmark, Briefcase, Heart, Shield, Scale, CalendarCheck2 } from "lucide-react";
+import { Landmark, Briefcase, Heart, Shield, Scale } from "lucide-react";
 import Image from "next/image";
 import { TeamSection } from "./TeamSection";
 import placeholderImagesData from "@/lib/placeholder-images.json";
 import { db } from "@/lib/firebase-admin";
 import { Badge } from "@/components/ui/badge";
 import { ContactForm } from "./ContactForm";
-
-const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
 const practiceAreas = [
   {
@@ -33,33 +31,47 @@ const practiceAreas = [
   },
 ];
 
-async function getMainLawyer() {
-  if (!db) {
-    console.warn("Firebase Admin (db) is not initialized. Skipping getMainLawyer.");
-    return null;
-  }
-  try {
-    const usersCollection = db.collection('users');
-    const snapshot = await usersCollection.where('role', '==', 'master').limit(1).get();
-    
-    if (snapshot.empty) {
-      return null;
+async function getPageData() {
+    if (!db) {
+        console.warn("Firebase Admin (db) is not initialized. Using default data.");
+        return { mainLawyer: null, whatsappLink: "https://wa.me/" };
     }
-    const doc = snapshot.docs[0];
-    const data = doc.data();
-    return {
-      id: doc.id,
-      fullName: data.fullName,
-      legalSpecialty: data.legalSpecialty,
-      bio: data.bio,
-      photoUrl: data.photoUrl,
-      office: data.office,
-    };
-  } catch (error) {
-    console.error("Error fetching main lawyer:", error);
-    return null;
-  }
+    try {
+        const officeSnapshot = await db.collection("offices").limit(1).get();
+        if (officeSnapshot.empty) {
+            return { mainLawyer: null, whatsappLink: "https://wa.me/" };
+        }
+        const officeData = officeSnapshot.docs[0].data();
+
+        let mainLawyer = null;
+        if (officeData.ownerId) {
+            const lawyerSnapshot = await db.collection('users').doc(officeData.ownerId).get();
+            if (lawyerSnapshot.exists) {
+                const lawyerData = lawyerSnapshot.data();
+                if (lawyerData) {
+                    mainLawyer = {
+                        id: lawyerSnapshot.id,
+                        fullName: lawyerData.fullName,
+                        legalSpecialty: lawyerData.legalSpecialty,
+                        bio: lawyerData.bio,
+                        photoUrl: lawyerData.photoUrl,
+                        office: lawyerData.office,
+                    };
+                }
+            }
+        }
+        
+        return {
+            mainLawyer,
+            whatsappLink: officeData.whatsappLink || "https://wa.me/",
+        };
+
+    } catch (error) {
+        console.error("Error fetching page data:", error);
+        return { mainLawyer: null, whatsappLink: "https://wa.me/" };
+    }
 }
+
 
 const displaySpecialties = (specialties: string[] | string | undefined) => {
     if (!specialties) return null;
@@ -81,7 +93,7 @@ export default async function Home() {
   const heroImages = placeholderImages.filter(p => p.section === 'hero');
   const lawyerPortrait = heroImages.find(p => p.id === 'lawyer-portrait-hero');
   
-  const mainLawyer = await getMainLawyer();
+  const { mainLawyer, whatsappLink } = await getPageData();
   const mainLawyerImage = placeholderImages.find(p => p.id === 'main-lawyer');
 
   return (
@@ -108,7 +120,7 @@ export default async function Home() {
                 Proteção e justiça para o consumidor. Assessoria especializada para resolver seu caso de forma rápida e eficaz.
             </p>
             <Button asChild size="lg" className="w-full lg:w-auto text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
-                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
                     Fale com um Advogado
                 </a>
             </Button>
@@ -195,7 +207,7 @@ export default async function Home() {
               </p>
               <div className="mt-8 flex justify-center md:justify-start">
                   <Button asChild size="lg" className="text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
                       Fale no WhatsApp
                     </a>
                   </Button>
@@ -206,7 +218,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
-       <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg z-50 hover:bg-green-600 transition-transform hover:scale-110">
+       <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg z-50 hover:bg-green-600 transition-transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7"><path d="M16.6 14c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.7-.8.9-.1.1-.3.1-.5 0-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.2.3-.3.1-.1.2-.3.1-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.3c.1.1 1.5 2.3 3.6 3.2.5.2.8.3 1.1.4.5.1 1 .1 1.3.1.4 0 1.1-.5 1.3-1 .2-.5.2-1 .1-1.1-.1-.1-.3-.2-.5-.3zM12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"/></svg>
       </a>
     </div>

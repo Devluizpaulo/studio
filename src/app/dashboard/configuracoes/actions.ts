@@ -163,3 +163,51 @@ export async function getGtmIdAction(officeId: string): Promise<GetGtmIdResult> 
         return { success: false, error: "Falha ao buscar o ID do Google Tag Manager." };
     }
 }
+
+// --- WhatsApp Link Actions ---
+const whatsappLinkSchema = z.object({
+    officeId: z.string(),
+    whatsappLink: z.string().url("URL inválida").optional(),
+})
+
+export async function updateWhatsappLinkAction(
+  input: z.infer<typeof whatsappLinkSchema>
+): Promise<Result> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
+    const parsedInput = whatsappLinkSchema.safeParse(input);
+    if (!parsedInput.success) return { success: false, error: "Input inválido." };
+
+    try {
+        const { officeId, whatsappLink } = parsedInput.data;
+        const officeRef = db.collection("offices").doc(officeId);
+        await officeRef.set({ whatsappLink }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao salvar o link do WhatsApp:", error);
+        return { success: false, error: "Falha ao salvar o link do WhatsApp." };
+    }
+}
+
+type GetWhatsappLinkResult = 
+    | { success: true, data: string | null }
+    | { success: false, error: string };
+
+export async function getWhatsappLinkAction(officeId: string): Promise<GetWhatsappLinkResult> {
+    if (!db) {
+      return { success: false, error: "O serviço de banco de dados não está disponível."}
+    }
+    if (!officeId) return { success: false, error: "ID do escritório inválido." };
+    try {
+        const officeRef = db.collection("offices").doc(officeId);
+        const docSnap = await officeRef.get();
+        if (docSnap.exists) {
+            return { success: true, data: docSnap.data()?.whatsappLink || null };
+        }
+        return { success: true, data: null };
+    } catch (error) {
+        console.error("Erro ao buscar o link do WhatsApp:", error);
+        return { success: false, error: "Falha ao buscar o link do WhatsApp." };
+    }
+}

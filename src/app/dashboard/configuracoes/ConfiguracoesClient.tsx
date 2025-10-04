@@ -22,9 +22,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loader2, Settings, KeyRound, BadgeHelp, Eye, EyeOff, SearchCode, Tag } from 'lucide-react'
+import { Loader2, Settings, KeyRound, BadgeHelp, Eye, EyeOff, SearchCode, Tag, Phone } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { updateApiKeyAction, getApiKeyAction, updateSeoSettingsAction, getSeoSettingsAction, updateGtmIdAction, getGtmIdAction } from './actions'
+import { updateApiKeyAction, getApiKeyAction, updateSeoSettingsAction, getSeoSettingsAction, updateGtmIdAction, getGtmIdAction, updateWhatsappLinkAction, getWhatsappLinkAction } from './actions'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -45,6 +45,10 @@ const gtmFormSchema = z.object({
 })
 type GtmFormValues = z.infer<typeof gtmFormSchema>
 
+const whatsappFormSchema = z.object({
+    whatsappLink: z.string().url("Por favor, insira uma URL válida.").optional().or(z.literal('')),
+})
+type WhatsappFormValues = z.infer<typeof whatsappFormSchema>
 
 export function ConfiguracoesClient() {
   const { user, loading: authLoading } = useAuth()
@@ -71,6 +75,11 @@ export function ConfiguracoesClient() {
       resolver: zodResolver(gtmFormSchema),
       defaultValues: { gtmId: "" }
   })
+    
+  const whatsappForm = useForm<WhatsappFormValues>({
+    resolver: zodResolver(whatsappFormSchema),
+    defaultValues: { whatsappLink: "" }
+  })
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -94,10 +103,11 @@ export function ConfiguracoesClient() {
                 }
                 
                 // Fetch all settings
-                const [apiKeyResult, seoSettingsResult, gtmIdResult] = await Promise.all([
+                const [apiKeyResult, seoSettingsResult, gtmIdResult, whatsappLinkResult] = await Promise.all([
                     getApiKeyAction(currentOfficeId),
                     getSeoSettingsAction(currentOfficeId),
-                    getGtmIdAction(currentOfficeId)
+                    getGtmIdAction(currentOfficeId),
+                    getWhatsappLinkAction(currentOfficeId)
                 ]);
 
                 if (apiKeyResult.success && apiKeyResult.data) {
@@ -111,13 +121,18 @@ export function ConfiguracoesClient() {
                 if (gtmIdResult.success && gtmIdResult.data) {
                     gtmForm.setValue('gtmId', gtmIdResult.data);
                 }
+                
+                if (whatsappLinkResult.success && whatsappLinkResult.data) {
+                    whatsappForm.setValue('whatsappLink', whatsappLinkResult.data);
+                }
+
 
             }
             setLoading(false);
         });
         return () => unsubscribe();
     }
-  }, [user, authLoading, router, apiKeyForm, seoForm, gtmForm])
+  }, [user, authLoading, router, apiKeyForm, seoForm, gtmForm, whatsappForm])
 
   async function onApiKeySubmit(values: ApiKeyFormValues) {
     if (!user || !officeId) return
@@ -154,6 +169,19 @@ export function ConfiguracoesClient() {
     }
     setIsSubmitting(false)
   }
+    
+  async function onWhatsappSubmit(values: WhatsappFormValues) {
+    if (!user || !officeId) return
+    setIsSubmitting(true)
+    const result = await updateWhatsappLinkAction({ ...values, officeId: officeId })
+    if (result.success) {
+      toast({ title: 'Link do WhatsApp atualizado!' })
+    } else {
+      toast({ title: 'Erro ao salvar o link', description: result.error, variant: 'destructive'})
+    }
+    setIsSubmitting(false)
+  }
+
 
   if (authLoading || loading) {
     return (
@@ -232,6 +260,44 @@ export function ConfiguracoesClient() {
                 </Form>
             </CardContent>
         </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <Phone className="mr-3 h-5 w-5 text-accent" />
+                    Informações de Contato do Site
+                </CardTitle>
+                <CardDescription>
+                    Configure os links e informações de contato que aparecem na página pública.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Form {...whatsappForm}>
+                <form onSubmit={whatsappForm.handleSubmit(onWhatsappSubmit)} className="space-y-6">
+                     <FormField
+                        control={whatsappForm.control}
+                        name="whatsappLink"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Link do WhatsApp</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://wa.me/5511..." {...field} />
+                                </FormControl>
+                                <FormDescription>Insira o link completo para o seu WhatsApp Business.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                   
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar Link do WhatsApp
+                    </Button>
+                </form>
+                </Form>
+            </CardContent>
+        </Card>
+
 
         <Card>
             <CardHeader>
