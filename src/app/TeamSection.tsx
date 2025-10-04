@@ -49,21 +49,6 @@ export async function TeamSection() {
     
     const otherLawyerImages = placeholderImages.filter(p => p.id.startsWith('other-lawyer'));
 
-
-    const displaySpecialties = (specialties: string[] | string | undefined) => {
-        if (!specialties) return null;
-        const specialtiesArray = Array.isArray(specialties) ? specialties : (typeof specialties === 'string' ? specialties.split(',').map(s => s.trim()) : []);
-        
-        if (specialtiesArray.length > 0) {
-            return (
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    {specialtiesArray.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
-                </div>
-            )
-        }
-        return null;
-    }
-
     return (
         <>
             {otherLawyers.length > 0 && (
@@ -76,6 +61,8 @@ export async function TeamSection() {
                         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
                             {otherLawyers.map((member, index) => {
                                 const placeholderImage = otherLawyerImages[index % otherLawyerImages.length];
+                                const specialties = Array.isArray(member.legalSpecialty) ? member.legalSpecialty : (typeof member.legalSpecialty === 'string' ? member.legalSpecialty.split(',').map(s => s.trim()) : []);
+
                                 return (
                                 <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-background">
                                     <CardHeader className="p-0">
@@ -92,7 +79,11 @@ export async function TeamSection() {
                                     <CardContent className="p-6">
                                         <CardTitle className="text-2xl">{member.fullName}</CardTitle>
                                         <div className="mt-3 min-h-[40px]">
-                                            {displaySpecialties(member.legalSpecialty)}
+                                            {specialties.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                                    {specialties.map(s => <Badge key={s} variant="secondary">{s}</Badge>)}
+                                                </div>
+                                            )}
                                         </div>
                                     </CardContent>
                                     <CardFooter className="flex justify-center bg-card/50 p-6">
