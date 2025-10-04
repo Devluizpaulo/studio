@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { placeholderImages } from "@/lib/placeholder-images";
+import placeholderImages from "@/lib/placeholder-images.json";
 
 async function getTeamMembers() {
   if (!db) {

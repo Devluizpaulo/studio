@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Landmark, Briefcase, Heart, Shield } from "lucide-react";
 import Image from "next/image";
 import { TeamSection } from "./TeamSection";
-import { placeholderImages } from "@/lib/placeholder-images";
+import placeholderImages from "@/lib/placeholder-images.json";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
