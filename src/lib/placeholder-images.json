@@ -2,16 +2,16 @@
   {
     "id": "office-background",
     "section": "hero",
-    "src": "https://picsum.photos/seed/newofficebg/1920/1080",
-    "alt": "Interior de um escritório de advocacia moderno e sofisticado, com foco em uma mesa de trabalho.",
-    "hint": "modern office"
+    "src": "https://picsum.photos/seed/shoppingcartbg/1920/1080",
+    "alt": "Fundo sutil com um carrinho de compras e caixas, representando o direito do consumidor.",
+    "hint": "shopping background"
   },
   {
     "id": "lawyer-portrait-hero",
     "section": "hero",
-    "src": "https://picsum.photos/seed/newreinaldo/500/700",
-    "alt": "Retrato profissional do advogado Reinaldo Gonçalves, com um fundo dramático.",
-    "hint": "lawyer portrait"
+    "src": "https://picsum.photos/seed/lawyerheroprofile/500/700",
+    "alt": "Retrato profissional de um advogado confiante, com os braços cruzados.",
+    "hint": "confident lawyer"
   },
   {
     "id": "main-lawyer",

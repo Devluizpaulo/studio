@@ -36,18 +36,17 @@ export default function Header() {
   const navLinks = [
       { href: "/#", label: "Início" },
       { href: "/#services", label: "Atuação" },
-      { href: "/#specialties", label: "Especialidades" },
       { href: "/#about", label: "Sobre" },
       { href: "/#contact", label: "Contato" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-accent/20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-20 items-center justify-between">
         <div className="mr-auto flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Scale className="h-8 w-8 text-accent" />
-            <span className="font-headline text-xl font-bold text-primary">
+            <Scale className="h-8 w-8 text-primary" />
+            <span className="font-headline text-xl font-bold text-foreground">
               RGJM
             </span>
           </Link>
@@ -58,7 +57,7 @@ export default function Header() {
               <Link
                 key={label}
                 href={href}
-                className="transition-colors hover:text-accent text-base"
+                className="transition-colors hover:text-primary text-base"
               >
                 {label}
               </Link>
@@ -79,8 +78,8 @@ export default function Header() {
               </SheetHeader>
               <div className="grid gap-4 py-6">
                 <Link href="/" className="mb-4 flex items-center space-x-2">
-                   <Scale className="h-7 w-7 text-accent" />
-                  <span className="font-headline text-2xl font-bold text-primary">
+                   <Scale className="h-7 w-7 text-primary" />
+                  <span className="font-headline text-2xl font-bold text-foreground">
                     RGJM
                   </span>
                 </Link>
@@ -112,7 +111,7 @@ export default function Header() {
                       </Button>
                     ) : (
                        <SheetClose asChild>
-                          <Button asChild variant="outline" className="w-full">
+                          <Button asChild variant="default" className="w-full">
                             <Link href="/login">Área Restrita</Link>
                           </Button>
                         </SheetClose>
@@ -126,7 +125,7 @@ export default function Header() {
         <div className="hidden md:flex items-center ml-6">
           {user ? (
             <>
-              <Button asChild>
+              <Button asChild variant="secondary">
                 <Link href="/dashboard">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Acessar Painel
@@ -138,7 +137,7 @@ export default function Header() {
               </Button>
             </>
           ) : (
-            <Button asChild variant="outline">
+            <Button asChild>
                <Link href="/login">Área Restrita</Link>
             </Button>
           )}

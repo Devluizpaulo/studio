@@ -63,7 +63,7 @@ export async function TeamSection() {
             )
         }
         if (typeof specialties === 'string' && specialties) {
-             return <p className="text-sm text-accent">{specialties}</p>
+             return <p className="text-sm text-primary">{specialties}</p>
         }
         return null;
     }
@@ -71,7 +71,7 @@ export async function TeamSection() {
     return (
         <>
             {mainLawyer && (
-                <section id="about" className="py-24 sm:py-32">
+                <section id="about" className="py-24 sm:py-32 bg-card">
                     <div className="container mx-auto grid grid-cols-1 gap-12 px-4 md:grid-cols-2 md:items-center">
                         <div className="h-[500px] w-full relative rounded-lg overflow-hidden shadow-2xl">
                              <Image
@@ -83,11 +83,11 @@ export async function TeamSection() {
                               />
                         </div>
                         <div>
-                            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
+                            <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">O sucesso na sua causa demanda uma defesa e consultoria especializadas.</h2>
                              <p className="mt-6 text-lg leading-relaxed text-muted-foreground text-justify">
                                {mainLawyer.bio || "Compreendemos que cada caso é único e exige uma abordagem dedicada. Nosso compromisso é com a defesa intransigente dos seus interesses, aplicando um profundo conhecimento técnico e uma visão estratégica para alcançar os melhores resultados. Buscamos a excelência em cada etapa, garantindo que seus direitos sejam sempre preservados."}
                             </p>
-                            <p className="mt-6 text-xl font-semibold text-primary font-headline">{mainLawyer.fullName}</p>
+                            <p className="mt-6 text-xl font-semibold text-foreground font-headline">{mainLawyer.fullName}</p>
                             <div className="mt-2">
                                 {displaySpecialties(mainLawyer.legalSpecialty)}
                             </div>
@@ -96,15 +96,15 @@ export async function TeamSection() {
                 </section>
             )}
              {otherLawyers.length > 0 && (
-                <section id="team" className="py-24 sm:py-32 bg-card">
+                <section id="team" className="py-24 sm:py-32 bg-background">
                     <div className="container mx-auto px-4">
                         <div className="text-center mb-16">
-                            <h2 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">Nossa Equipe</h2>
+                            <h2 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Nossa Equipe</h2>
                             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">Conheça os profissionais dedicados que estão por trás do nosso sucesso e prontos para lutar pela sua causa.</p>
                         </div>
                         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
                             {otherLawyers.map((member) => (
-                                <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+                                <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-card">
                                     <CardHeader className="p-0">
                                         <div className="relative mx-auto h-56 w-full">
                                             {member.photoUrl ? (
