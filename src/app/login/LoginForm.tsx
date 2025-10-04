@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -110,7 +111,14 @@ export function LoginForm() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>Senha</FormLabel>
+                      <Link href="/recuperar-senha" passHref>
+                          <span className="text-xs text-accent hover:underline cursor-pointer">
+                              Esqueceu sua senha?
+                          </span>
+                      </Link>
+                    </div>
                     <FormControl>
                       <Input type="password" placeholder="********" {...field} />
                     </FormControl>
