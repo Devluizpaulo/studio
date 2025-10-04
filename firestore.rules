@@ -1,50 +1,47 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- User Creation and Profile Management ---
     match /users/{userId} {
-      // Allow anyone to read user profiles (for the team section on the landing page).
-      allow read: if true;
-
-      // Allow a user to create their own user document during sign-up.
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Allow an authenticated user to update their own profile.
-      allow update: if request.auth != null && request.auth.uid == userId;
-      
-      // Prevent users from deleting their accounts directly through the client.
-      allow delete: if false;
+      // Users can only read and write their own data.
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // --- Office Management ---
     match /offices/{officeId} {
-      // Allow anyone to create an office document (only during sign-up).
-      allow create: if true; 
-
-      // Allow authenticated users to read data from their own office.
-      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
-      
-      // Only the 'master' user can update office settings (like the API key).
-      allow update: if request.auth != null 
-                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master' 
-                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
+      // Allow read for authenticated users, but write only for the owner.
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'master' && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == officeId;
     }
 
-    // --- General Rules for Collections (Processes, Clients, etc.) ---
-    // This rule applies to top-level collections like 'processes', 'clients', 'events', etc.
-    match /{collection}/{docId} {
-      // A user must be authenticated and the document's officeId must match the user's officeId.
-      allow read, write: if request.auth != null 
-                        && resource.data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
+    match /clients/{clientId} {
+      // Client data can be accessed by any member of the same office.
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == resource.data.officeId;
+    }
+
+    match /processes/{processId} {
+      // Allow read/write if the user is part of the same office.
+      // More granular control can be added (e.g., only collaborators can write).
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == resource.data.officeId;
+      
+      // Rules for subcollections
+      match /documents/{documentId} {
+        allow read, write: if request.auth != null && get(/databases/$(database)/documents/processes/$(processId)).data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
+      }
+       match /chatMessages/{messageId} {
+        allow read, write: if request.auth != null && get(/databases/$(database)/documents/processes/$(processId)).data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
+      }
+    }
+
+    match /events/{eventId} {
+      // Events can be managed by anyone in the same office.
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == resource.data.officeId;
     }
     
-    // --- Rules for Subcollections (e.g., chat messages, documents within a process) ---
-    match /processes/{processId}/{subcollection}/{docId} {
-       // A user must be authenticated and their officeId must match the officeId of the parent process.
-       allow read, write: if request.auth != null 
-                         && get(/databases/$(database)/documents/processes/$(processId)).data.officeId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId;
+    match /document_templates/{templateId} {
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == resource.data.officeId;
+    }
+
+    match /financial_tasks/{taskId} {
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.officeId == resource.data.officeId;
     }
   }
 }
