@@ -26,7 +26,8 @@ import {
   User,
   Settings,
   X,
-  Scale
+  Scale,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -58,6 +59,11 @@ const sidebarNavItems: NavItem[] = [
     title: "Clientes",
     href: "/dashboard/clientes",
     icon: Users,
+  },
+  {
+    title: "Contatos",
+    href: "/dashboard/contatos",
+    icon: Mail,
   },
   {
     title: "Financeiro",

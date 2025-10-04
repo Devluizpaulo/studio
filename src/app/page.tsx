@@ -6,6 +6,7 @@ import { TeamSection } from "./TeamSection";
 import placeholderImagesData from "@/lib/placeholder-images.json";
 import { db } from "@/lib/firebase-admin";
 import { Badge } from "@/components/ui/badge";
+import { ContactForm } from "./ContactForm";
 
 const WHATSAPP_LINK = "https://wa.me/5511968285695?text=Olá, encontrei o site e gostaria de uma consulta.";
 
@@ -185,17 +186,23 @@ export default async function Home() {
 
       {/* Contact Section */}
       <section id="contact" className="py-24 sm:py-32">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-foreground font-headline">Pronto para dar o próximo passo?</h2>
-            <p className="text-muted-foreground text-lg mt-4">Para agilizar seu atendimento, recomendamos o contato direto via WhatsApp. Nossa equipe está pronta para avaliar seu caso e oferecer a melhor solução jurídica.</p>
-            <div className="mt-8">
-              <Button asChild size="lg" className="text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
-              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                Fale Conosco Agora no WhatsApp
-              </a>
-            </Button>
-            </div>
+        <div className="container mx-auto grid grid-cols-1 gap-16 px-4 md:grid-cols-2 md:items-center">
+           <div className="text-center md:text-left">
+              <p className="font-semibold text-primary uppercase tracking-wider">Fale Conosco</p>
+              <h2 className="mt-2 font-headline text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Pronto para dar o próximo passo?</h2>
+              <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+                  Seja para uma consulta inicial, para discutir um caso complexo ou para entender melhor seus direitos, nossa equipe está pronta para ouvir. Preencha o formulário ao lado ou, se preferir um contato mais direto, clique no botão para falar conosco via WhatsApp.
+              </p>
+              <div className="mt-8 flex justify-center md:justify-start">
+                  <Button asChild size="lg" className="text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                      Fale no WhatsApp
+                    </a>
+                  </Button>
+              </div>
+          </div>
+          <div className="w-full">
+            <ContactForm />
           </div>
         </div>
       </section>
