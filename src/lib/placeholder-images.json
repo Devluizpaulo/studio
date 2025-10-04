@@ -1,12 +1,5 @@
 [
   {
-    "id": "office-background",
-    "section": "hero",
-    "src": "https://picsum.photos/seed/cleanoffice/1920/1080",
-    "alt": "Fundo de um escritório de advocacia moderno e minimalista.",
-    "hint": "modern office"
-  },
-  {
     "id": "lawyer-portrait-hero",
     "section": "hero",
     "src": "https://picsum.photos/seed/lawyerfill/1200/1800",
@@ -19,5 +12,26 @@
     "src": "https://picsum.photos/seed/newmainlawyer/600/800",
     "alt": "Retrato do advogado principal do escritório em um ambiente profissional.",
     "hint": "professional lawyer"
+  },
+  {
+    "id": "other-lawyer-1",
+    "section": "team",
+    "src": "https://picsum.photos/seed/lawyer2/600/600",
+    "alt": "Retrato de um advogado da equipe.",
+    "hint": "lawyer portrait"
+  },
+  {
+    "id": "other-lawyer-2",
+    "section": "team",
+    "src": "https://picsum.photos/seed/lawyer3/600/600",
+    "alt": "Retrato de uma advogada da equipe.",
+    "hint": "lawyer portrait"
+  },
+  {
+    "id": "other-lawyer-3",
+    "section": "team",
+    "src": "https://picsum.photos/seed/lawyer4/600/600",
+    "alt": "Retrato de outro membro da equipe jurídica.",
+    "hint": "professional portrait"
   }
 ]

@@ -51,6 +51,7 @@ export async function TeamSection() {
     
     const teamImages = placeholderImages.filter(p => p.section === 'team');
     const mainLawyerImage = teamImages.find(p => p.id === 'main-lawyer');
+    const otherLawyerImages = teamImages.filter(p => p.id.startsWith('other-lawyer'));
 
 
     const displaySpecialties = (specialties: string[] | string | undefined) => {
@@ -103,17 +104,19 @@ export async function TeamSection() {
                             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">Conheça os profissionais dedicados que estão por trás do nosso sucesso e prontos para lutar pela sua causa.</p>
                         </div>
                         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                            {otherLawyers.map((member) => (
+                            {otherLawyers.map((member, index) => {
+                                const placeholderImage = otherLawyerImages[index % otherLawyerImages.length];
+                                return (
                                 <Card key={member.id} className="text-center overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 bg-card">
                                     <CardHeader className="p-0">
                                         <div className="relative mx-auto h-56 w-full">
-                                            {member.photoUrl ? (
-                                                <Image src={member.photoUrl} alt={`Foto de ${member.fullName}`} fill className="object-cover" />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center bg-muted">
-                                                    <User className="h-24 w-24 text-muted-foreground" />
-                                                </div>
-                                            )}
+                                            <Image 
+                                                src={member.photoUrl || placeholderImage?.src || "https://placehold.co/600x600"} 
+                                                alt={`Foto de ${member.fullName}`} 
+                                                fill 
+                                                className="object-cover" 
+                                                data-ai-hint={placeholderImage?.hint || "lawyer portrait"}
+                                            />
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-6">
@@ -126,7 +129,8 @@ export async function TeamSection() {
                                        <p className="text-sm text-muted-foreground text-center">{member.bio || "Advogado(a) especialista com vasta experiência."}</p>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                                )
+                            })}
                         </div>
                     </div>
                 </section>
