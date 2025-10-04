@@ -260,8 +260,12 @@ export function ProfileClient() {
   return (
     <div className="space-y-6">
         <div>
-            <h2 className="text-2xl font-bold tracking-tight">Meu Perfil</h2>
-            <p className="text-muted-foreground">Gerencie suas informações profissionais e biografia.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Meu Perfil
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Gerencie suas informações profissionais e de segurança.
+            </p>
         </div>
         <Card>
             <CardHeader>
