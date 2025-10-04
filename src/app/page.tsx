@@ -1,13 +1,14 @@
 
 
 import { Button } from "@/components/ui/button";
-import { Landmark, Briefcase, Heart, Shield, Scale } from "lucide-react";
+import { Landmark, Briefcase, Heart, Shield, Scale, Users, Award, Gavel } from "lucide-react";
 import Image from "next/image";
 import { TeamSection } from "./TeamSection";
 import placeholderImagesData from "@/lib/placeholder-images.json";
 import { db } from "@/lib/firebase-admin";
 import { Badge } from "@/components/ui/badge";
 import { ContactForm } from "./ContactForm";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const practiceAreas = [
   {
@@ -31,6 +32,14 @@ const practiceAreas = [
     description: "Defesa estratégica para casos complexos, garantindo seus direitos em todas as instâncias."
   },
 ];
+
+const stats = [
+    { value: 300, label: "Clientes Atendidos", suffix: "+", icon: <Users className="h-10 w-10 text-primary" /> },
+    { value: 10, label: "Anos de Experiência", suffix: "+", icon: <Award className="h-10 w-10 text-primary" /> },
+    { value: 95, label: "Casos com Êxito", suffix: "%", icon: <Gavel className="h-10 w-10 text-primary" /> },
+    { value: 500, label: "Processos Conduzidos", suffix: "+", icon: <Briefcase className="h-10 w-10 text-primary" /> },
+];
+
 
 async function getPageData() {
     if (!db) {
@@ -145,7 +154,7 @@ export default async function Home() {
       </section>
 
       {/* Practice Areas Section */}
-      <section id="services" className="py-24 sm:py-32 bg-card">
+      <section id="services" className="py-24 sm:py-32">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">
@@ -155,12 +164,31 @@ export default async function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {practiceAreas.map((area, index) => (
-              <div key={index} className="bg-background p-8 rounded-lg text-center border border-border hover:border-primary/50 hover:bg-card/50 transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-primary/10">
+              <div key={index} className="bg-card p-8 rounded-lg text-center border border-border hover:border-primary/50 hover:bg-card/50 transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-primary/10">
                 <div className="flex justify-center mb-4">
                     {area.icon}
                 </div>
                 <h3 className="text-xl font-bold text-foreground mb-2 font-headline">{area.title}</h3>
                 <p className="text-muted-foreground">{area.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-24 sm:py-32 bg-card">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {stats.map((stat, index) => (
+              <div key={index} className="flex flex-col items-center">
+                <div className="mb-3">{stat.icon}</div>
+                <AnimatedCounter
+                  end={stat.value}
+                  suffix={stat.suffix}
+                  className="text-4xl sm:text-5xl font-bold font-headline text-primary"
+                />
+                <p className="mt-2 text-sm sm:text-base text-muted-foreground">{stat.label}</p>
               </div>
             ))}
           </div>

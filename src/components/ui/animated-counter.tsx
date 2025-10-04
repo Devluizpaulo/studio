@@ -12,25 +12,7 @@ interface AnimatedCounterProps {
 export function AnimatedCounter({ end, duration = 2000, suffix = "", className = "" }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          animateCount();
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasAnimated]);
+  const ref = useRef<HTMLSpanElement>(null);
 
   const animateCount = () => {
     const startTime = Date.now();
@@ -49,15 +31,42 @@ export function AnimatedCounter({ end, duration = 2000, suffix = "", className =
 
       if (progress < 1) {
         requestAnimationFrame(updateCount);
+      } else {
+        setCount(end); // Ensure it ends exactly on the end value
       }
     };
 
     requestAnimationFrame(updateCount);
   };
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          animateCount();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [end, duration, hasAnimated]);
+
+
   return (
     <span ref={ref} className={className}>
       {count}{suffix}
     </span>
   );
-} 
+}
