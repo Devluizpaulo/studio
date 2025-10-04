@@ -224,7 +224,14 @@ export function FinanceiroClient() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div/>
+         <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Controle Financeiro
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Gerencie as finanças e tarefas administrativas do escritório.
+            </p>
+        </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -346,16 +353,7 @@ export function FinanceiroClient() {
       </div>
 
        <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-             <DollarSign className="mr-3 h-5 w-5 text-accent" />
-            Lançamentos Financeiros
-          </CardTitle>
-           <CardDescription>
-            {tasks.length > 0 ? `Existem ${tasks.length} lançamentos registrados.` : 'Nenhum lançamento cadastrado ainda.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
            {tasks.length > 0 ? (
                 <Table>
                     <TableHeader>
@@ -419,5 +417,3 @@ export function FinanceiroClient() {
     </div>
   )
 }
-
-    
