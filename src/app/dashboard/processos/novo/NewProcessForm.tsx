@@ -28,9 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Briefcase, Users, Scale, Gavel, DollarSign, Plus, X, UserPlus } from "lucide-react";
+import { Loader2, User, Users, Scale, Gavel as GavelIcon, DollarSign, Plus, X, UserPlus, Briefcase } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -296,156 +296,159 @@ export function NewProcessForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex items-center">
-            <Briefcase className="mr-3 h-5 w-5 text-accent" />
-            Dados Fundamentais do Processo
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...processForm}>
-          <form onSubmit={processForm.handleSubmit(onProcessSubmit)} className="space-y-6">
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <FormField
-                    control={processForm.control}
-                    name="clientId"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Cliente Principal</FormLabel>
-                        <div className="flex gap-2">
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o cliente deste processo" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {clients.map(client => (
-                                        <SelectItem key={client.id} value={client.id}>{client.fullName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            
-                             <Dialog open={isClientDialogOpen} onOpenChange={setClientDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="icon" onClick={onClientDialogOpen}>
-                                        <UserPlus className="h-4 w-4" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px]">
-                                     <DialogHeader>
-                                        <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
-                                    </DialogHeader>
-                                     <Form {...clientForm}>
-                                        <form onSubmit={clientForm.handleSubmit(handleClientSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
-                                            <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
-                                            <FormField control={clientForm.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField control={clientForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField control={clientForm.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>Nacionalidade</FormLabel><FormControl><Input placeholder="Brasileiro(a)" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Estado Civil</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="solteiro">Solteiro(a)</SelectItem><SelectItem value="casado">Casado(a)</SelectItem><SelectItem value="divorciado">Divorciado(a)</SelectItem><SelectItem value="viuvo">Viúvo(a)</SelectItem><SelectItem value="uniao_estavel">União Estável</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
-                                            </div>
-                                            <FormField control={clientForm.control} name="profession" render={({ field }) => (<FormItem><FormLabel>Profissão</FormLabel><FormControl><Input placeholder="Profissão do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <FormField control={clientForm.control} name="rg" render={({ field }) => (<FormItem><FormLabel>RG</FormLabel><FormControl><Input placeholder="00.000.000-0" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="issuingBody" render={({ field }) => (<FormItem><FormLabel>Órgão Emissor</FormLabel><FormControl><Input placeholder="SSP/SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            </div>
+    <Form {...processForm}>
+      <form onSubmit={processForm.handleSubmit(onProcessSubmit)} className="space-y-6">
+        
+        <Accordion type="multiple" defaultValue={["item-1"]} className="w-full space-y-4">
+            <AccordionItem value="item-1" className="border rounded-lg bg-card overflow-hidden">
+                <AccordionTrigger className="p-6 hover:no-underline">
+                     <h3 className="font-headline text-lg flex items-center">
+                        <User className="mr-3 h-5 w-5 text-accent" />
+                        Informações Iniciais
+                    </h3>
+                </AccordionTrigger>
+                <AccordionContent className="p-6 border-t">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                            control={processForm.control}
+                            name="clientId"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Cliente Principal</FormLabel>
+                                <div className="flex gap-2">
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione o cliente deste processo" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {clients.map(client => (
+                                                <SelectItem key={client.id} value={client.id}>{client.fullName}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    
+                                    <Dialog open={isClientDialogOpen} onOpenChange={setClientDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button type="button" variant="outline" size="icon" onClick={onClientDialogOpen}>
+                                                <UserPlus className="h-4 w-4" />
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[800px]">
+                                            <DialogHeader>
+                                                <DialogTitle>Cadastrar Novo Cliente</DialogTitle>
+                                            </DialogHeader>
+                                            <Form {...clientForm}>
+                                                <form onSubmit={clientForm.handleSubmit(handleClientSubmit)} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-6">
+                                                    <h3 className="text-lg font-medium text-primary">Dados Pessoais</h3>
+                                                    <FormField control={clientForm.control} name="fullName" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input placeholder="Nome completo do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField control={clientForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input placeholder="email@cliente.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input placeholder="(XX) XXXXX-XXXX" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField control={clientForm.control} name="nationality" render={({ field }) => (<FormItem><FormLabel>Nacionalidade</FormLabel><FormControl><Input placeholder="Brasileiro(a)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="maritalStatus" render={({ field }) => (<FormItem><FormLabel>Estado Civil</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="solteiro">Solteiro(a)</SelectItem><SelectItem value="casado">Casado(a)</SelectItem><SelectItem value="divorciado">Divorciado(a)</SelectItem><SelectItem value="viuvo">Viúvo(a)</SelectItem><SelectItem value="uniao_estavel">União Estável</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                                    </div>
+                                                    <FormField control={clientForm.control} name="profession" render={({ field }) => (<FormItem><FormLabel>Profissão</FormLabel><FormControl><Input placeholder="Profissão do cliente" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <FormField control={clientForm.control} name="rg" render={({ field }) => (<FormItem><FormLabel>RG</FormLabel><FormControl><Input placeholder="00.000.000-0" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="issuingBody" render={({ field }) => (<FormItem><FormLabel>Órgão Emissor</FormLabel><FormControl><Input placeholder="SSP/SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="document" render={({ field }) => (<FormItem><FormLabel>CPF / CNPJ</FormLabel><FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    </div>
 
-                                            <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <FormField
-                                                  control={clientForm.control}
-                                                  name="zipCode"
-                                                  render={({ field }) => (
-                                                  <FormItem>
-                                                      <FormLabel>CEP</FormLabel>
-                                                      <div className="flex items-center">
-                                                          <FormControl>
-                                                              <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
-                                                          </FormControl>
-                                                          {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                                      </div>
-                                                      <FormMessage />
-                                                  </FormItem>
-                                                  )}
-                                                />
-                                                <FormField control={clientForm.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <FormField control={clientForm.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField control={clientForm.control} name="city" render={({ field }) => (<FormItem><FormLabel>Cidade</FormLabel><FormControl><Input placeholder="São Paulo" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={clientForm.control} name="state" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><FormControl><Input placeholder="SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                            </div>
-                                            <DialogFooter className="pt-4">
-                                                <Button type="submit" disabled={isSubmittingClient}>
-                                                    {isSubmittingClient && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    Salvar Cliente
-                                                </Button>
-                                            </DialogFooter>
-                                        </form>
-                                    </Form>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={processForm.control}
-                    name="lawyerId"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Advogado Responsável</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <h3 className="text-lg font-medium text-primary pt-4">Endereço</h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <FormField
+                                                        control={clientForm.control}
+                                                        name="zipCode"
+                                                        render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>CEP</FormLabel>
+                                                            <div className="flex items-center">
+                                                                <FormControl>
+                                                                    <Input placeholder="00000-000" {...field} onBlur={handleCepBlur} />
+                                                                </FormControl>
+                                                                {isFetchingCep && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                                            </div>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                        )}
+                                                        />
+                                                        <FormField control={clientForm.control} name="street" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Logradouro</FormLabel><FormControl><Input placeholder="Rua, Avenida, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <FormField control={clientForm.control} name="number" render={({ field }) => (<FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="neighborhood" render={({ field }) => (<FormItem className="col-span-2"><FormLabel>Bairro</FormLabel><FormControl><Input placeholder="Centro" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField control={clientForm.control} name="city" render={({ field }) => (<FormItem><FormLabel>Cidade</FormLabel><FormControl><Input placeholder="São Paulo" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                        <FormField control={clientForm.control} name="state" render={({ field }) => (<FormItem><FormLabel>Estado</FormLabel><FormControl><Input placeholder="SP" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    </div>
+                                                    <DialogFooter className="pt-4">
+                                                        <Button type="submit" disabled={isSubmittingClient}>
+                                                            {isSubmittingClient && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                            Salvar Cliente
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </form>
+                                            </Form>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={processForm.control}
+                            name="lawyerId"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Advogado Responsável</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione o advogado responsável" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {lawyers.map(lawyer => (
+                                            <SelectItem key={lawyer.uid} value={lawyer.uid}>{lawyer.fullName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+
+             <AccordionItem value="item-2" className="border rounded-lg bg-card overflow-hidden">
+                <AccordionTrigger className="p-6 hover:no-underline">
+                     <h3 className="font-headline text-lg flex items-center">
+                        <GavelIcon className="mr-3 h-5 w-5 text-accent" />
+                        Dados do Processo e Juízo
+                    </h3>
+                </AccordionTrigger>
+                <AccordionContent className="p-6 border-t space-y-6">
+                    <FormField
+                        control={processForm.control}
+                        name="processNumber"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Número do Processo (CNJ)</FormLabel>
                             <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o advogado responsável" />
-                                </SelectTrigger>
+                            <Input placeholder="XXXXXXX-XX.XXXX.X.XX.XXXX" {...field} />
                             </FormControl>
-                            <SelectContent>
-                               {lawyers.map(lawyer => (
-                                    <SelectItem key={lawyer.uid} value={lawyer.uid}>{lawyer.fullName}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-            </div>
-             <FormField
-                control={processForm.control}
-                name="processNumber"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Número do Processo (CNJ)</FormLabel>
-                    <FormControl>
-                    <Input placeholder="XXXXXXX-XX.XXXX.X.XX.XXXX" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-
-            <Card className="bg-background/50">
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
-                        <Gavel className="mr-3 h-5 w-5 text-accent" />
-                        Informações do Juízo
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                             control={processForm.control}
                             name="justiceType"
@@ -510,17 +513,17 @@ export function NewProcessForm() {
                             )}
                         />
                     </div>
-                </CardContent>
-            </Card>
-            
-            <Card className="bg-background/50">
-                <CardHeader>
-                     <CardTitle className="text-lg flex items-center">
+                </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3" className="border rounded-lg bg-card overflow-hidden">
+                <AccordionTrigger className="p-6 hover:no-underline">
+                     <h3 className="font-headline text-lg flex items-center">
                         <DollarSign className="mr-3 h-5 w-5 text-accent" />
                         Detalhes da Ação
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                    </h3>
+                </AccordionTrigger>
+                <AccordionContent className="p-6 border-t space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <FormField
                             control={processForm.control}
@@ -562,17 +565,17 @@ export function NewProcessForm() {
                         </FormItem>
                         )}
                     />
-                </CardContent>
-            </Card>
+                </AccordionContent>
+            </AccordionItem>
 
-            <Card className="bg-background/50">
-                <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
+            <AccordionItem value="item-4" className="border rounded-lg bg-card overflow-hidden">
+                <AccordionTrigger className="p-6 hover:no-underline">
+                     <h3 className="font-headline text-lg flex items-center">
                         <Users className="mr-3 h-5 w-5 text-accent" />
                         Partes Envolvidas e Representação
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                    </h3>
+                </AccordionTrigger>
+                <AccordionContent className="p-6 border-t space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Plaintiff section */}
                         <div className="space-y-2">
@@ -588,7 +591,7 @@ export function NewProcessForm() {
                                                 onChange={(e) => setCurrentPlaintiff(e.target.value)}
                                                 placeholder="Nome da parte autora"
                                             />
-                                            <Button type="button" size="icon" onClick={handleAddPlaintiff}>
+                                            <Button type="button" variant="outline" size="icon" onClick={handleAddPlaintiff}>
                                                 <Plus className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -596,11 +599,11 @@ export function NewProcessForm() {
                                     </FormItem>
                                 )}
                            />
-                           <div className="space-y-2 pt-2">
+                           <div className="space-y-2 pt-2 min-h-[40px]">
                                 {plaintiffsList.map((plaintiff, index) => (
-                                    <Badge key={index} variant="secondary" className="flex justify-between items-center text-base">
+                                    <Badge key={index} variant="outline" className="flex justify-between items-center text-sm py-1">
                                         <span>{plaintiff}</span>
-                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2" onClick={() => handleRemovePlaintiff(index)}>
+                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2 hover:bg-destructive/20" onClick={() => handleRemovePlaintiff(index)}>
                                             <X className="h-4 w-4" />
                                         </Button>
                                     </Badge>
@@ -622,7 +625,7 @@ export function NewProcessForm() {
                                                 onChange={(e) => setCurrentDefendant(e.target.value)}
                                                 placeholder="Nome da parte ré"
                                             />
-                                            <Button type="button" size="icon" onClick={handleAddDefendant}>
+                                            <Button type="button" variant="outline" size="icon" onClick={handleAddDefendant}>
                                                 <Plus className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -630,11 +633,11 @@ export function NewProcessForm() {
                                     </FormItem>
                                 )}
                            />
-                           <div className="space-y-2 pt-2">
+                           <div className="space-y-2 pt-2 min-h-[40px]">
                                 {defendantsList.map((defendant, index) => (
-                                    <Badge key={index} variant="secondary" className="flex justify-between items-center text-base">
+                                    <Badge key={index} variant="outline" className="flex justify-between items-center text-sm py-1">
                                         <span>{defendant}</span>
-                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2" onClick={() => handleRemoveDefendant(index)}>
+                                        <Button type="button" variant="ghost" size="icon" className="h-5 w-5 ml-2 hover:bg-destructive/20" onClick={() => handleRemoveDefendant(index)}>
                                             <X className="h-4 w-4" />
                                         </Button>
                                     </Badge>
@@ -647,8 +650,8 @@ export function NewProcessForm() {
                         control={processForm.control}
                         name="representation"
                         render={({ field }) => (
-                            <FormItem className="space-y-3">
-                            <FormLabel>Sua Representação</FormLabel>
+                            <FormItem className="space-y-3 pt-4">
+                            <FormLabel>Sua Representação no Processo</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                 onValueChange={field.onChange}
@@ -677,15 +680,16 @@ export function NewProcessForm() {
                             </FormItem>
                         )}
                         />
-                </CardContent>
-            </Card>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
             
              <FormField
               control={processForm.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status Inicial</FormLabel>
+                  <FormLabel>Status Inicial do Processo</FormLabel>
                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -712,7 +716,5 @@ export function NewProcessForm() {
             </Button>
           </form>
         </Form>
-      </CardContent>
-    </Card>
   );
 }
