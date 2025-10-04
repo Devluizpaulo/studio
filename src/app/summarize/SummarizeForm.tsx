@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { summarizeLegalBriefAction } from "./actions";
-import DocxParser from "docx-parser";
+import { summarizeLegalBriefAction, parseDocumentAction } from "./actions";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, FileText, Sparkles } from "lucide-react";
+import { Loader2, FileText, Sparkles, UploadCloud } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -41,6 +40,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function SummarizeForm() {
   const [summary, setSummary] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -52,61 +52,48 @@ export function SummarizeForm() {
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const fileType = file.type;
-    const reader = new FileReader();
+    setIsParsing(true);
+    toast({
+        title: "Processando arquivo...",
+        description: `Aguarde enquanto lemos o arquivo ${file.name}.`,
+    });
 
-    if (fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        reader.readAsArrayBuffer(file);
-        reader.onload = (e) => {
-            const arrayBuffer = e.target?.result;
-            if (arrayBuffer) {
-                DocxParser.parse(arrayBuffer as ArrayBuffer)
-                    .then((result: {text: string}) => {
-                        form.setValue("documentText", result.text);
-                        toast({
-                            title: "File Loaded",
-                            description: `${file.name} has been parsed and loaded.`,
-                        });
-                    })
-                    .catch((error: any) => {
-                        console.error("Error parsing .docx file:", error);
-                        toast({
-                            title: "Error Parsing File",
-                            description: "Could not read the content of the .docx file.",
-                            variant: "destructive"
-                        });
-                    });
-            }
-        };
-    } else if (fileType === "text/plain" || fileType === "text/markdown") {
-        reader.readAsText(file);
-        reader.onload = (e) => {
-            const text = e.target?.result as string;
-            form.setValue("documentText", text);
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const result = await parseDocumentAction(formData);
+
+        if (result.success && result.data) {
+            form.setValue("documentText", result.data);
             toast({
-                title: "File Loaded",
-                description: `${file.name} has been loaded into the document text field.`,
+                title: "Arquivo Carregado",
+                description: `${file.name} foi processado e o texto inserido no campo abaixo.`,
             });
-        };
-    } else {
-        toast({
-            title: "Unsupported File Type",
-            description: "Please upload a .txt, .md, or .docx file.",
-            variant: "destructive"
-        });
-    }
+        } else {
+             toast({
+                title: "Erro ao Processar Arquivo",
+                description: result.error || "Não foi possível ler o conteúdo do arquivo.",
+                variant: "destructive"
+            });
+        }
 
-    reader.onerror = () => {
+    } catch (error: any) {
+        console.error("Error parsing file:", error);
         toast({
-            title: "File Read Error",
-            description: "An error occurred while reading the file.",
+            title: "Erro Inesperado",
+            description: "Ocorreu um erro ao processar o arquivo.",
             variant: "destructive"
         });
-    };
+    } finally {
+        setIsParsing(false);
+        // Clear the file input
+        event.target.value = '';
+    }
   };
 
   async function onSubmit(values: FormValues) {
@@ -150,22 +137,27 @@ export function SummarizeForm() {
                     <FormLabel className="text-lg">Upload or Paste Document</FormLabel>
                     <FormControl>
                       <>
-                        <Input
-                          type="file"
-                          className="mb-2"
-                          onChange={handleFileChange}
-                          accept=".txt,.md,.docx"
-                        />
+                        <div className="flex flex-col items-center justify-center w-full">
+                            <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    {isParsing ? (
+                                        <Loader2 className="w-8 h-8 mb-4 text-accent animate-spin" />
+                                    ) : (
+                                        <UploadCloud className="w-8 h-8 mb-4 text-muted-foreground" />
+                                    )}
+                                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
+                                    <p className="text-xs text-muted-foreground">DOCX, TXT, ou MD (MAX. 5MB)</p>
+                                </div>
+                                <Input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".txt,.md,.docx" />
+                            </label>
+                        </div> 
                         <Textarea
-                          placeholder="Paste your legal document here, or upload a file above."
+                          placeholder="O texto do seu arquivo aparecerá aqui..."
                           className="min-h-[250px] resize-y"
                           {...field}
                         />
                       </>
                     </FormControl>
-                    <FormDescription>
-                      Supported file types: .txt, .md, .docx
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -215,7 +207,7 @@ export function SummarizeForm() {
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading} size="lg" className="w-full">
+              <Button type="submit" disabled={isLoading || isParsing} size="lg" className="w-full">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
