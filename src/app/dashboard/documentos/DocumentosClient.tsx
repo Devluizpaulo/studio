@@ -145,33 +145,58 @@ export function DocumentosClient() {
 
   if (authLoading || loading) {
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <Skeleton className="h-9 w-48" />
-                <Skeleton className="h-10 w-40" />
+        <div className="space-y-6">
+             <div>
+                <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                    Modelos de Documentos
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                    Crie e gerencie modelos de documentos para sua equipe.
+                </p>
             </div>
-            <Skeleton className="h-80 w-full" />
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <Skeleton className="h-9 w-48" />
+                    <Skeleton className="h-10 w-40" />
+                </div>
+                <Skeleton className="h-80 w-full" />
+            </div>
         </div>
     )
   }
 
   if (currentUserRole !== 'master') {
     return (
-        <Card className="flex flex-col items-center justify-center p-12 text-center">
-            <BadgeHelp className="h-16 w-16 text-destructive mb-4" />
-            <h3 className="text-xl font-semibold text-foreground">Acesso Negado</h3>
-            <p className="text-muted-foreground mt-2">Apenas o Administrador do escritório pode gerenciar modelos de documentos.</p>
-        </Card>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                    Modelos de Documentos
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                    Crie e gerencie modelos de documentos para sua equipe.
+                </p>
+            </div>
+            <Card className="flex flex-col items-center justify-center p-12 text-center">
+                <BadgeHelp className="h-16 w-16 text-destructive mb-4" />
+                <h3 className="text-xl font-semibold text-foreground">Acesso Negado</h3>
+                <p className="text-muted-foreground mt-2">Apenas o Administrador do escritório pode gerenciar modelos de documentos.</p>
+            </Card>
+        </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
         <div>
-            <h2 className="text-2xl font-bold tracking-tight">Modelos de Documentos</h2>
-            <p className="text-muted-foreground">Crie e gerencie modelos de documentos para sua equipe.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Modelos de Documentos
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Crie e gerencie modelos de documentos para sua equipe.
+            </p>
         </div>
+      <div className="flex items-center justify-between">
+        <div/>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button>
