@@ -72,10 +72,14 @@ export function ProcessosClient() {
 
   if (authLoading || loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight">Meus Processos</h2>
-            <p className="text-muted-foreground">Gerencie todos os seus casos em um só lugar.</p>
+      <div className="space-y-6">
+         <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Meus Processos
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Gerencie todos os seus casos em um só lugar.
+            </p>
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
@@ -84,8 +88,15 @@ export function ProcessosClient() {
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center justify-between">
-         <div/>
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Meus Processos
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+                Gerencie todos os seus casos em um só lugar.
+            </p>
+        </div>
+       <div className="flex items-center justify-end">
          {userRole !== 'secretary' && (
             <Button asChild>
                 <Link href="/dashboard/processos/novo">
