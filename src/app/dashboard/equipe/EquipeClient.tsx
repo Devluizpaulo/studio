@@ -188,104 +188,99 @@ export function EquipeClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl font-bold tracking-tight">Gestão de Equipe</h2>
-            <p className="text-muted-foreground">Gerencie os membros do seu escritório.</p>
-        </div>
-        <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-          <DialogTrigger asChild>
-             <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Convidar Membro
-              </Button>
-          </DialogTrigger>
-          <DialogContent>
-             <DialogHeader>
-              <DialogTitle>Convidar Novo Membro</DialogTitle>
-              <DialogDescription>
-                Uma senha temporária será gerada para o primeiro acesso.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onInviteSubmit)} className="space-y-4 py-4">
-                 <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Completo</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do novo membro" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input placeholder="email@dominio.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cargo</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o cargo do membro" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="lawyer">Advogado(a)</SelectItem>
-                          <SelectItem value="secretary">Secretária(o)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Alert>
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>Importante!</AlertTitle>
-                    <AlertDescription>
-                        Após o convite, envie a senha temporária para o novo membro e instrua-o a usar a função "Esqueci minha senha" na tela de login caso deseje definir uma senha pessoal antes do primeiro acesso.
-                    </AlertDescription>
-                </Alert>
-
-                <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Adicionar Membro
-                    </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
        <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-             <Users className="mr-3 h-5 w-5 text-accent" />
-            Membros do Escritório
-          </CardTitle>
-           <CardDescription>
-            {teamMembers.length > 0 ? `Seu escritório tem ${teamMembers.length} membro(s).` : 'Nenhum membro na equipe ainda.'}
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center">
+              <Users className="mr-3 h-5 w-5 text-accent" />
+              Membros do Escritório
+            </CardTitle>
+            <CardDescription>
+              {teamMembers.length > 0 ? `Seu escritório tem ${teamMembers.length} membro(s).` : 'Nenhum membro na equipe ainda.'}
+            </CardDescription>
+          </div>
+          <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Convidar Membro
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Convidar Novo Membro</DialogTitle>
+                <DialogDescription>
+                  Uma senha temporária será gerada para o primeiro acesso.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onInviteSubmit)} className="space-y-4 py-4">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome do novo membro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input placeholder="email@dominio.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cargo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o cargo do membro" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="lawyer">Advogado(a)</SelectItem>
+                            <SelectItem value="secretary">Secretária(o)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Alert>
+                      <Terminal className="h-4 w-4" />
+                      <AlertTitle>Importante!</AlertTitle>
+                      <AlertDescription>
+                          Após o convite, envie a senha temporária para o novo membro e instrua-o a usar a função "Esqueci minha senha" na tela de login caso deseje definir uma senha pessoal antes do primeiro acesso.
+                      </AlertDescription>
+                  </Alert>
+
+                  <DialogFooter>
+                      <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Adicionar Membro
+                      </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
            {teamMembers.length > 0 ? (
