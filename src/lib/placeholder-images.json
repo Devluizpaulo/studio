@@ -2,16 +2,16 @@
   {
     "id": "office-background",
     "section": "hero",
-    "src": "https://picsum.photos/seed/shoppingcartbg/1920/1080",
-    "alt": "Fundo sutil com um carrinho de compras e caixas, representando o direito do consumidor.",
-    "hint": "shopping background"
+    "src": "https://picsum.photos/seed/cleanoffice/1920/1080",
+    "alt": "Fundo de um escritório de advocacia moderno e minimalista.",
+    "hint": "modern office"
   },
   {
     "id": "lawyer-portrait-hero",
     "section": "hero",
-    "src": "https://picsum.photos/seed/lawyerheroprofile/500/700",
-    "alt": "Retrato profissional de um advogado confiante, com os braços cruzados.",
-    "hint": "confident lawyer"
+    "src": "https://picsum.photos/seed/lawyerfill/1200/1800",
+    "alt": "Retrato profissional de um advogado confiante, preenchendo a lateral da página.",
+    "hint": "professional lawyer portrait"
   },
   {
     "id": "main-lawyer",

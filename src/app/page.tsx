@@ -34,64 +34,52 @@ const practiceAreas = [
 export default function Home() {
   const placeholderImages: any[] = placeholderImagesData;
   const heroImages = placeholderImages.filter(p => p.section === 'hero');
-  const officeImage = heroImages.find(p => p.id === 'office-background');
   const lawyerPortrait = heroImages.find(p => p.id === 'lawyer-portrait-hero');
 
   return (
     <div className="flex flex-col bg-background text-foreground">
       
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-         {officeImage && (
-             <div 
-                className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-10"
-                style={{ backgroundImage: `url(${officeImage.src})` }}
-                data-ai-hint={officeImage.hint}
-            ></div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent z-10"></div>
-        
-        <div className="container mx-auto px-4 z-20 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            <div className="space-y-6 text-center lg:text-left">
-                <div className="flex justify-center lg:justify-start items-center gap-4 mb-4">
-                    <Scale className="h-12 w-12 text-primary" />
-                    <div>
-                        <h2 className="text-2xl font-bold font-headline text-foreground">RGJM</h2>
-                        <p className="font-semibold text-primary/80 tracking-widest">ADVOCACIA</p>
-                    </div>
-                </div>
+      {/* Hero Section - Split Screen Layout */}
+      <section className="relative grid min-h-screen grid-cols-1 lg:grid-cols-2">
+        {/* Left Side: Content */}
+        <div className="flex flex-col justify-center bg-background p-8 lg:p-16">
+          <div className="mx-auto w-full max-w-md space-y-8 text-center lg:text-left">
+            <div className="flex justify-center lg:justify-start items-center gap-4 mb-4">
+              <Scale className="h-12 w-12 text-primary" />
+              <div>
+                <h2 className="text-2xl font-bold font-headline text-foreground">RGJM</h2>
+                <p className="font-semibold text-primary/80 tracking-widest">ADVOCACIA</p>
+              </div>
+            </div>
 
-                <p className="font-semibold text-primary uppercase tracking-wider">Seus direitos como consumidor, levados a sério.</p>
-                <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight font-headline">
-                   Problemas com uma Compra ou Serviço? Recupere o Controle e Exija Seus Direitos.
-                </h1>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                    Proteção e justiça para o consumidor. Assessoria especializada para resolver seu caso.
-                </p>
-                <Button asChild size="lg" className="w-full lg:w-auto text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                        <CalendarCheck2 className="mr-3 h-6 w-6"/>
-                        Agende sua Consulta
-                    </a>
-                </Button>
-            </div>
-            
-            <div className="hidden lg:flex justify-center items-end">
-                {lawyerPortrait && (
-                    <Image
-                      src={lawyerPortrait.src}
-                      alt={lawyerPortrait.alt}
-                      width={450}
-                      height={650}
-                      className="object-contain"
-                      priority
-                      data-ai-hint={lawyerPortrait.hint}
-                    />
-                )}
-            </div>
+            <p className="font-semibold text-primary uppercase tracking-wider">Seus direitos como consumidor, levados a sério.</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight font-headline">
+               Problemas com uma Compra ou Serviço? Recupere o Controle.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+                Proteção e justiça para o consumidor. Assessoria especializada para resolver seu caso de forma rápida e eficaz.
+            </p>
+            <Button asChild size="lg" className="w-full lg:w-auto text-lg py-7 px-8 rounded-lg shadow-lg hover:shadow-primary/20 transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground">
+                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                    Fale com um Advogado
+                </a>
+            </Button>
           </div>
+        </div>
+        
+        {/* Right Side: Image */}
+        <div className="relative hidden h-full min-h-[50vh] lg:block">
+            {lawyerPortrait && (
+                <Image
+                  src={lawyerPortrait.src}
+                  alt={lawyerPortrait.alt}
+                  fill
+                  className="object-cover"
+                  priority
+                  data-ai-hint={lawyerPortrait.hint}
+                />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
         </div>
       </section>
 
@@ -137,7 +125,7 @@ export default function Home() {
         </div>
       </section>
        <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg z-50 hover:bg-green-600 transition-transform hover:scale-110">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path><path d="M14.05 2.95a16 16 0 0 1 8 8M14.05 6.95a12 12 0 0 1 4 4"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7"><path d="M16.6 14c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.7-.8.9-.1.1-.3.1-.5 0-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.2.3-.3.1-.1.2-.3.1-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.3c.1.1 1.5 2.3 3.6 3.2.5.2.8.3 1.1.4.5.1 1 .1 1.3.1.4 0 1.1-.5 1.3-1 .2-.5.2-1 .1-1.1-.1-.1-.3-.2-.5-.3zM12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"/></svg>
       </a>
     </div>
   );
