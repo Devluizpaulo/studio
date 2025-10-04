@@ -28,7 +28,7 @@ export type UpdateProcessStatusOutput = z.infer<typeof UpdateProcessStatusOutput
 
 export async function updateProcessStatus(input: UpdateProcessStatusInput): Promise<UpdateProcessStatusOutput> {
   // The user ID is passed within the input object itself for the flow to use.
-  return updateProcessStatusFlow(input, { auth: { uid: input.userId } });
+  return updateProcessStatusFlow(input, { auth: input.userId });
 }
 
 const prompt = ai.definePrompt({
