@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Landmark, Briefcase, Heart, Shield } from "lucide-react";
 import Image from "next/image";
@@ -41,16 +42,14 @@ export default function Home() {
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10"></div>
         {officeImage && (
-            <Image
-              src={officeImage.src}
-              alt={officeImage.alt}
-              fill
-              className="object-cover z-0 opacity-20"
-              data-ai-hint={officeImage.hint}
-            />
+             <div 
+                className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-20"
+                style={{ backgroundImage: `url(${officeImage.src})` }}
+                data-ai-hint={officeImage.hint}
+            ></div>
         )}
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10"></div>
         
         <div className="container mx-auto px-4 z-20 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
