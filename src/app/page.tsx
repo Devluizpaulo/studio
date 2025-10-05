@@ -63,7 +63,7 @@ async function getPageData() {
                         id: lawyerSnapshot.id,
                         fullName: lawyerData.fullName,
                         legalSpecialty: lawyerData.legalSpecialty,
-                        bio: lawyerData.bio, // Make sure bio is fetched
+                        bio: lawyerData.bio,
                         photoUrl: lawyerData.photoUrl,
                         office: lawyerData.office,
                     };

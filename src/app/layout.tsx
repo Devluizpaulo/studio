@@ -100,15 +100,6 @@ export default async function RootLayout({
 }>) {
   const settings = await getOfficeSettings();
 
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
-      // @ts-ignore
-      return React.cloneElement(child, { settings });
-    }
-    return child;
-  });
-
-
   return (
     <html lang="pt-BR" suppressHydrationWarning>
        {settings?.gtmId && (
@@ -139,7 +130,7 @@ export default async function RootLayout({
           <SidebarProvider>
             <div className="relative flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">{childrenWithProps}</main>
+              <main className="flex-1">{children}</main>
               <Footer ownerInfo={settings?.ownerInfo} />
             </div>
             <Toaster />
