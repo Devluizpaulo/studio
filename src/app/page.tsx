@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui/button";
 import { Landmark, Briefcase, Heart, Shield, Scale, Users, Award, Gavel } from "lucide-react";
 import Image from "next/image";

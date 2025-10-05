@@ -27,7 +27,7 @@ const UpdateProcessStatusOutputSchema = z.object({
 export type UpdateProcessStatusOutput = z.infer<typeof UpdateProcessStatusOutputSchema>;
 
 export async function updateProcessStatus(input: UpdateProcessStatusInput): Promise<UpdateProcessStatusOutput> {
-  // The user ID is passed within the input object itself for the flow to use.
+  // O contexto de autenticação agora é tratado automaticamente pelo middleware do genkit.
   return updateProcessStatusFlow(input);
 }
 

@@ -27,7 +27,7 @@ const DraftPetitionOutputSchema = z.object({
 export type DraftPetitionOutput = z.infer<typeof DraftPetitionOutputSchema>;
 
 export async function draftPetition(input: DraftPetitionInput): Promise<DraftPetitionOutput> {
-  // The user ID is passed within the input object itself for the flow to use.
+  // O contexto de autenticação agora é tratado automaticamente pelo middleware do genkit.
   return draftPetitionFlow(input);
 }
 

@@ -47,18 +47,19 @@ export async function parseDocumentAction(formData: FormData): Promise<ParseResu
 
     try {
         const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
         if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-            const parser = new DocxParser();
-            const result = await new Promise<any>((resolve, reject) => {
-                 parser.parse(arrayBuffer, (err: any, result: any) => {
+             const result = await new Promise<any>((resolve, reject) => {
+                const parser = new DocxParser();
+                 parser.parse(buffer, (err: any, result: any) => {
                     if (err) reject(err);
                     else resolve(result);
                 });
             });
             return { success: true, data: result.text };
         } else if (file.type === "text/plain" || file.type === "text/markdown") {
-            const text = Buffer.from(arrayBuffer).toString('utf-8');
+            const text = buffer.toString('utf-8');
             return { success: true, data: text };
         } else {
             return { success: false, error: "Tipo de arquivo não suportado." };
